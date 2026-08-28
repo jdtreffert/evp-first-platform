@@ -1,0 +1,39 @@
+name: EVP First Platform
+description: >
+  Full-stack registry platform with identity, onboarding, Airtable integration,
+  patient form submission, longitudinal event grid, and future analytics modules.
+
+areas:
+  - backend
+  - frontend
+  - docs
+
+milestones:
+  - name: Identity & Onboarding
+    description: Implement account creation, email check, onboarding state machine.
+  - name: Patient Data Pipeline
+    description: Implement master record updates, patient form submission, Airtable sync.
+  - name: Frontend Scaffolding
+    description: Vite + React + Router + Zustand + Tailwind integration.
+  - name: Admin Dashboard
+    description: Invitation flow, passkey enrollment, longitudinal event grid.
+  - name: Survey Module
+    description: Structured surveys, data collection, analytics.
+
+tasks:
+  - id: check-email-route
+    title: Implement check-email route
+    area: backend
+    milestone: Identity & Onboarding
+  - id: onboarding-state-machine
+    title: Add onboarding state transitions
+    area: backend
+    milestone: Identity & Onboarding
+  - id: patient-form-route
+    title: Implement patient form submission route
+    area: backend
+    milestone: Patient Data Pipeline
+  - id: frontend-scaffold
+    title: Complete frontend scaffolding
+    area: frontend
+    milestone: Frontend Scaffolding

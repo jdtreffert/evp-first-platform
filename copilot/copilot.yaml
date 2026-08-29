@@ -19,6 +19,9 @@ milestones:
     description: Invitation flow, passkey enrollment, longitudinal event grid.
   - name: Survey Module
     description: Structured surveys, data collection, analytics.
+  - name: Passkey Authentication
+    description: Implement WebAuthn registration and authentication for passwordless login.
+  
 
 tasks:
   - id: check-email-route
@@ -37,3 +40,16 @@ tasks:
     title: Complete frontend scaffolding
     area: frontend
     milestone: Frontend Scaffolding
+  - id: passkey-enrollment
+    description: Implement WebAuthn registration for passwordless login.
+    milestone: Identity
+  - id: admin-invite-flow
+    description: Build admin invitation + user management dashboard.
+    milestone: Admin Dashboard
+  - id: airtable-longitudinal-events
+    description: Implement Airtable helpers for longitudinal event storage.
+    milestone: Patient Pipeline
+  - id: survey-builder
+    description: Create survey definition + rendering engine.
+    milestone: Survey Module
+

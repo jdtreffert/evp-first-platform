@@ -1,4 +1,3 @@
-```md
 EVP First Platform Architecture
 
 ## Overview

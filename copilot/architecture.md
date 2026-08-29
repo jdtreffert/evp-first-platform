@@ -6,7 +6,8 @@ The EVP First platform is a full‑stack registry system designed to support ide
 
 ## System Diagram
 
-```mermaid
+```
+mermaid
 flowchart TD
     A[Frontend: React + Vite + Zustand + Tailwind] --> B[Backend: Node.js + Express + TypeScript]
     B --> C[Airtable: Master Record Table]

@@ -1,0 +1,269 @@
+
+##############################################
+### 1. Create Account
+##############################################
+POST http://localhost:3000/create-account
+Content-Type: application/json
+
+{
+  "email": "test5@examples.com",
+  "firstName": "Test5",
+  "lastName": "User5"
+}
+
+# Copy the returned airtableId → use it below
+
+##############################################
+### 2. invited → pending
+##############################################
+POST http://localhost:3000/update-onboarding
+Content-Type: application/json
+
+{
+  "accountId": "YOUR_ACCOUNT_ID",
+  "newStatus": "pending"
+}
+
+##############################################
+### 3. pending → registered
+##############################################
+POST http://localhost:3000/update-onboarding
+Content-Type: application/json
+
+{
+  "accountId": "YOUR_ACCOUNT_ID",
+  "newStatus": "registered"
+}
+
+##############################################
+### 4. registered → verified
+##############################################
+POST http://localhost:3000/update-onboarding
+Content-Type: application/json
+
+{
+  "accountId": "YOUR_ACCOUNT_ID",
+  "newStatus": "verified"
+}
+
+##############################################
+### 5. verified → completed
+##############################################
+POST http://localhost:3000/update-onboarding
+Content-Type: application/json
+
+{
+  "accountId": "YOUR_ACCOUNT_ID",
+  "newStatus": "completed"
+}
+
+##############################################
+### 6. completed → active
+##############################################
+POST http://localhost:3000/update-onboarding
+Content-Type: application/json
+
+{
+  "accountId": "YOUR_ACCOUNT_ID",
+  "newStatus": "active"
+}
+
+##############################################
+### 7. active → reengaged
+##############################################
+POST http://localhost:3000/update-onboarding
+Content-Type: application/json
+
+{
+  "accountId": "YOUR_ACCOUNT_ID",
+  "newStatus": "reengaged"
+}
+
+##############################################
+### 8. reengaged → active
+##############################################
+POST http://localhost:3000/update-onboarding
+Content-Type: application/json
+
+{
+  "accountId": "YOUR_ACCOUNT_ID",
+  "newStatus": "active"
+}
+
+
+##############################################
+### 1. Create Account (fresh record)
+##############################################
+POST http://localhost:3000/create-account
+Content-Type: application/json
+
+{
+  "email": "update_test@example.com",
+  "firstName": "Update",
+  "lastName": "Tester"
+}
+
+# Copy the returned airtableId → use it below
+
+##############################################
+### 2. Update First Name
+##############################################
+POST http://localhost:3000/update-account
+Content-Type: application/json
+
+{
+  "accountId": "recctrpingTmpV2b6",
+  "updates": {
+    "FirstName": "UpdatedFirst"
+  }
+}
+
+##############################################
+### 3. Update Last Name
+##############################################
+POST http://localhost:3000/update-account
+Content-Type: application/json
+
+{
+  "accountId": "recctrpingTmpV2b6",
+  "updates": {
+    "LastName": "UpdatedLast2"
+  }
+}
+
+##############################################
+### 4. Update Email
+##############################################
+POST http://localhost:3000/update-account
+Content-Type: application/json
+
+{
+  "accountId": "recctrpingTmpV2b6",
+  "updates": {
+    "Email": "updated_email@example.com"
+  }
+}
+
+##############################################
+### 5. Update Status (direct account update)
+##############################################
+POST http://localhost:3000/update-account
+Content-Type: application/json
+
+{
+  "accountId": "recctrpingTmpV2b6",
+  "updates": {
+    "Status": "active"
+  }
+}
+
+##############################################
+### 6. Update Multiple Fields
+##############################################
+POST http://localhost:3000/update-account
+Content-Type: application/json
+
+{
+  "accountId": "recctrpingTmpV2b6",
+  "updates": {
+    "FirstName": "Multi",
+    "LastName": "Update",
+    "Email": "multi_update@example.com"
+  }
+}
+
+##############################################
+### 7. Invalid Field Name (should fail)
+##############################################
+POST http://localhost:3000/update-account
+Content-Type: application/json
+
+{
+  "accountId": "recctrpingTmpV2b6",
+  "updates": {
+    "NonExistentField": "value"
+  }
+}
+
+##############################################
+### 8. Missing accountId (should fail)
+##############################################
+POST http://localhost:3000/update-account
+Content-Type: application/json
+
+{
+  "updates": {
+    "FirstName": "NoID"
+  }
+}
+
+##############################################
+### 8. Missing accountId (should fail)
+##############################################
+POST http://localhost:3000/update-account
+Content-Type: application/json
+
+{
+  "updates": {
+    "FirstName": "NoID"
+  }
+}
+
+##############################################
+### 1. Create Account + Master (fresh records)
+##############################################
+POST http://localhost:3000/create-account
+Content-Type: application/json
+
+{
+  "email": "master_update_test@example.com",
+  "firstName": "Master",
+  "lastName": "Tester"
+}
+
+# Copy the returned masterId → use it below
+
+##############################################
+### 1. Create Account + Master (fresh records)
+##############################################
+POST http://localhost:3000/create-account
+Content-Type: application/json
+
+{
+  "email": "master_update_test4@example.com",
+  "firstName": "Master4",
+  "lastName": "Tester4"
+}
+
+# Copy the returned masterId → use it below
+
+
+
+
+##############################################
+### 2. Update Age at Diagnosis
+##############################################
+POST http://localhost:3000/update-master
+Content-Type: application/json
+
+{
+  "masterId": "recZVUIQd3a5H41Id",
+  "updates": {
+    "Age at Diagnosis": 67
+  }
+}
+
+
+
+POST http://localhost:3000/update-master
+Content-Type: application/json
+
+{
+  "masterId": "recZVUIQd3a5H41Id",
+  "updates": {
+    "DiagnosisDate": "2023-11-01",
+    "Stage": "T1",
+    "Histology": "High-grade"
+  }
+}
+

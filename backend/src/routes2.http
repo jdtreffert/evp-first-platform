@@ -1,0 +1,20 @@
+
+
+POST http://localhost:3000/update-master
+Content-Type: application/json
+
+{
+  "masterId": "recZVUIQd3a5H41Id",
+  "updates": {
+    "ConsentVersion": "v2",
+    "Diagnosis Date": "2023-11-01",
+    "Age at Diagnosis": 68,
+    "Sex": "Female",
+    "Previous Treatment (Patient-Reported)": [
+    "Radiation therapy"
+    ],
+    "EVP Start Date": "2023-11-15",
+    "Stage at Diagnosis (Patient-Reported)": "Stage IIIA",
+    "T Category (Patient-Reported)": "T2"
+  }
+}

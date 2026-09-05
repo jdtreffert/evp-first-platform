@@ -1,41 +1,7 @@
-import dotenv from 'dotenv';
-dotenv.config();
-const apiKey = process.env.AIRTABLE_API_KEY;
-const baseId = process.env.AIRTABLE_BASE_ID;
+import { base, accountTableName } from '../airtable/client';
+import { createPatientRecord } from '../airtable/masterRecord';
+import { createAccountRecord } from '../airtable/account';
 import { generateUID } from './uid';
-import Airtable from 'airtable';
-
-const airtable = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY });
-const base = airtable.base(process.env.AIRTABLE_BASE_ID!);
-const masterTableName = process.env.AIRTABLE_MASTER_TABLE_NAME!;
-const accountTableName = process.env.AIRTABLE_ACCOUNT_TABLE_NAME!;
-
-export async function createPatientRecord(fields: any) {
-  try {
- 
-    const created = await base(masterTableName).create([{ fields }]);
-    return created[0];
-  } catch (error: any) {
-    console.error('Airtable error:', error);
-    throw new Error('Failed to create Airtable record');
-  }
-}
-
-export async function createAccountRecord(fields: any) {
-  try {
-    console.log("Account fields being sent:", JSON.stringify(fields, null, 2));
-
-    const payload = [{ fields }];
-    console.log("Actual payload passed to Airtable SDK:", JSON.stringify(payload, null, 2));
-
-    const created = await base(accountTableName).create(payload);
-    return created[0];
-  } catch (error: any) {
-    console.error("Airtable Account error (full object):", error);
-    console.error("Airtable Account error JSON:", JSON.stringify(error, null, 2));
-    throw new Error('Failed to create Account record');
-  }
-}
 
 export async function findOrCreateAccountAndMaster(email: string, firstName: string, lastName: string) {
   // 1. Lookup existing account
@@ -79,22 +45,7 @@ export async function findOrCreateAccountAndMaster(email: string, firstName: str
   };
 }
 
-export async function updateAccountRecord(accountId: string, fields: any) {
-  try {
-    const updated = await base(accountTableName).update([
-      {
-        id: accountId,
-        fields
-      }
-    ]);
 
-    return updated[0];
-
-  } catch (error: any) {
-    console.error("Airtable Account update error:", error);
-    throw new Error("Failed to update Account record");
-  }
-}
 
 const allowedTransitions: Record<string, string[]> = {
   invited: ["pending", "paused", "withdrawn"],
@@ -105,21 +56,26 @@ const allowedTransitions: Record<string, string[]> = {
   active: ["reengaged", "paused", "withdrawn"],
   reengaged: ["active", "paused", "withdrawn"],
   paused: ["pending", "withdrawn"],
-  withdrawn: [] // terminal state
+  withdrawn: []
 };
 
 export async function updateOnboardingStatus(accountId: string, newStatus: string) {
-  const record = await base('Account').find(accountId);
+  const record = await base(accountTableName).find(accountId);
+
+  // Read the current status from Airtable
   const currentStatus = record.get("Status");
 
-  const allowed = allowedTransitions[currentStatus] || [];
+  // Force it to a string so TS can index safely
+  const status = String(currentStatus);
+
+  // Lookup allowed transitions
+  const allowed = allowedTransitions[status] || [];
+
   if (!allowed.includes(newStatus)) {
-    throw new Error(
-      `Invalid onboarding transition: ${currentStatus} → ${newStatus}`
-    );
+    throw new Error(`Invalid onboarding transition: ${currentStatus} → ${newStatus}`);
   }
 
-  const updated = await base('Account').update([
+  const updated = await base(accountTableName).update([
     {
       id: accountId,
       fields: { Status: newStatus }
@@ -129,56 +85,21 @@ export async function updateOnboardingStatus(accountId: string, newStatus: strin
   return updated[0];
 }
 
+export async function updateAccountRecord(accountId: string, fields: any) {
+  return base(accountTableName).update([
+    {
+      id: accountId,
+      fields
+    }
+  ]);
+}
+
 export async function updatePatientRecord(masterId: string, fields: any) {
-  try {
-    const updated = await base(masterTableName).update([
-      {
-        id: masterId,
-        fields
-      }
-    ]);
-
-    return updated[0];
-
-  } catch (error: any) {
-    console.error("Airtable Master update error:", error);
-    throw new Error("Failed to update Master record");
-  }
+  return base('Master').update([
+    {
+      id: masterId,
+      fields
+    }
+  ]);
 }
-export async function createPatientFormRecord(data: any) {
-  const apiKey = process.env.AIRTABLE_API_KEY;
-  const baseId = process.env.AIRTABLE_BASE_ID;
-
-  const airtableFields = {
-    "FirstName": data.firstName,
-    "LastName": data.lastName,
-    "Email": data.email,
-  };
-
-  const response = await fetch(`https://api.airtable.com/v0/${baseId}/Account`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ fields: airtableFields })
-  });
-
-  const json = await response.json();
-
-  if (!response.ok) {
-    console.error("Airtable error:", json);
-    throw new Error(json.error?.message || "Failed to create Patient record");
-  }
-
-  return json;
-}
-
-
-
-
-
-
-
-
 

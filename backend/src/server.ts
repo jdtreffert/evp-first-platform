@@ -5,20 +5,25 @@ console.log("Loaded API key:", process.env.AIRTABLE_API_KEY);
 import express from 'express';
 const cors = require('cors');
 
-import { generateUID } from './routes/uid';
+
 import { findOrCreateAccountAndMaster } from './routes/airtable';
 import { updateAccountRecord } from './routes/airtable';
 import { updatePatientRecord } from './routes/airtable';
 import { updateOnboardingStatus } from './routes/airtable';
-import { createPatientFormRecord } from "./routes/airtable";
+import eventsRouter from './routes/events';
+
 
 const app = express();
+
 
 // FIXED ORDER — CORS first
 app.use(cors());
 
 // JSON parsing once
 app.use(express.json());
+
+//NOW mount routes
+app.use('/api', eventsRouter);
 
 app.get('/', (req, res) => {
   res.send('EVP First backend running');
@@ -146,59 +151,14 @@ app.post("/api/airtable/patient-form", async (req, res) => {
       masterId: result.masterId,
       uid: result.uid
     });
+} catch (error: any) {
+  console.error("Form submission error:", error);
+  res.status(500).json({ success: false, error: error.message });
+}
 
-  } catch (error) {
-    console.error("Form submission error:", error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-
-
-
-
-
-
-
-/*
-app.post('/create-account', async (req, res) => {
-  try {
-    const uid = generateUID();
-
-    const patientData = {
-      UID: uid,
-      CreatedAt: new Date().toISOString(),
-      ConsentVersion: "v1"
-    };
-
-    const accountData = {
-      UID: uid,
-      Email: req.body.email,
-      FirstName: req.body.firstName,
-      LastName: req.body.lastName,
-      ConsentVersion: "v1",
-      Status: "invited",
-      CreatedAt: new Date().toISOString()
   
-    };
-
-    const record = await createPatientRecord(patientData);
-
-    const accountRecord = await createAccountRecord(accountData);
-
-    res.json({
-      success: true,
-      uid,
-      airtableId: record.id
-    });
-  } catch (error: any) {
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
 });
-*/
+
 
 app.listen(3000, () => {
   console.log('Server running on port 3000');

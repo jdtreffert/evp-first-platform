@@ -26,5 +26,29 @@ router.get('/patients/:masterId/events', async (req: Request, res: Response) => 
   }
 });
 
+router.post("/onboarding/:patientId/events", async (req: Request, res: Response) => {
+  try {
+    const patientId = req.params.patientId;
+    const { diagnosis, treatment, response, qol, imaging, turbt } = req.body;
+
+    const events = await mapOnboardingToEvents({
+      patientId,
+      diagnosis,
+      treatment,
+      response,
+      qol,
+      imaging,
+      turbt
+    });
+
+    res.status(200).json({ events });
+  } catch (err) {
+    console.error("Error creating onboarding events:", err);
+    res.status(500).json({ error: "Failed to create onboarding events" });
+  }
+});
+
+
+
 
 export default router;

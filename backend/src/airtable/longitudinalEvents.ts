@@ -1,5 +1,9 @@
 import { longitudinalEventsTable } from './client';
 
+export interface Attachment {
+  url: string;
+}
+
 export interface EventDetails {
   findings?: string;
   notes?: string;
@@ -7,29 +11,26 @@ export interface EventDetails {
   location?: string;
 }
 
-export interface LongitudinalEventInput {
-  eventType: string;
-  eventDate: string; // ISO string
-  eventSummary?: string;
-  eventDetails?: EventDetails;
-  sourceDocumentURL?: string;
+export interface EventPayload {
+  EventType: string;
+  EventDate: string;
+  EventSummary: string;
+  EventDetails: string | null;
+  SourceDocumentURL: string | null;
+  EventAttachments: Attachment[];
+  MasterId: string[];
+  CreatedAt: string;
 }
 
-export async function createLongitudinalEvent(masterId: string, event: LongitudinalEventInput) {
+
+export async function createLongitudinalEvent(masterId: string, payload: EventPayload) {
   return longitudinalEventsTable.create([
     {
-      fields: {
-        MasterId: [masterId],
-        EventType: event.eventType,
-        EventDate: event.eventDate,
-        EventSummary: event.eventSummary || '',
-        EventDetails: JSON.stringify(event.eventDetails || {}),
-        SourceDocumentURL: event.sourceDocumentURL || '',
-        CreatedAt: new Date().toISOString(),
-      },
+      fields: payload as any
     },
   ]);
 }
+
 
 function safeParse(value: any): EventDetails | any {
   try {

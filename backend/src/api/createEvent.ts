@@ -1,10 +1,22 @@
-import base from "./airtableClient"; // your Airtable client
-import { LongitudinalEventsTable } from "./tables"; // your table name
+import {base} from "../airtable/client"; // your Airtable client
+import { LongitudinalEventsTable } from "../airtable/tables"; // your table name
 
-export async function createEvent(fields: any) {
-  const result = await base(LongitudinalEventsTable).create([
-    { fields }
-  ]);
-
-  return result[0];
+export interface AirtableEventFields {
+  EventSummary: string;
+  EventType: string;
+  EventCategory: string;
+  EventDate: string;
+  EventDetails: string;
+  MasterId: string;
 }
+
+export async function createEvent(fields: AirtableEventFields) {
+  const record = await base(LongitudinalEventsTable).create({ fields: fields as any });
+  return record as any;
+}
+
+
+
+
+
+

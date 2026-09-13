@@ -1,31 +1,30 @@
-import { base, accountTableName } from '../airtable/client';
-import { createPatientRecord } from '../airtable/masterRecord';
-import { createAccountRecord } from '../airtable/account';
-import { generateUID } from './uid';
+import { base, accountTableName } from "../airtable/client";
+import { createMasterRecord } from "../airtable/master";
+import { createAccountRecord } from "../airtable/account";
+import { generateUID } from "./uid";
 
+// -----------------------------
+// findOrCreateAccountAndMaster
+// -----------------------------
 export async function findOrCreateAccountAndMaster(email: string, firstName: string, lastName: string) {
-  // 1. Lookup existing account
   const existing = await base(accountTableName).select({
     filterByFormula: `{Email} = "${email}"`
   }).firstPage();
 
   if (existing.length > 0) {
     const account = existing[0];
-    const uid = account.get('UID');
+    const uid = account.get("UID");
     return { uid, accountId: account.id, created: false };
   }
 
-  // 2. Generate UID
   const uid = generateUID();
 
-  // 3. Create Master record
-  const masterRecord = await createPatientRecord({
+  const masterRecord = await createMasterRecord({
     UID: uid,
     CreatedAt: new Date().toISOString(),
     ConsentVersion: "v1"
   });
 
-  // 4. Create Account record
   const accountRecord = await createAccountRecord({
     UID: uid,
     Email: email,
@@ -36,7 +35,6 @@ export async function findOrCreateAccountAndMaster(email: string, firstName: str
     CreatedAt: new Date().toISOString()
   });
 
-  // 5. Return mapping
   return {
     uid,
     accountId: accountRecord.id,
@@ -45,8 +43,9 @@ export async function findOrCreateAccountAndMaster(email: string, firstName: str
   };
 }
 
-
-
+// -----------------------------
+// Onboarding status transitions
+// -----------------------------
 const allowedTransitions: Record<string, string[]> = {
   invited: ["pending", "paused", "withdrawn"],
   pending: ["registered", "paused", "withdrawn"],
@@ -61,45 +60,30 @@ const allowedTransitions: Record<string, string[]> = {
 
 export async function updateOnboardingStatus(accountId: string, newStatus: string) {
   const record = await base(accountTableName).find(accountId);
-
-  // Read the current status from Airtable
-  const currentStatus = record.get("Status");
-
-  // Force it to a string so TS can index safely
-  const status = String(currentStatus);
-
-  // Lookup allowed transitions
-  const allowed = allowedTransitions[status] || [];
+  const currentStatus = String(record.get("Status"));
+  const allowed = allowedTransitions[currentStatus] || [];
 
   if (!allowed.includes(newStatus)) {
     throw new Error(`Invalid onboarding transition: ${currentStatus} → ${newStatus}`);
   }
 
   const updated = await base(accountTableName).update([
-    {
-      id: accountId,
-      fields: { Status: newStatus }
-    }
+    { id: accountId, fields: { Status: newStatus } }
   ]);
 
   return updated[0];
 }
 
+// -----------------------------
+// Update Account
+// -----------------------------
 export async function updateAccountRecord(accountId: string, fields: any) {
-  return base(accountTableName).update([
-    {
-      id: accountId,
-      fields
-    }
-  ]);
+  return base(accountTableName).update([{ id: accountId, fields }]);
 }
 
-export async function updatePatientRecord(masterId: string, fields: any) {
-  return base('Master').update([
-    {
-      id: masterId,
-      fields
-    }
-  ]);
+// -----------------------------
+// Update Master
+// -----------------------------
+export async function updateMasterRecord(masterId: string, fields: any) {
+  return base("Master").update([{ id: masterId, fields }]);
 }
-

@@ -1,12 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-export default function QoLStep() {
-  const [physicalScore, setPhysicalScore] = useState(5);
-  const [emotionalScore, setEmotionalScore] = useState(5);
-  const [functionalScore, setFunctionalScore] = useState(5);
+export default function QoLStep({ qol, setQol, onNext, onBack }) {
+  // Local state initialized from parent
+  const [physicalScore, setPhysicalScore] = useState(qol.physicalScore || 5);
+  const [emotionalScore, setEmotionalScore] = useState(qol.emotionalScore || 5);
+  const [functionalScore, setFunctionalScore] = useState(qol.functionalScore || 5);
 
-  const [bladderSymptoms, setBladderSymptoms] = useState<string[]>([]);
-  const [bladderNotes, setBladderNotes] = useState("");
+  const [bladderSymptoms, setBladderSymptoms] = useState(
+    qol.bladderSymptoms || []
+  );
+  const [bladderNotes, setBladderNotes] = useState(qol.bladderNotes || "");
+
+  // Sync local state when navigating back
+  useEffect(() => {
+    setPhysicalScore(qol.physicalScore || 5);
+    setEmotionalScore(qol.emotionalScore || 5);
+    setFunctionalScore(qol.functionalScore || 5);
+    setBladderSymptoms(qol.bladderSymptoms || []);
+    setBladderNotes(qol.bladderNotes || "");
+  }, [qol]);
 
   const symptomOptions = [
     "Urgency",
@@ -18,15 +30,25 @@ export default function QoLStep() {
     "Other"
   ];
 
+  const handleNext = () => {
+    setQol({
+      physicalScore,
+      emotionalScore,
+      functionalScore,
+      bladderSymptoms,
+      bladderNotes
+    });
+
+    onNext();
+  };
+
   return (
-    <div className="space-y-8 text-white">
+    <div className="space-y-10 text-white">
 
       {/* Physical Well-Being */}
       <section>
         <h3 className="text-lg font-bold mb-2">Physical Well-Being</h3>
-        <p className="text-sm mb-4">
-          How would you rate your physical well-being?
-        </p>
+        <p className="text-sm mb-4">How would you rate your physical well-being?</p>
 
         <input
           type="range"
@@ -36,19 +58,13 @@ export default function QoLStep() {
           onChange={(e) => setPhysicalScore(Number(e.target.value))}
           className="w-full"
         />
-        <p className="mt-2 text-xs text-gray-400">
-          0–3: Severe difficulty • 4–6: Moderate difficulty • 7–8: Mild difficulty • 9–10: Doing well overall
-        </p>
-
         <p className="mt-2 text-sm">Score: {physicalScore}/10</p>
       </section>
 
       {/* Emotional Well-Being */}
       <section>
         <h3 className="text-lg font-bold mb-2">Emotional Well-Being</h3>
-        <p className="text-sm mb-4">
-          How would you rate your emotional well-being?
-        </p>
+        <p className="text-sm mb-4">How would you rate your emotional well-being?</p>
 
         <input
           type="range"
@@ -58,19 +74,13 @@ export default function QoLStep() {
           onChange={(e) => setEmotionalScore(Number(e.target.value))}
           className="w-full"
         />
-        <p className="mt-2 text-xs text-gray-400">
-          0–3: Feeling overwhelmed • 4–6: Ups and downs but managing • 7–8: Mostly stable • 9–10: Emotionally resilient
-        </p>
-
         <p className="mt-2 text-sm">Score: {emotionalScore}/10</p>
       </section>
 
       {/* Functional Well-Being */}
       <section>
         <h3 className="text-lg font-bold mb-2">Functional Well-Being</h3>
-        <p className="text-sm mb-4">
-          How would you rate your ability to perform daily activities?
-        </p>
+        <p className="text-sm mb-4">How would you rate your ability to perform daily activities?</p>
 
         <input
           type="range"
@@ -80,19 +90,13 @@ export default function QoLStep() {
           onChange={(e) => setFunctionalScore(Number(e.target.value))}
           className="w-full"
         />
-        <p className="mt-2 text-xs text-gray-400">
-          0–3: Daily tasks very difficult • 4–6: Some tasks but need help/rest • 7–8: Manage most tasks • 9–10: Functioning normally
-        </p>
-
         <p className="mt-2 text-sm">Score: {functionalScore}/10</p>
       </section>
 
       {/* Bladder-Specific Symptoms */}
       <section>
         <h3 className="text-lg font-bold mb-2">Bladder-Specific Symptoms</h3>
-        <p className="text-sm mb-4">
-          Select any symptoms you are currently experiencing.
-        </p>
+        <p className="text-sm mb-4">Select any symptoms you are currently experiencing.</p>
 
         {symptomOptions.map((opt) => (
           <label key={opt} className="block">
@@ -111,6 +115,7 @@ export default function QoLStep() {
           </label>
         ))}
 
+        {/* Optional notes */}
         {bladderSymptoms.length > 0 && (
           <div className="mt-4">
             <label className="block mb-2">Symptom Notes (optional)</label>
@@ -123,6 +128,23 @@ export default function QoLStep() {
           </div>
         )}
       </section>
+
+      {/* Navigation */}
+      <div className="flex space-x-4">
+        <button
+          onClick={onBack}
+          className="bg-gray-700 px-4 py-2 rounded"
+        >
+          Back
+        </button>
+
+        <button
+          onClick={handleNext}
+          className="bg-blue-600 px-4 py-2 rounded"
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 }

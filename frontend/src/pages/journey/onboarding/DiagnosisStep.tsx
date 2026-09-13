@@ -1,43 +1,142 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-export default function DiagnosisStep() {
-  const [diagnosisDate, setDiagnosisDate] = useState("");
-  const [stage, setStage] = useState("");
-  const [histology, setHistology] = useState("");
-  const [symptoms, setSymptoms] = useState("");
-  const [initialImaging, setInitialImaging] = useState<string[]>([]);
-  const [initialCystoscopyNotes, setInitialCystoscopyNotes] = useState("");
+export default function DiagnosisStep({ diagnosis, setDiagnosis, onNext }) {
+  // -----------------------------
+  // Existing fields
+  // -----------------------------
+  const [diagnosisDate, setDiagnosisDate] = useState(diagnosis.diagnosisDate || "");
+  const [histology, setHistology] = useState(diagnosis.histology || "");
+  const [symptoms, setSymptoms] = useState(diagnosis.symptoms || "");
+  const [initialImaging, setInitialImaging] = useState(diagnosis.initialImaging || []);
+  const [initialCystoscopyNotes, setInitialCystoscopyNotes] = useState(
+    diagnosis.initialCystoscopyNotes || ""
+  );
 
-  const imagingOptions = [
-    "CT",
-    "MRI",
-    "PET/CT",
-    "Ultrasound",
-    "None / Not sure"
+  // -----------------------------
+  // Clinical Stage + TNM
+  // -----------------------------
+  const [clinicalStage, setClinicalStage] = useState(diagnosis.clinicalStage || "");
+  const [tStage, setTStage] = useState(diagnosis.tStage || "");
+  const [nStage, setNStage] = useState(diagnosis.nStage || "");
+  const [mStage, setMStage] = useState(diagnosis.mStage || "");
+
+  // -----------------------------
+  // Variant Histology
+  // -----------------------------
+  const [variantHistology, setVariantHistology] = useState(
+    diagnosis.variantHistology || []
+  );
+
+  const variantHistologyOptions = [
+    "Plasmacytoid",
+    "Sarcomatoid",
+    "Micropapillary",
+    "Nested",
+    "Glandular differentiation",
+    "Squamous differentiation",
+    "Small cell features",
+    "Other"
   ];
 
-  const stageOptions = [
-    "Ta",
-    "T1",
-    "T2",
-    "T3",
-    "T4",
+  // -----------------------------
+  // Clinical Stage Options
+  // -----------------------------
+  const clinicalStageOptions = [
+    "Stage 0a",
+    "Stage 0is",
+    "Stage I",
+    "Stage II",
+    "Stage IIIA",
+    "Stage IIIB",
+    "Stage IVA",
+    "Stage IVB",
     "Not sure"
   ];
+
+  // -----------------------------
+  // TNM Options
+  // -----------------------------
+  const tOptions = ["Ta", "T1", "T2", "T3", "T4a", "T4b"];
+  const nOptions = ["N0", "N1", "N2", "N3"];
+  const mOptions = ["M0", "M1"];
+
+  // -----------------------------
+  // Auto‑mapping TNM → Clinical Stage
+  // -----------------------------
+  const mapTNMToStage = (t, n, m) => {
+    if (!t || !n || !m) return "";
+
+    if (m === "M1") return "Stage IVB";
+    if (t === "T4b") return "Stage IVA";
+    if (t === "T4a" || n === "N2" || n === "N3") return "Stage IIIB";
+    if (t === "T3" || n === "N1") return "Stage IIIA";
+    if (t === "T2") return "Stage II";
+    if (t === "T1") return "Stage I";
+    if (t === "Ta") return "Stage 0a";
+
+    return "";
+  };
+
+  useEffect(() => {
+    const autoStage = mapTNMToStage(tStage, nStage, mStage);
+    if (autoStage && clinicalStage !== autoStage) {
+      setClinicalStage(autoStage);
+    }
+  }, [tStage, nStage, mStage]);
+
+  // -----------------------------
+  // Sync state when diagnosis changes
+  // -----------------------------
+  useEffect(() => {
+    setDiagnosisDate(diagnosis.diagnosisDate || "");
+    setHistology(diagnosis.histology || "");
+    setSymptoms(diagnosis.symptoms || "");
+    setInitialImaging(diagnosis.initialImaging || []);
+    setInitialCystoscopyNotes(diagnosis.initialCystoscopyNotes || "");
+
+    setClinicalStage(diagnosis.clinicalStage || "");
+    setTStage(diagnosis.tStage || "");
+    setNStage(diagnosis.nStage || "");
+    setMStage(diagnosis.mStage || "");
+
+    setVariantHistology(diagnosis.variantHistology || []);
+  }, [diagnosis]);
+
+  // -----------------------------
+  // Save and continue
+  // -----------------------------
+  const handleNext = () => {
+    setDiagnosis({
+      ...diagnosis,
+      diagnosisDate,
+      clinicalStage,
+      tStage,
+      nStage,
+      mStage,
+      histology,
+      variantHistology,
+      symptoms,
+      initialImaging,
+      initialCystoscopyNotes
+    });
+
+    onNext();
+  };
 
   const histologyOptions = [
     "Urothelial carcinoma",
     "Squamous",
     "Adenocarcinoma",
     "Small cell",
-    "Variant histology",
-    "Not sure"
+    "Other / Mixed"
   ];
+
+  const imagingOptions = ["CT", "MRI", "PET/CT", "Ultrasound", "None / Not sure"];
 
   return (
     <div className="space-y-8 text-white">
 
-      {/* Date of Diagnosis */}
+      {/* Diagnosis Date */}
       <section>
         <h3 className="text-lg font-bold mb-2">Date of Diagnosis</h3>
         <input
@@ -48,24 +147,79 @@ export default function DiagnosisStep() {
         />
       </section>
 
-      {/* Stage at Diagnosis */}
+      {/* Clinical Stage */}
       <section>
-        <h3 className="text-lg font-bold mb-2">Stage at Diagnosis</h3>
+        <h3 className="text-lg font-bold mb-2">Clinical Stage</h3>
         <select
           className="bg-gray-800 p-2 rounded"
-          value={stage}
-          onChange={(e) => setStage(e.target.value)}
+          value={clinicalStage}
+          onChange={(e) => setClinicalStage(e.target.value)}
         >
           <option value="">Select...</option>
-          {stageOptions.map((opt) => (
+          {clinicalStageOptions.map((opt) => (
             <option key={opt} value={opt}>{opt}</option>
           ))}
         </select>
       </section>
 
-      {/* Histology */}
+      {/* TNM */}
       <section>
-        <h3 className="text-lg font-bold mb-2">Histology</h3>
+        <h3 className="text-lg font-bold mb-2">TNM Classification</h3>
+
+        <div className="flex space-x-4">
+          <div>
+            <label className="block mb-1">T Stage</label>
+            <select
+              className="bg-gray-800 p-2 rounded"
+              value={tStage}
+              onChange={(e) => setTStage(e.target.value)}
+            >
+              <option value="">Select...</option>
+              {tOptions.map((opt) => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block mb-1">N Stage</label>
+            <select
+              className="bg-gray-800 p-2 rounded"
+              value={nStage}
+              onChange={(e) => setNStage(e.target.value)}
+            >
+              <option value="">Select...</option>
+              {nOptions.map((opt) => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block mb-1">M Stage</label>
+            <select
+              className="bg-gray-800 p-2 rounded"
+              value={mStage}
+              onChange={(e) => setMStage(e.target.value)}
+            >
+              <option value="">Select...</option>
+              {mOptions.map((opt) => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* ⭐ TNM explanatory note */}
+        <p className="text-sm text-gray-400 mt-2">
+          If you enter T, N, and M values, your clinical stage will be updated
+          automatically. You can still choose a stage manually if you already know it.
+        </p>
+      </section>
+
+      {/* Primary Histology */}
+      <section>
+        <h3 className="text-lg font-bold mb-2">Primary Histology</h3>
         <select
           className="bg-gray-800 p-2 rounded"
           value={histology}
@@ -78,24 +232,40 @@ export default function DiagnosisStep() {
         </select>
       </section>
 
-      {/* Initial Symptoms */}
+      {/* Variant Histology */}
+      <section>
+        <h3 className="text-lg font-bold mb-2">Variant Histology (optional)</h3>
+        {variantHistologyOptions.map((opt) => (
+          <label key={opt} className="block">
+            <input
+              type="checkbox"
+              checked={variantHistology.includes(opt)}
+              onChange={() => {
+                setVariantHistology((prev) =>
+                  prev.includes(opt)
+                    ? prev.filter((x) => x !== opt)
+                    : [...prev, opt]
+                );
+              }}
+            />
+            <span className="ml-2">{opt}</span>
+          </label>
+        ))}
+      </section>
+
+      {/* Symptoms */}
       <section>
         <h3 className="text-lg font-bold mb-2">Initial Symptoms</h3>
         <textarea
           className="bg-gray-800 p-2 rounded w-full"
           value={symptoms}
           onChange={(e) => setSymptoms(e.target.value)}
-          placeholder="Describe any symptoms you experienced before diagnosis..."
         />
       </section>
 
-      {/* Initial Imaging */}
+      {/* Imaging */}
       <section>
         <h3 className="text-lg font-bold mb-2">Initial Diagnostic Tests</h3>
-        <p className="text-sm mb-4">
-          Select any tests performed at or before diagnosis.
-        </p>
-
         {imagingOptions.map((opt) => (
           <label key={opt} className="block">
             <input
@@ -113,7 +283,6 @@ export default function DiagnosisStep() {
           </label>
         ))}
 
-        {/* Conditional cystoscopy notes */}
         {initialImaging.includes("None / Not sure") === false && (
           <div className="mt-4">
             <label className="block mb-2">Cystoscopy Findings (optional)</label>
@@ -121,11 +290,17 @@ export default function DiagnosisStep() {
               className="bg-gray-800 p-2 rounded w-full"
               value={initialCystoscopyNotes}
               onChange={(e) => setInitialCystoscopyNotes(e.target.value)}
-              placeholder="Describe any findings from cystoscopy..."
             />
           </div>
         )}
       </section>
+
+      <button
+        onClick={handleNext}
+        className="bg-blue-600 px-4 py-2 rounded"
+      >
+        Next
+      </button>
     </div>
   );
 }

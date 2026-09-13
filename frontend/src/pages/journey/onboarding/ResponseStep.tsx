@@ -1,10 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-export default function ResponseStep() {
-  const [bestResponse, setBestResponse] = useState("");
-  const [responseDate, setResponseDate] = useState("");
-  const [responseModalities, setResponseModalities] = useState<string[]>([]);
-  const [responseNotes, setResponseNotes] = useState("");
+export default function ResponseStep({ response, setResponse, onNext, onBack }) {
+  // Local state initialized from parent
+  const [bestResponse, setBestResponse] = useState(response.bestResponse || "");
+  const [responseDate, setResponseDate] = useState(response.responseDate || "");
+  const [responseModalities, setResponseModalities] = useState(
+    response.responseModalities || []
+  );
+  const [responseNotes, setResponseNotes] = useState(response.responseNotes || "");
+
+  // Sync local state when navigating back
+  useEffect(() => {
+    setBestResponse(response.bestResponse || "");
+    setResponseDate(response.responseDate || "");
+    setResponseModalities(response.responseModalities || []);
+    setResponseNotes(response.responseNotes || "");
+  }, [response]);
 
   const responseOptions = [
     "Complete Response (CR)",
@@ -24,8 +35,19 @@ export default function ResponseStep() {
     "Other"
   ];
 
+  const handleNext = () => {
+    setResponse({
+      bestResponse,
+      responseDate,
+      responseModalities,
+      responseNotes
+    });
+
+    onNext();
+  };
+
   return (
-    <div className="space-y-8 text-white">
+    <div className="space-y-10 text-white">
 
       {/* Best Response */}
       <section>
@@ -94,6 +116,23 @@ export default function ResponseStep() {
           </div>
         )}
       </section>
+
+      {/* Navigation */}
+      <div className="flex space-x-4">
+        <button
+          onClick={onBack}
+          className="bg-gray-700 px-4 py-2 rounded"
+        >
+          Back
+        </button>
+
+        <button
+          onClick={handleNext}
+          className="bg-blue-600 px-4 py-2 rounded"
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 }

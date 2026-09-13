@@ -1,53 +1,24 @@
-import { Request, Response } from 'express';
-import { createLongitudinalEvent } from '../airtable/longitudinalEvents';
+import { createLongitudinalEvent, getLongitudinalEvents } from '../airtable/longitudinalEvents';
 
-type Attachment = { url: string };
-
-interface EventPayload {
-  EventType: string;
-  EventDate: string;
-  EventSummary: string;
-  EventDetails: string | null;
-  SourceDocumentURL: string | null;
-  EventAttachments: Attachment[];
-  MasterId: string[];
-  CreatedAt: string;
-  }
-
-
-export async function ingestEvent(req: Request, res: Response) {
+export async function addEvent(req, res) {
   try {
-    const { masterId, event } = req.body;
+    const { uid, masterRecordId, payload } = req.body;
 
-    if (!masterId || !event) {
-      return res.status(400).json({ error: 'masterId and event are required' });
-    }
+    const result = await createLongitudinalEvent(uid, masterRecordId, payload);
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Error creating event:", error);
+    res.status(500).json({ error: "Failed to create event" });
+  }
+}
 
-    const attachments: Attachment[] = Array.isArray(event.EventAttachments)
-      ? event.EventAttachments.map((u: string) => ({ url: u }))
-      : [];
-
-
-    const eventPayload: EventPayload = {
-      EventType: event.EventType,
-      EventDate: event.EventDate,
-      EventSummary: event.EventSummary,
-      EventDetails: event.EventDetails ?? null,
-      SourceDocumentURL: event.SourceDocumentURL ?? null,
-      EventAttachments: attachments,
-      MasterId: [masterId],
-      CreatedAt: new Date().toISOString()
-    };
-
-    const result = await createLongitudinalEvent(masterId, eventPayload);
-
-    return res.status(200).json({
-      success: true,
-      airtable: result
-    });
-
-  } catch (err) {
-    console.error('Event ingestion error:', err);
-    return res.status(500).json({ error: 'Failed to ingest event' });
+export async function listEvents(req, res) {
+  try {
+    const { masterRecordId } = req.params;
+    const events = await getLongitudinalEvents(masterRecordId);
+    res.status(200).json(events);
+  } catch (error) {
+    console.error("Error fetching events:", error);
+    res.status(500).json({ error: "Failed to fetch events" });
   }
 }

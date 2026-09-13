@@ -89,9 +89,39 @@ export default function JourneyOnboarding() {
             if (section === "response") goToStep(3);
             if (section === "qol") goToStep(4);
           }}
-          onComplete={() => navigate("/journey")}
+          onComplete={handleCompleteOnboarding}
         />
       )}
     </div>
   );
 }
+
+const handleCompleteOnboarding = async () => {
+  try {
+    const response = await fetch("/api/onboarding/complete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        diagnosis,
+        treatment,
+        responseData: response,   // rename if needed
+        qol,
+        user: {
+          email: currentUser.email,
+          firstName: currentUser.firstName,
+          lastName: currentUser.lastName
+        }
+      })
+    });
+
+    if (!response.ok) {
+      console.error("Failed to complete onboarding");
+      return;
+    }
+
+    // Redirect to dashboard
+    navigate("/journey");
+  } catch (err) {
+    console.error("Error completing onboarding", err);
+  }
+};

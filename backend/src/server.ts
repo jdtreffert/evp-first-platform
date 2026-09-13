@@ -5,12 +5,16 @@ console.log("Loaded API key:", process.env.AIRTABLE_API_KEY);
 import express from 'express';
 const cors = require('cors');
 
+import {
+  findOrCreateAccountAndMaster,
+  updateAccountRecord,
+  updateMasterRecord,
+  updateOnboardingStatus
+} from './routes/airtable';
 
-import { findOrCreateAccountAndMaster } from './routes/airtable';
-import { updateAccountRecord } from './routes/airtable';
-import { updatePatientRecord } from './routes/airtable';
-import { updateOnboardingStatus } from './routes/airtable';
+
 import eventsRouter from './routes/events';
+import onboardingRouter from './routes/onboarding';
 
 
 const app = express();
@@ -24,6 +28,7 @@ app.use(express.json());
 
 //NOW mount routes
 app.use('/api', eventsRouter);
+app.use("/api/onboarding", onboardingRouter);
 
 app.get('/', (req, res) => {
   res.send('EVP First backend running');
@@ -88,7 +93,7 @@ app.post('/update-master', async (req, res) => {
       });
     }
   console.log("FIELDS SENT TO AIRTABLE:", updates);
-    const updated = await updatePatientRecord(masterId, updates);
+    const updated = await updateMasterRecord(masterId, updates);
 
     res.json({
       success: true,

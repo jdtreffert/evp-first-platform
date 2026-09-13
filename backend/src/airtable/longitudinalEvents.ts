@@ -12,25 +12,32 @@ export interface EventDetails {
 }
 
 export interface EventPayload {
+  UID: string;                     // patient identity
+  Master: string[];                // Airtable link field
   EventType: string;
   EventDate: string;
   EventSummary: string;
-  EventDetails: string | null;
+  EventDetails: string | null;     // JSON string
   SourceDocumentURL: string | null;
   EventAttachments: Attachment[];
-  MasterId: string[];
   CreatedAt: string;
 }
 
-
-export async function createLongitudinalEvent(masterId: string, payload: EventPayload) {
+export async function createLongitudinalEvent(
+  uid: string,
+  masterRecordId: string,
+  payload: EventPayload
+) {
   return longitudinalEventsTable.create([
     {
-      fields: payload as any
+      fields: {
+        ...payload,
+        UID: uid,
+        Master: [masterRecordId],
+      },
     },
   ]);
 }
-
 
 function safeParse(value: any): EventDetails | any {
   try {
@@ -40,26 +47,23 @@ function safeParse(value: any): EventDetails | any {
   }
 }
 
-export async function getLongitudinalEvents(masterId: string) {
+export async function getLongitudinalEvents(masterRecordId: string) {
   try {
-    // Fetch all records without Airtable filter
     const records = await longitudinalEventsTable
       .select({
         sort: [{ field: 'EventDate', direction: 'asc' }],
       })
       .all();
 
-    console.log("Fetched records:", records.map(r => r.fields));
-
-    // Filter in code: MasterId is an array of linked record IDs
     const filtered = records.filter(record => {
-      const ids = record.get('MasterId') as string[] | undefined;
-      return ids?.includes(masterId);
+      const ids = record.get('Master') as string[] | undefined;
+      return ids?.includes(masterRecordId);
     });
 
     return filtered.map((record) => ({
       id: record.id,
-      masterId: record.get('MasterId'),
+      uid: record.get('UID'),
+      master: record.get('Master'),
       eventType: record.get('EventType'),
       eventDate: record.get('EventDate'),
       eventSummary: record.get('EventSummary'),

@@ -1,0 +1,41 @@
+// src/normalizers/TreatmentResponseNormalizer.ts
+
+import { AirtableRecord, NormalizedEvent } from "../types/UnifiedEvents";
+
+export function normalizeTreatmentResponse(raw: AirtableRecord): NormalizedEvent {
+  const f = raw.fields;
+
+  const category = f.Treatment_Response_Category || null;
+  const modality = f.Treatment_Response_Modality || null;
+  const notes = f.Treatment_Response_Notes || null;
+
+  const eventSummary = category
+    ? `Treatment response: ${category}`
+    : "Treatment response";
+
+  return {
+    uid: f.Event_UID || raw.id,
+    masterId: f.Master_ID || "",
+    eventType: "Treatment_Response",
+    eventDate: f.Event_Date || null,
+
+    eventSummary,
+    eventDetails: {
+      treatmentResponseCategory: category,
+      treatmentResponseModality: modality,
+      treatmentResponseNotes: notes,
+    },
+
+    eventSource: f.Event_Source || null,
+
+    treatmentResponseCategory: category,
+    treatmentResponseModality: modality,
+    treatmentResponseNotes: notes,
+
+    documentAttachment: f.Document_Attachment || [],
+    documentType: f.Document_Type || null,
+    documentRedactionStatus: f.Document_Redaction_Status || null,
+
+    payload: raw,
+  };
+}

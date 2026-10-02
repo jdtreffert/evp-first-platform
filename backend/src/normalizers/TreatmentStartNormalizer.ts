@@ -1,0 +1,41 @@
+// src/normalizers/TreatmentStartNormalizer.ts
+
+import { AirtableRecord, NormalizedEvent } from "../types/UnifiedEvents";
+
+export function normalizeTreatmentStart(raw: AirtableRecord): NormalizedEvent {
+  const f = raw.fields;
+
+  const name = f.Treatment_Name || null;
+  const cycle = f.Treatment_Cycle || null;
+  const intent = f.Treatment_Intent || null;
+
+  const eventSummary = name
+    ? `Treatment start: ${name}`
+    : "Treatment start";
+
+  return {
+    uid: f.Event_UID || raw.id,
+    masterId: f.Master_ID || "",
+    eventType: "Treatment_Start",
+    eventDate: f.Event_Date || null,
+
+    eventSummary,
+    eventDetails: {
+      treatmentName: name,
+      treatmentCycle: cycle,
+      treatmentIntent: intent,
+    },
+
+    eventSource: f.Event_Source || null,
+
+    treatmentName: name,
+    treatmentCycle: cycle,
+    treatmentIntent: intent,
+
+    documentAttachment: f.Document_Attachment || [],
+    documentType: f.Document_Type || null,
+    documentRedactionStatus: f.Document_Redaction_Status || null,
+
+    payload: raw,
+  };
+}

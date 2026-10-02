@@ -1,0 +1,154 @@
+export interface UnifiedEvents {
+  Event_UID: string;
+  Event_Type: string;
+}
+
+export interface AirtableRecord {
+  id: string;
+  fields: Record<string, any>;
+}
+
+/**
+ * Unified normalized event type for ALL event categories.
+ * Each block contributes optional fields.
+ */
+export interface NormalizedEvent {
+  uid: string;
+  masterId: string;
+  eventType: string;
+
+  // Core shared fields
+  eventDate: string | null;
+  eventSummary?: string | null;
+  eventDetails?: Record<string, any>;
+  payload: AirtableRecord;
+
+  // Source (Patient, Clinician, Lab, Imaging Center, etc.)
+  eventSource?: string | null;
+
+  // Document block (shared across many event types)
+  documentAttachment?: any[];
+  documentType?: string | null;
+  documentRedactionStatus?: string | null;
+
+  // Labs block
+  labFlags?: string[];
+  labValues?: Record<string, string>;
+  labSignificanceReasons?: string[];
+  labNotes?: string | null;
+  triggeredDecisionId?: string | null;
+
+  // Imaging block
+  imagingModality?: string | null;
+  imagingResult?: string | null;
+  imagingRegion?: string | null;
+  imagingComparisonToPrior?: string | null;
+  imagingNotes?: string | null;
+
+  // Imaging Response block
+  imagingResponseCategory?: string | null;
+  imagingResponseCriteria?: string | null;
+  imagingResponseTargetLesionChange?: number | null;
+
+  // Pathology block (Diagnosis, TURBT, Biopsy)
+  pathologyHistology?: string | null;
+  pathologyGrade?: string | null;
+  pathologyVariantHistology?: string[];
+  pathologyDepth?: string | null;
+  pathologyMargins?: string | null;
+  pathologyLVI?: string | null;
+  pathologyNotes?: string | null;
+
+  // Cytology block
+  cytologyResult?: string | null;
+  cytologyCategory?: string | null;
+  cytologySpecimen?: string | null;
+  cytologyNotes?: string | null;
+
+  // Somatic block
+  somaticVendor?: string | null;
+  somaticTestType?: string | null;
+  somaticKeyFindings?: string[];
+  somaticPDL1CPS?: number | null;
+  somaticERBB2Expression?: string | null;
+  somaticNotes?: string | null;
+
+  // Germline block
+  germlineVendor?: string | null;
+  germlineFindings?: string[];
+  germlinePathogenicity?: string | null;
+  germlineNotes?: string | null;
+
+  // ctDNA block
+  ctDNAVendor?: string | null;
+  ctDNAAssayType?: string | null;
+  ctDNAValue?: number | null;
+  ctDNAUnits?: string | null;
+  ctDNATrend?: string | null;
+
+  // utDNA block
+  utDNAVendor?: string | null;
+  utDNAAssayType?: string | null;
+  utDNAValue?: number | null;
+  utDNAUnits?: string | null;
+  utDNATrend?: string | null;
+  utDNANotes?: string | null;
+
+  // Treatment blocks
+  treatmentName?: string | null;
+  treatmentCycle?: number | null;
+  treatmentIntent?: string | null;
+  treatmentOutcome?: string | null;
+  treatmentRegimenDetails?: string | null;
+  treatmentPhysicianRecommendation?: string | null;
+  treatmentPatientPreference?: string | null;
+
+  treatmentChangeType?: string | null;
+  treatmentChangeReason?: string | null;
+  treatmentChangeNewRegimen?: string | null;
+  treatmentChangeToxicityGrade?: number | null;
+
+  treatmentResponseCategory?: string | null;
+  treatmentResponseModality?: string | null;
+  treatmentResponseNotes?: string | null;
+
+  // Decision block
+  decisionType?: string | null;
+  decisionConsensus?: string | null;
+  decisionNotes?: string | null;
+
+  // Symptom block
+  symptomDescription?: string | null;
+  symptomType?: string | null;
+  symptomSeverity?: number | null;
+  symptomDuration?: number | null;
+  symptomDurationUnits?: string | null;
+
+  // QoL block
+  qolPhysical?: number | null;
+  qolEmotional?: number | null;
+  qolUrinary?: number | null;
+  qolPain?: number | null;
+  qolFatigue?: number | null;
+  qolNotes?: string | null;
+
+  // Recurrence block
+  recurrenceLocation?: string | null;
+  recurrenceSpreadCategory?: string | null;
+  recurrenceModality?: string | null;
+  recurrenceConfirmation?: string | null;
+  recurrenceNotes?: string | null;
+
+  // Progression block
+  progressionLocation?: string | null;
+  progressionStageSpread?: string | null;
+  progressionModality?: string | null;
+  progressionStageChange?: string | null;
+  progressionNotes?: string | null;
+}
+
+export type EventNormalizer = (raw: AirtableRecord) => NormalizedEvent;
+
+export interface NormalizerRegistry {
+  [eventType: string]: EventNormalizer;
+}

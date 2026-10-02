@@ -5,7 +5,16 @@
     "rootDir": "./src",
     "outDir": "./dist",
     "strict": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+
+    "baseUrl": ".",
+    "paths": {
+      "src/*": ["src/*"]
+    }
   },
-  "include": ["src"]
+
+  "include": [
+    "src/**/*.ts",
+    "tests/**/*.ts"
+  ]
 }

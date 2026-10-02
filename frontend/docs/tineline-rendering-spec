@@ -1,0 +1,281 @@
+EVP First — Timeline Rendering Specification
+1. Purpose
+The timeline is the primary longitudinal visualization of a patient’s bladder preservation journey. This specification defines:
+
+how events are fetched
+
+how they are merged
+
+how they are sorted
+
+how they are grouped
+
+how they are displayed
+
+how they are expanded
+
+how they are styled
+
+It ensures the frontend and backend remain perfectly aligned.
+
+2. Inputs to the Timeline
+The timeline receives four datasets from the backend:
+
+Master record
+
+Diagnosis records
+
+Treatment records
+
+Events records (normalized clinical events)
+
+All datasets must be merged into a single chronological event stream.
+
+3. Required Event Shape
+Every event rendered in the timeline must include:
+
+uid
+
+masterId
+
+eventType
+
+eventDate
+
+eventSummary
+
+eventDetails
+
+payload
+
+If any of these are missing, the event is excluded and logged.
+
+4. Event Merging Rules
+Step 1 — Convert master/diagnosis/treatment into events
+The frontend transforms:
+
+Master → “Patient created” event
+
+Diagnosis → “Diagnosis” event
+
+Treatment → “Treatment_Start” event
+
+These follow the same shape as backend events.
+
+Step 2 — Combine with Events table
+All events from Airtable’s Events table are appended.
+
+Step 3 — Deduplicate
+Events with identical:
+
+eventType
+
+eventDate
+
+uid
+
+are merged, preferring the most complete eventDetails.
+
+5. Sorting Rules
+Events are sorted by:
+
+Primary: eventDate (ascending)
+
+Secondary: clinical priority
+
+Diagnosis
+
+TURBT
+
+Imaging
+
+Cystoscopy
+
+Cytology
+
+Molecular
+
+Treatment
+
+Recurrence/Progression
+
+QoL
+
+Administrative
+
+Tertiary: creation order (UID timestamp)
+
+If two events share the same date, they appear in the priority order above.
+
+6. Grouping Rules
+Events are grouped by calendar date.
+
+Example:
+
+Code
+2024-01-01
+  - CT Abd/Pelvis
+  - Urine cytology
+  - QoL assessment
+If a date has >4 events, the group collapses with a “Show more” toggle.
+
+7. Rendering Rules
+7.1 TimelineEventCard
+Each event is rendered using the TimelineEventCard component.
+
+Card structure
+Header: eventType + icon
+
+Subheader: eventSummary
+
+Date: formatted eventDate
+
+Body: collapsed by default
+
+Expand: shows eventDetails
+
+Icons
+Icons are mapped by category:
+
+Diagnosis → 🧬
+
+TURBT → 🔪
+
+Imaging → 🖥️
+
+Cystoscopy → 🔍
+
+Cytology → 🧪
+
+Molecular → 🧫
+
+Treatment → 💊
+
+Recurrence/Progression → ⚠️
+
+QoL → 🙂
+
+Administrative → 📄
+
+Icons are consistent across the platform.
+
+7.2 EventType → Color Mapping
+Colors reinforce clinical meaning:
+
+Category	Color
+Diagnosis	Blue
+TURBT	Indigo
+Imaging	Teal
+Cystoscopy	Green
+Cytology	Lime
+Molecular	Purple
+Treatment	Orange
+Recurrence/Progression	Red
+QoL	Yellow
+Administrative	Gray
+
+
+Colors apply to:
+
+card border
+
+icon background
+
+date marker
+
+8. Expansion Rules
+When expanded, the card shows:
+
+eventDetails (structured)
+
+payload (raw source)
+
+“View full event” link (future feature)
+
+Structured details
+eventDetails is rendered as:
+
+Code
+Field: Value
+Field: Value
+Field: Value
+Raw payload
+Displayed in a collapsible JSON viewer.
+
+9. Error Handling Rules
+If an event cannot be rendered:
+
+log to console (dev only)
+
+show a placeholder card:
+
+“Unrenderable event — see details”
+
+include raw payload for debugging
+
+If eventDate is invalid:
+
+place event in “Unknown date” group at top
+
+highlight card in red
+
+10. Performance Rules
+Batching
+All events are rendered in a single React batch.
+
+Memoization
+useMemo is required for:
+
+merged events
+
+sorted events
+
+grouped events
+
+Virtualization (future)
+If >300 events, switch to virtualized list.
+
+11. Timeline Layout Rules
+Mobile
+vertical list
+
+collapsed groups
+
+minimal icons
+
+Desktop
+vertical list with date markers
+
+expanded groups
+
+full icons and colors
+
+Spacing
+16px between cards
+
+24px between date groups
+
+12. EventType → Rendering Behavior Table
+
+| EventType | Summary | Details | Icon | Color |
+| --- | --- | --- | --- | --- |
+| Diagnosis | Yes | Yes | 🧬 | Blue |
+| TURBT | Yes | Yes | 🔪 | Indigo |
+| Imaging | Yes | Yes | 🖥️ | Teal |
+| Imaging_Response | Yes | Yes | 🖥️ | Teal |
+| Cystoscopy | Yes | Yes | 🔍 | Green |
+| Cystoscopy_Biopsy | Yes | Yes | 🔍 | Green |
+| Cytology | Yes | Yes | 🧪 | Lime |
+| ctDNA | Yes | Yes | 🧫 | Purple |
+| utDNA | Yes | Yes | 🧫 | Purple |
+| Somatic | Yes | Yes | 🧬 | Purple |
+| Germline | Yes | Yes | 🧬 | Purple |
+| Treatment_Start | Yes | Yes | 💊 | Orange |
+| Treatment_Change | Yes | Yes | 💊 | Orange |
+| Treatment_Response | Yes | Yes | 💊 | Orange |
+| Recurrence | Yes | Yes | ⚠️ | Red |
+| Progression | Yes | Yes | ⚠️ | Red |
+| QoL | Yes | Yes | 🙂 | Yellow |
+| Note | Yes | Yes | 📄 | Gray |
+| Document | Yes | Yes | 📄 | Gray |
+| Other | Yes | Yes | 📄 | Gray |

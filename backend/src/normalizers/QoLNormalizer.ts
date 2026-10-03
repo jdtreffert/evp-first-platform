@@ -1,8 +1,8 @@
 // src/normalizers/QoLNormalizer.ts
 
-import { AirtableRecord, NormalizedEvent } from "../types/UnifiedEvents";
+import { RawEventRecord, UnifiedEvent } from "../types/UnifiedEvents";
 
-export function normalizeQoL(raw: AirtableRecord): NormalizedEvent {
+export function normalizeQoL(raw: RawEventRecord): UnifiedEvent {
   const f = raw.fields;
 
   const physical = f.QoL_Physical || null;

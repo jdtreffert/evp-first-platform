@@ -1,8 +1,8 @@
 // src/normalizers/SomaticNormalizer.ts
 
-import { AirtableRecord, NormalizedEvent } from "../types/UnifiedEvents";
+import { RawEventRecord, UnifiedEvent } from "../types/UnifiedEvents";
 
-export function normalizeSomatic(raw: AirtableRecord): NormalizedEvent {
+export function normalizeSomatic(raw: RawEventRecord): UnifiedEvent {
   const f = raw.fields;
 
   const vendor = f.Somatic_Vendor || null;

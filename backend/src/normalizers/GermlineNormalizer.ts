@@ -1,8 +1,8 @@
 // src/normalizers/GermlineNormalizer.ts
 
-import { AirtableRecord, NormalizedEvent } from "../types/UnifiedEvents";
+import { RawEventRecord, UnifiedEvent } from "../types/UnifiedEvents";
 
-export function normalizeGermline(raw: AirtableRecord): NormalizedEvent {
+export function normalizeGermline(raw: RawEventRecord): UnifiedEvent {
   const f = raw.fields;
 
   const vendor = f.Germline_Vendor || null;

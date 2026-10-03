@@ -1,8 +1,8 @@
 // src/normalizers/CytologyNormalizer.ts
 
-import { AirtableRecord, NormalizedEvent } from "../types/UnifiedEvents";
+import { RawEventRecord, UnifiedEvent } from "../types/UnifiedEvents";
 
-export function normalizeCytology(raw: AirtableRecord): NormalizedEvent {
+export function normalizeCytology(raw: RawEventRecord): UnifiedEvent {
   const f = raw.fields;
 
   const result = f.Cytology_Result || null;

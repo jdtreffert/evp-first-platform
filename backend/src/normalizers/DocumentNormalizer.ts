@@ -1,8 +1,8 @@
 // src/normalizers/DocumentNormalizer.ts
 
-import { AirtableRecord, NormalizedEvent } from "../types/UnifiedEvents";
+import { RawEventRecord, UnifiedEvent } from "../types/UnifiedEvents";
 
-export function normalizeDocument(raw: AirtableRecord): NormalizedEvent {
+export function normalizeDocument(raw: RawEventRecord): UnifiedEvent {
   const f = raw.fields;
 
   const attachments = f.Document_Attachment || [];

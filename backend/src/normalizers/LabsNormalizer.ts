@@ -1,6 +1,6 @@
 // src/normalizers/LabsNormalizer.ts
 
-import { AirtableRecord, NormalizedEvent } from "../types/UnifiedEvents";
+import { RawEventRecord, UnifiedEvent } from "../types/UnifiedEvents";
 
 const parseLabValues = (text: string | null): Record<string, string> => {
   if (!text) return {};
@@ -14,7 +14,7 @@ const parseLabValues = (text: string | null): Record<string, string> => {
   return map;
 };
 
-export function normalizeLabs(raw: AirtableRecord): NormalizedEvent {
+export function normalizeLabs(raw: RawEventRecord): UnifiedEvent {
   const f = raw.fields;
 
   const labFlags = f.Lab_Flags || [];

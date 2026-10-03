@@ -1,8 +1,8 @@
 // src/normalizers/ImagingResponseNormalizer.ts
 
-import { AirtableRecord, NormalizedEvent } from "../types/UnifiedEvents";
+import { RawEventRecord, UnifiedEvent } from "../types/UnifiedEvents";
 
-export function normalizeImagingResponse(raw: AirtableRecord): NormalizedEvent {
+export function normalizeImagingResponse(raw: RawEventRecord): UnifiedEvent {
   const f = raw.fields;
 
   const category = f.Imaging_Response_Category || null;

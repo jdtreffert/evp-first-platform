@@ -1,8 +1,8 @@
 // src/normalizers/SymptomNormalizer.ts
 
-import { AirtableRecord, NormalizedEvent } from "../types/UnifiedEvents";
+import { RawEventRecord, UnifiedEvent } from "../types/UnifiedEvents";
 
-export function normalizeSymptom(raw: AirtableRecord): NormalizedEvent {
+export function normalizeSymptom(raw: RawEventRecord): UnifiedEvent {
   const f = raw.fields;
 
   const description = f.Symptom_Description || null;

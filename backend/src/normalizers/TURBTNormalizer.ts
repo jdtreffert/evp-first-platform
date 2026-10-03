@@ -1,8 +1,8 @@
 // src/normalizers/TURBTNormalizer.ts
 
-import { AirtableRecord, NormalizedEvent } from "../types/UnifiedEvents";
+import { RawEventRecord, UnifiedEvent } from "../types/UnifiedEvents";
 
-export function normalizeTURBT(raw: AirtableRecord): NormalizedEvent {
+export function normalizeTURBT(raw: RawEventRecord): UnifiedEvent {
   const f = raw.fields;
 
   const histology = f.Pathology_Histology || null;

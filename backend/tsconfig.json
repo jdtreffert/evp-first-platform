@@ -5,6 +5,8 @@
     "rootDir": "./src",
     "outDir": "./dist",
     "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "esModuleInterop": true,
 
     "baseUrl": ".",
@@ -13,8 +15,6 @@
     }
   },
 
-  "include": [
-    "src/**/*.ts",
-    "tests/**/*.ts"
-  ]
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/**/__tests__/**"]
 }

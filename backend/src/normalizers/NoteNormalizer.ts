@@ -1,8 +1,8 @@
 // src/normalizers/NoteNormalizer.ts
 
-import { AirtableRecord, NormalizedEvent } from "../types/UnifiedEvents";
+import { RawEventRecord, UnifiedEvent } from "../types/UnifiedEvents";
 
-export function normalizeNote(raw: AirtableRecord): NormalizedEvent {
+export function normalizeNote(raw: RawEventRecord): UnifiedEvent {
   const f = raw.fields;
 
   const notes = f.Note_Text || null;

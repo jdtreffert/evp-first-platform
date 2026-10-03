@@ -1,8 +1,8 @@
 // src/normalizers/DecisionNormalizer.ts
 
-import { AirtableRecord, NormalizedEvent } from "../types/UnifiedEvents";
+import { RawEventRecord, UnifiedEvent } from "../types/UnifiedEvents";
 
-export function normalizeDecision(raw: AirtableRecord): NormalizedEvent {
+export function normalizeDecision(raw: RawEventRecord): UnifiedEvent {
   const f = raw.fields;
 
   const type = f.Decision_Type || null;

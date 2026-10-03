@@ -1,12 +1,13 @@
 // src/normalizers/TreatmentNormalizer.ts
 
+import { RawEventRecord, UnifiedEvent } from "../types/UnifiedEvents";
 import { normalizeTreatmentStart } from "./TreatmentStartNormalizer";
 import { normalizeTreatmentChange } from "./TreatmentChangeNormalizer";
 import { normalizeTreatmentResponse } from "./TreatmentResponseNormalizer";
 import { normalizeTreatmentOutcome } from "./TreatmentOutcomeNormalizer";
 import { normalizeTreatmentRegimenDetails } from "./TreatmentRegimenDetailsNormalizer";
 
-export function normalizeTreatment(rawEvent: any) {
+export function normalizeTreatment(rawEvent: RawEventRecord): UnifiedEvent {
   const f = rawEvent.fields;
 
   // Treatment Start

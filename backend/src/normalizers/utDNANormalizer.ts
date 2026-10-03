@@ -1,8 +1,8 @@
 // src/normalizers/utDNANormalizer.ts
 
-import { AirtableRecord, NormalizedEvent } from "../types/UnifiedEvents";
+import { RawEventRecord, UnifiedEvent } from "../types/UnifiedEvents";
 
-export function normalizeUtDNA(raw: AirtableRecord): NormalizedEvent {
+export function normalizeUtDNA(raw: RawEventRecord): UnifiedEvent {
   const f = raw.fields;
 
   const vendor = f.utDNA_Vendor || null;

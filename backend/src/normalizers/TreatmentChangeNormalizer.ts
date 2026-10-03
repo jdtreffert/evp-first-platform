@@ -1,8 +1,8 @@
 // src/normalizers/TreatmentChangeNormalizer.ts
 
-import { AirtableRecord, NormalizedEvent } from "../types/UnifiedEvents";
+import { RawEventRecord, UnifiedEvent } from "../types/UnifiedEvents";
 
-export function normalizeTreatmentChange(raw: AirtableRecord): NormalizedEvent {
+export function normalizeTreatmentChange(raw: RawEventRecord): UnifiedEvent {
   const f = raw.fields;
 
   const changeType = f.Treatment_Change_Type || null;

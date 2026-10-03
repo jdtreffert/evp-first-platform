@@ -1,8 +1,8 @@
 // src/normalizers/OtherNormalizer.ts
 
-import { AirtableRecord, NormalizedEvent } from "../types/UnifiedEvents";
+import { RawEventRecord, UnifiedEvent } from "../types/UnifiedEvents";
 
-export function normalizeOther(raw: AirtableRecord): NormalizedEvent {
+export function normalizeOther(raw: RawEventRecord): UnifiedEvent {
   const f = raw.fields;
 
   const description = f.Other_Description || null;

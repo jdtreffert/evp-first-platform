@@ -1,8 +1,8 @@
 // src/normalizers/ProgressionNormalizer.ts
 
-import { AirtableRecord, NormalizedEvent } from "../types/UnifiedEvents";
+import { RawEventRecord, UnifiedEvent } from "../types/UnifiedEvents";
 
-export function normalizeProgression(raw: AirtableRecord): NormalizedEvent {
+export function normalizeProgression(raw: RawEventRecord): UnifiedEvent {
   const f = raw.fields;
 
   const location = f.Progression_Location || null;

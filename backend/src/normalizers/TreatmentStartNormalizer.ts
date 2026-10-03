@@ -1,8 +1,8 @@
 // src/normalizers/TreatmentStartNormalizer.ts
 
-import { AirtableRecord, NormalizedEvent } from "../types/UnifiedEvents";
+import { RawEventRecord, UnifiedEvent } from "../types/UnifiedEvents";
 
-export function normalizeTreatmentStart(raw: AirtableRecord): NormalizedEvent {
+export function normalizeTreatmentStart(raw: RawEventRecord): UnifiedEvent {
   const f = raw.fields;
 
   const name = f.Treatment_Name || null;

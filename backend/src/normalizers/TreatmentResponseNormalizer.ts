@@ -1,8 +1,8 @@
 // src/normalizers/TreatmentResponseNormalizer.ts
 
-import { AirtableRecord, NormalizedEvent } from "../types/UnifiedEvents";
+import { RawEventRecord, UnifiedEvent } from "../types/UnifiedEvents";
 
-export function normalizeTreatmentResponse(raw: AirtableRecord): NormalizedEvent {
+export function normalizeTreatmentResponse(raw: RawEventRecord): UnifiedEvent {
   const f = raw.fields;
 
   const category = f.Treatment_Response_Category || null;

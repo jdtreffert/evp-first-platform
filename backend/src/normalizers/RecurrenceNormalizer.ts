@@ -1,8 +1,8 @@
 // src/normalizers/RecurrenceNormalizer.ts
 
-import { AirtableRecord, NormalizedEvent } from "../types/UnifiedEvents";
+import { RawEventRecord, UnifiedEvent } from "../types/UnifiedEvents";
 
-export function normalizeRecurrence(raw: AirtableRecord): NormalizedEvent {
+export function normalizeRecurrence(raw: RawEventRecord): UnifiedEvent {
   const f = raw.fields;
 
   const location = f.Recurrence_Location || null;

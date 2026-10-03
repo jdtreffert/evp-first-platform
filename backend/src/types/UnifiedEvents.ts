@@ -1,18 +1,18 @@
-export interface UnifiedEvents {
-  Event_UID: string;
-  Event_Type: string;
-}
-
-export interface AirtableRecord {
+/**
+ * Raw ingestion input: a source-agnostic record with an identifier and a flat
+ * map of source field names (e.g. Event_UID, Event_Type, Event_Date).
+ * Normalizers convert this into a UnifiedEvent.
+ */
+export interface RawEventRecord {
   id: string;
   fields: Record<string, any>;
 }
 
 /**
- * Unified normalized event type for ALL event categories.
+ * Canonical event type for ALL event categories.
  * Each block contributes optional fields.
  */
-export interface NormalizedEvent {
+export interface UnifiedEvent {
   uid: string;
   masterId: string;
   eventType: string;
@@ -21,7 +21,7 @@ export interface NormalizedEvent {
   eventDate: string | null;
   eventSummary?: string | null;
   eventDetails?: Record<string, any>;
-  payload: AirtableRecord;
+  payload: RawEventRecord;
 
   // Source (Patient, Clinician, Lab, Imaging Center, etc.)
   eventSource?: string | null;
@@ -58,6 +58,15 @@ export interface NormalizedEvent {
   pathologyMargins?: string | null;
   pathologyLVI?: string | null;
   pathologyNotes?: string | null;
+
+  // Cystoscopy and biopsy blocks
+  cystoscopyFindings?: string | null;
+  cystoscopyVisibility?: string | null;
+  cystoscopyReason?: string | null;
+  cystoscopyNotes?: string | null;
+  biopsyResult?: string | null;
+  biopsySite?: string | null;
+  biopsyNotes?: string | null;
 
   // Cytology block
   cytologyResult?: string | null;
@@ -103,6 +112,13 @@ export interface NormalizedEvent {
   treatmentPhysicianRecommendation?: string | null;
   treatmentPatientPreference?: string | null;
 
+  // Other event blocks
+  eventMeasureType?: string | null;
+  eventMeasureValue?: string | number | null;
+  eventMeasureUnits?: string | null;
+  noteText?: string | null;
+  otherDescription?: string | null;
+
   treatmentChangeType?: string | null;
   treatmentChangeReason?: string | null;
   treatmentChangeNewRegimen?: string | null;
@@ -147,7 +163,7 @@ export interface NormalizedEvent {
   progressionNotes?: string | null;
 }
 
-export type EventNormalizer = (raw: AirtableRecord) => NormalizedEvent;
+export type EventNormalizer = (raw: RawEventRecord) => UnifiedEvent;
 
 export interface NormalizerRegistry {
   [eventType: string]: EventNormalizer;

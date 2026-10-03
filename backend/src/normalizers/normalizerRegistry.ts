@@ -9,6 +9,7 @@ import { normalizeImagingResponse } from "./ImagingResponseNormalizer";
 
 import { normalizeCystoscopy } from "./CystoscopyNormalizer";
 import { normalizeCystoscopyBiopsy } from "./CystoscopyBiopsyNormalizer";
+import { normalizeTreatment } from "./TreatmentNormalizer";
 
 import { normalizeSomatic } from "./SomaticNormalizer";
 import { normalizeGermline } from "./GermlineNormalizer";
@@ -51,12 +52,14 @@ export const normalizerRegistry: NormalizerRegistry = {
   Imaging_Response: normalizeImagingResponse,
 
   Cystoscopy: normalizeCystoscopy,
+  Cystoscopy_Biopsy: normalizeCystoscopyBiopsy,
 
   Somatic: normalizeSomatic,
   Germline: normalizeGermline,
   ctDNA: normalizeCtDNA,
   utDNA: normalizeUtDNA,
 
+  Treatment: normalizeTreatment,
   Treatment_Start: normalizeTreatmentStart,
   Treatment_Change: normalizeTreatmentChange,
   Treatment_Response: normalizeTreatmentResponse,

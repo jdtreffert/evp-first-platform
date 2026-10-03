@@ -1,39 +1,48 @@
-// src/normalizers/CystoscopyNormalizer.ts
+import { RawEventRecord, UnifiedEvent } from "../types/UnifiedEvents";
 
-import { AirtableRecord, NormalizedEvent } from "../types/UnifiedEvents";
-
-export function normalizeCystoscopy(raw: AirtableRecord): NormalizedEvent {
+export function normalizeDiagnosis(raw: RawEventRecord): UnifiedEvent {
   const f = raw.fields;
 
-  const findings = f.Cystoscopy_Findings || null;
-  const visibility = f.Cystoscopy_Visibility || null;
-  const reason = f.Cystoscopy_Reason || null;
-  const notes = f.Cystoscopy_Notes || null;
+  const histology = f.Diagnosis_Histology || null;
+  const grade = f.Diagnosis_Grade || null;
+  const variants = f.Diagnosis_Variant_Histology || [];
+  const depth = f.Diagnosis_Depth || null;
+  const margins = f.Diagnosis_Margins || null;
+  const lvi = f.Diagnosis_LVI || null;
+  const notes = f.Diagnosis_Notes || null;
 
-  const eventSummary = findings
-    ? `Cystoscopy: ${findings}`
-    : "Cystoscopy";
+  const eventSummary = histology && grade
+    ? `Diagnosis: ${histology}, Grade ${grade}`
+    : histology
+      ? `Diagnosis: ${histology}`
+      : "Diagnosis event";
 
   return {
     uid: f.Event_UID || raw.id,
     masterId: f.Master_ID || "",
-    eventType: "Cystoscopy",
+    eventType: "Diagnosis",
     eventDate: f.Event_Date || null,
 
     eventSummary,
     eventDetails: {
-      cystoscopyFindings: findings,
-      cystoscopyVisibility: visibility,
-      cystoscopyReason: reason,
-      cystoscopyNotes: notes,
+      pathologyHistology: histology,
+      pathologyGrade: grade,
+      pathologyVariantHistology: variants,
+      pathologyDepth: depth,
+      pathologyMargins: margins,
+      pathologyLVI: lvi,
+      pathologyNotes: notes,
     },
 
     eventSource: f.Event_Source || null,
 
-    cystoscopyFindings: findings,
-    cystoscopyVisibility: visibility,
-    cystoscopyReason: reason,
-    cystoscopyNotes: notes,
+    pathologyHistology: histology,
+    pathologyGrade: grade,
+    pathologyVariantHistology: variants,
+    pathologyDepth: depth,
+    pathologyMargins: margins,
+    pathologyLVI: lvi,
+    pathologyNotes: notes,
 
     documentAttachment: f.Document_Attachment || [],
     documentType: f.Document_Type || null,
@@ -42,4 +51,3 @@ export function normalizeCystoscopy(raw: AirtableRecord): NormalizedEvent {
     payload: raw,
   };
 }
-  

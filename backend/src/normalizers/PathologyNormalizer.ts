@@ -1,8 +1,8 @@
 // src/normalizers/PathologyNormalizer.ts
 
-import { AirtableRecord, NormalizedEvent } from "../types/UnifiedEvents";
+import { RawEventRecord, UnifiedEvent } from "../types/UnifiedEvents";
 
-export function normalizePathology(raw: AirtableRecord): NormalizedEvent {
+export function normalizePathology(raw: RawEventRecord): UnifiedEvent {
   const f = raw.fields;
 
   const histology = f.Pathology_Histology || null;

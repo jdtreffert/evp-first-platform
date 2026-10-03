@@ -1,8 +1,8 @@
 // src/normalizers/CystoscopyNormalizer.ts
 
-import { AirtableRecord, NormalizedEvent } from "../types/UnifiedEvents";
+import { RawEventRecord, UnifiedEvent } from "../types/UnifiedEvents";
 
-export function normalizeCystoscopy(raw: AirtableRecord): NormalizedEvent {
+export function normalizeCystoscopy(raw: RawEventRecord): UnifiedEvent {
   const f = raw.fields;
 
   const findings = f.Cystoscopy_Findings || null;

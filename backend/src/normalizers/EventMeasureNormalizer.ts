@@ -1,8 +1,8 @@
 // src/normalizers/EventMeasureNormalizer.ts
 
-import { AirtableRecord, NormalizedEvent } from "../types/UnifiedEvents";
+import { RawEventRecord, UnifiedEvent } from "../types/UnifiedEvents";
 
-export function normalizeEventMeasure(raw: AirtableRecord): NormalizedEvent {
+export function normalizeEventMeasure(raw: RawEventRecord): UnifiedEvent {
   const f = raw.fields;
 
   const measureType = f.Event_Measure_Type || null;

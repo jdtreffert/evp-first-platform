@@ -38,6 +38,15 @@ validation reads its keys to decide which `eventType` values are legal.
 | `Note` | `normalizeNote` | `Note` |
 | `Other` | `normalizeOther` | `Other` |
 
+### Airtable alignment
+
+The Airtable `Event_Type` select field defines 21 options, listed in
+[eventTypes.ts](../src/schemas/eventTypes.ts). All 21 are registered. The registry also accepts
+7 platform-only types that have no Airtable option yet: `Labs`, `Pathology`, `Document`,
+`Event_Measure`, `Treatment`, `Treatment_Outcome` and `Treatment_Regimen_Details`. A test fails if
+the two lists and the registry drift apart. If Airtable gains options for these types, move them
+from `platformOnlyEventTypes` to `airtableEventTypes`.
+
 ### The `Treatment` dispatcher
 
 [`normalizeTreatment`](../src/normalizers/TreatmentNormalizer.ts) inspects the record's fields and

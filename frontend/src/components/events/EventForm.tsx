@@ -1,438 +1,219 @@
 import { useState } from "react";
+import type { FormEvent } from "react";
+import type { RawEventRecord } from "../../../../backend/src/types/UnifiedEvents";
 
-export interface EventDraft {
-  eventType: string;
-  eventDate: string;
-  title: string;
-  summary: string;
-  details: string;
-  modality: string;
-  findings: string;
-  impression: string;
-  visualFindings: string;
-  biopsyResults: string;
-  depth: string;
-  margins: string;
-  lvi: string;
-  variantHistology: string;
-  surgeonNotes: string;
-  ctdnaVendor: string;
-  assayType: string;
-  ctdnaResult: string;
-  ctdnaValue: string;
-  ctdnaTrend: string;
-  changeType: string;
-  changeReason: string;
-}
+type EntryEventType = "Diagnosis" | "Imaging" | "Treatment_Start" | "ctDNA" | "Note" | "Other";
 
 interface EventFormProps {
-  onSave: (event: EventDraft) => void;
+  masterId: string;
+  eventSource: string;
+  onSave: (event: RawEventRecord) => Promise<void>;
   onCancel: () => void;
 }
 
-export default function EventForm({ onSave, onCancel }: EventFormProps) {
-  // Core fields
-  const [eventType, setEventType] = useState("");
-  const [eventDate, setEventDate] = useState("");
-  const [title, setTitle] = useState("");
-  const [summary, setSummary] = useState("");
-  const [details, setDetails] = useState("");
+interface EventFormValues {
+  eventDate: string;
+  histology: string;
+  grade: string;
+  diagnosisNotes: string;
+  imagingModality: string;
+  imagingResult: string;
+  imagingRegion: string;
+  imagingNotes: string;
+  treatmentName: string;
+  treatmentIntent: string;
+  treatmentCycle: string;
+  ctdnaVendor: string;
+  ctdnaAssayType: string;
+  ctdnaValue: string;
+  ctdnaUnits: string;
+  ctdnaTrend: string;
+  noteText: string;
+  otherDescription: string;
+}
 
-  // Imaging fields
-  const [modality, setModality] = useState("");
-  const [findings, setFindings] = useState("");
-  const [impression, setImpression] = useState("");
+const eventTypes: { value: EntryEventType; label: string }[] = [
+  { value: "Diagnosis", label: "Diagnosis" },
+  { value: "Imaging", label: "Imaging" },
+  { value: "Treatment_Start", label: "Treatment start" },
+  { value: "ctDNA", label: "ctDNA result" },
+  { value: "Note", label: "Clinical note" },
+  { value: "Other", label: "Other event" },
+];
 
-  // Cystoscopy fields
-  const [visualFindings, setVisualFindings] = useState("");
-  const [biopsyResults, setBiopsyResults] = useState("");
+const inputClass = "mt-1 w-full rounded border border-gray-600 bg-gray-800 px-3 py-2 text-white";
 
-  // TURBT fields
-  const [depth, setDepth] = useState("");
-  const [margins, setMargins] = useState("");
-  const [lvi, setLvi] = useState("");
-  const [variantHistology, setVariantHistology] = useState("");
-  const [surgeonNotes, setSurgeonNotes] = useState("");
+function getLocalDate(): string {
+  const today = new Date();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+  return `${today.getFullYear()}-${month}-${day}`;
+}
 
-  // ctDNA fields
-  const [ctdnaVendor, setCtdnaVendor] = useState("");
-  const [assayType, setAssayType] = useState("");
-  const [ctdnaResult, setCtdnaResult] = useState("");
-  const [ctdnaValue, setCtdnaValue] = useState("");
-  const [ctdnaTrend, setCtdnaTrend] = useState("");
+export default function EventForm({ masterId, eventSource, onSave, onCancel }: EventFormProps) {
+  const [eventType, setEventType] = useState<EntryEventType>("Note");
+  const [values, setValues] = useState<EventFormValues>({
+    eventDate: getLocalDate(),
+    histology: "",
+    grade: "",
+    diagnosisNotes: "",
+    imagingModality: "",
+    imagingResult: "",
+    imagingRegion: "",
+    imagingNotes: "",
+    treatmentName: "",
+    treatmentIntent: "",
+    treatmentCycle: "",
+    ctdnaVendor: "",
+    ctdnaAssayType: "",
+    ctdnaValue: "",
+    ctdnaUnits: "",
+    ctdnaTrend: "",
+    noteText: "",
+    otherDescription: "",
+  });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Treatment Change fields
-  const [changeType, setChangeType] = useState("");
-  const [changeReason, setChangeReason] = useState("");
+  const updateValue = (key: keyof EventFormValues, value: string) => {
+    setValues((previous) => ({ ...previous, [key]: value }));
+  };
 
-  const eventTypes = [
-    "Diagnosis",
-    "Imaging",
-    "Cystoscopy",
-    "Pathology",
-    "TURBT",
-    "Treatment Start",
-    "Treatment Change",
-    "Treatment Pathway Change",
-    "Surveillance Visit",
-    "Labwork",
-    "Cytology",
-    "ctDNA",
-    "Best Response",
-    "Recurrence",
-    "Progression",
-    "Major Event"
-  ];
-
-  const imagingModalities = ["CT", "MRI", "PET/CT", "Ultrasound"];
-
-  const ctdnaVendors = [
-    "Natera (Signatera)",
-    "Tempus",
-    "Guardant Reveal",
-    "Foundation",
-    "Other"
-  ];
-
-  const assayTypes = [
-    "Tumor-informed",
-    "Tissue-free / tumor-naïve"
-  ];
-
-  const ctdnaResults = ["Negative", "Positive", "Indeterminate"];
-
-  const changeTypes = [
-    "Dose reduction",
-    "Pause",
-    "Switch",
-    "Stop treatment",
-    "Other"
-  ];
-
-  const handleSubmit = () => {
-    const event = {
-      eventType,
-      eventDate,
-      title,
-      summary,
-      details,
-
-      // Imaging
-      modality,
-      findings,
-      impression,
-
-      // Cystoscopy
-      visualFindings,
-      biopsyResults,
-
-      // TURBT
-      depth,
-      margins,
-      lvi,
-      variantHistology,
-      surgeonNotes,
-
-      // ctDNA
-      ctdnaVendor,
-      assayType,
-      ctdnaResult,
-      ctdnaValue,
-      ctdnaTrend,
-
-      // Treatment Change
-      changeType,
-      changeReason
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError(null);
+    const uid = `web-${crypto.randomUUID()}`;
+    const fields: Record<string, unknown> = {
+      Event_UID: uid,
+      Event_Type: eventType,
+      Event_Date: values.eventDate,
+      Event_Source: eventSource,
+      Master_ID: masterId,
     };
 
-    onSave(event);
+    switch (eventType) {
+      case "Diagnosis":
+        fields.Diagnosis_Histology = values.histology;
+        fields.Diagnosis_Grade = values.grade;
+        fields.Diagnosis_Notes = values.diagnosisNotes;
+        break;
+      case "Imaging":
+        fields.Imaging_Modality = values.imagingModality;
+        fields.Imaging_Result = values.imagingResult;
+        fields.Imaging_Region = values.imagingRegion;
+        fields.Imaging_Notes = values.imagingNotes;
+        break;
+      case "Treatment_Start":
+        fields.Treatment_Name = values.treatmentName;
+        fields.Treatment_Intent = values.treatmentIntent;
+        if (values.treatmentCycle !== "") fields.Treatment_Cycle = Number(values.treatmentCycle);
+        break;
+      case "ctDNA":
+        fields.ctDNA_Vendor = values.ctdnaVendor;
+        fields.ctDNA_Assay_Type = values.ctdnaAssayType;
+        if (values.ctdnaValue !== "") fields.ctDNA_Value = Number(values.ctdnaValue);
+        fields.ctDNA_Units = values.ctdnaUnits;
+        fields.ctDNA_Trend = values.ctdnaTrend;
+        break;
+      case "Note":
+        fields.Note_Text = values.noteText;
+        break;
+      case "Other":
+        fields.Other_Description = values.otherDescription;
+        break;
+    }
+
+    setSaving(true);
+    try {
+      await onSave({ id: uid, fields });
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : "Unable to save this event.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
-    <div className="bg-gray-900 p-6 rounded text-white space-y-6">
+    <form onSubmit={(event) => void handleSubmit(event)} className="space-y-5 rounded-lg border border-gray-700 bg-gray-900 p-5">
+      <div className="flex items-center justify-between gap-4">
+        <h3 className="text-xl font-semibold">Add an event</h3>
+        <button type="button" onClick={onCancel} className="text-sm text-gray-300 hover:text-white">Cancel</button>
+      </div>
 
-      <h3 className="text-xl font-bold">Add Event</h3>
-
-      {/* Event Type */}
-      <section>
-        <label className="block mb-2">Event Type</label>
+      <label className="block text-sm">
+        Event type
         <select
-          className="bg-gray-800 p-2 rounded w-full"
+          required
+          className={inputClass}
           value={eventType}
-          onChange={(e) => setEventType(e.target.value)}
+          onChange={(event) => setEventType(event.target.value as EntryEventType)}
         >
-          <option value="">Select...</option>
-          {eventTypes.map((t) => (
-            <option key={t} value={t}>{t}</option>
-          ))}
+          {eventTypes.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
         </select>
-      </section>
+      </label>
 
-      {/* Event Date */}
-      <section>
-        <label className="block mb-2">Event Date</label>
+      <label className="block text-sm">
+        Event date
         <input
           type="date"
-          className="bg-gray-800 p-2 rounded w-full"
-          value={eventDate}
-          onChange={(e) => setEventDate(e.target.value)}
+          className={inputClass}
+          value={values.eventDate}
+          onChange={(event) => updateValue("eventDate", event.target.value)}
         />
-      </section>
+      </label>
 
-      {/* Title */}
-      <section>
-        <label className="block mb-2">Title</label>
-        <input
-          type="text"
-          className="bg-gray-800 p-2 rounded w-full"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Short title for this event"
-        />
-      </section>
+      {eventType === "Diagnosis" && (
+        <>
+          <label className="block text-sm">Histology<input required className={inputClass} value={values.histology} onChange={(event) => updateValue("histology", event.target.value)} /></label>
+          <label className="block text-sm">Grade<input className={inputClass} value={values.grade} onChange={(event) => updateValue("grade", event.target.value)} /></label>
+          <label className="block text-sm">Notes<textarea className={inputClass} rows={3} value={values.diagnosisNotes} onChange={(event) => updateValue("diagnosisNotes", event.target.value)} /></label>
+        </>
+      )}
 
-      {/* Summary */}
-      <section>
-        <label className="block mb-2">Summary</label>
-        <textarea
-          className="bg-gray-800 p-2 rounded w-full"
-          value={summary}
-          onChange={(e) => setSummary(e.target.value)}
-          placeholder="Brief summary of what happened"
-        />
-      </section>
-
-      {/* Dynamic Fields */}
-
-      {/* Imaging */}
       {eventType === "Imaging" && (
-        <section className="space-y-4">
-          <h4 className="font-bold">Imaging Details</h4>
-
-          <label className="block">Modality</label>
-          <select
-            className="bg-gray-800 p-2 rounded w-full"
-            value={modality}
-            onChange={(e) => setModality(e.target.value)}
-          >
-            <option value="">Select...</option>
-            {imagingModalities.map((m) => (
-              <option key={m} value={m}>{m}</option>
-            ))}
-          </select>
-
-          <label className="block">Findings</label>
-          <textarea
-            className="bg-gray-800 p-2 rounded w-full"
-            value={findings}
-            onChange={(e) => setFindings(e.target.value)}
-          />
-
-          <label className="block">Impression</label>
-          <textarea
-            className="bg-gray-800 p-2 rounded w-full"
-            value={impression}
-            onChange={(e) => setImpression(e.target.value)}
-          />
-        </section>
+        <>
+          <label className="block text-sm">Modality<input required className={inputClass} placeholder="CT, MRI, PET/CT…" value={values.imagingModality} onChange={(event) => updateValue("imagingModality", event.target.value)} /></label>
+          <label className="block text-sm">Result<input required className={inputClass} value={values.imagingResult} onChange={(event) => updateValue("imagingResult", event.target.value)} /></label>
+          <label className="block text-sm">Region<input className={inputClass} value={values.imagingRegion} onChange={(event) => updateValue("imagingRegion", event.target.value)} /></label>
+          <label className="block text-sm">Notes<textarea className={inputClass} rows={3} value={values.imagingNotes} onChange={(event) => updateValue("imagingNotes", event.target.value)} /></label>
+        </>
       )}
 
-      {/* Cystoscopy */}
-      {eventType === "Cystoscopy" && (
-        <section className="space-y-4">
-          <h4 className="font-bold">Cystoscopy Details</h4>
-
-          <label className="block">Visual Findings</label>
-          <textarea
-            className="bg-gray-800 p-2 rounded w-full"
-            value={visualFindings}
-            onChange={(e) => setVisualFindings(e.target.value)}
-          />
-
-          <label className="block">Biopsy Results</label>
-          <textarea
-            className="bg-gray-800 p-2 rounded w-full"
-            value={biopsyResults}
-            onChange={(e) => setBiopsyResults(e.target.value)}
-          />
-        </section>
+      {eventType === "Treatment_Start" && (
+        <>
+          <label className="block text-sm">Treatment or regimen<input required className={inputClass} value={values.treatmentName} onChange={(event) => updateValue("treatmentName", event.target.value)} /></label>
+          <label className="block text-sm">Intent<input className={inputClass} value={values.treatmentIntent} onChange={(event) => updateValue("treatmentIntent", event.target.value)} /></label>
+          <label className="block text-sm">Cycle<input type="number" min="0" step="1" className={inputClass} value={values.treatmentCycle} onChange={(event) => updateValue("treatmentCycle", event.target.value)} /></label>
+        </>
       )}
 
-      {/* TURBT */}
-      {eventType === "TURBT" && (
-        <section className="space-y-4">
-          <h4 className="font-bold">TURBT Details</h4>
-
-          <label className="block">Depth (T-stage)</label>
-          <select
-            className="bg-gray-800 p-2 rounded w-full"
-            value={depth}
-            onChange={(e) => setDepth(e.target.value)}
-          >
-            <option value="">Select...</option>
-            <option value="Ta">Ta</option>
-            <option value="T1">T1</option>
-            <option value="T2">T2</option>
-            <option value="T3">T3</option>
-            <option value="T4">T4</option>
-          </select>
-
-          <label className="block">Margins</label>
-          <select
-            className="bg-gray-800 p-2 rounded w-full"
-            value={margins}
-            onChange={(e) => setMargins(e.target.value)}
-          >
-            <option value="">Select...</option>
-            <option value="Negative">Negative</option>
-            <option value="Positive">Positive</option>
-          </select>
-
-          <label className="block">Lymphovascular Invasion (LVI)</label>
-          <select
-            className="bg-gray-800 p-2 rounded w-full"
-            value={lvi}
-            onChange={(e) => setLvi(e.target.value)}
-          >
-            <option value="">Select...</option>
-            <option value="Present">Present</option>
-            <option value="Absent">Absent</option>
-          </select>
-
-          <label className="block">Variant Histology</label>
-          <input
-            type="text"
-            className="bg-gray-800 p-2 rounded w-full"
-            value={variantHistology}
-            onChange={(e) => setVariantHistology(e.target.value)}
-            placeholder="e.g., plasmacytoid, micropapillary"
-          />
-
-          <label className="block">Surgeon Notes</label>
-          <textarea
-            className="bg-gray-800 p-2 rounded w-full"
-            value={surgeonNotes}
-            onChange={(e) => setSurgeonNotes(e.target.value)}
-          />
-        </section>
-      )}
-
-      {/* ctDNA */}
       {eventType === "ctDNA" && (
-        <section className="space-y-4">
-          <h4 className="font-bold">ctDNA Details</h4>
-
-          <label className="block">Vendor</label>
-          <select
-            className="bg-gray-800 p-2 rounded w-full"
-            value={ctdnaVendor}
-            onChange={(e) => setCtdnaVendor(e.target.value)}
-          >
-            <option value="">Select...</option>
-            {ctdnaVendors.map((v) => (
-              <option key={v} value={v}>{v}</option>
-            ))}
-          </select>
-
-          <label className="block">Assay Type</label>
-          <select
-            className="bg-gray-800 p-2 rounded w-full"
-            value={assayType}
-            onChange={(e) => setAssayType(e.target.value)}
-          >
-            <option value="">Select...</option>
-            {assayTypes.map((t) => (
-              <option key={t} value={t}>{t}</option>
-            ))}
-          </select>
-
-          <label className="block">Result</label>
-          <select
-            className="bg-gray-800 p-2 rounded w-full"
-            value={ctdnaResult}
-            onChange={(e) => setCtdnaResult(e.target.value)}
-          >
-            <option value="">Select...</option>
-            {ctdnaResults.map((r) => (
-              <option key={r} value={r}>{r}</option>
-            ))}
-          </select>
-
-          <label className="block">Value (if provided)</label>
-          <input
-            type="text"
-            className="bg-gray-800 p-2 rounded w-full"
-            value={ctdnaValue}
-            onChange={(e) => setCtdnaValue(e.target.value)}
-            placeholder="e.g., 0.00 MTM/mL"
-          />
-
-          <label className="block">Trend</label>
-          <select
-            className="bg-gray-800 p-2 rounded w-full"
-            value={ctdnaTrend}
-            onChange={(e) => setCtdnaTrend(e.target.value)}
-          >
-            <option value="">Select...</option>
-            <option value="Rising">Rising</option>
-            <option value="Falling">Falling</option>
-            <option value="Stable">Stable</option>
-          </select>
-        </section>
+        <>
+          <label className="block text-sm">Vendor<input className={inputClass} value={values.ctdnaVendor} onChange={(event) => updateValue("ctdnaVendor", event.target.value)} /></label>
+          <label className="block text-sm">Assay type<input className={inputClass} value={values.ctdnaAssayType} onChange={(event) => updateValue("ctdnaAssayType", event.target.value)} /></label>
+          <label className="block text-sm">Value<input type="number" step="any" className={inputClass} value={values.ctdnaValue} onChange={(event) => updateValue("ctdnaValue", event.target.value)} /></label>
+          <label className="block text-sm">Units<input className={inputClass} value={values.ctdnaUnits} onChange={(event) => updateValue("ctdnaUnits", event.target.value)} /></label>
+          <label className="block text-sm">Trend<input className={inputClass} placeholder="Increasing, decreasing, stable…" value={values.ctdnaTrend} onChange={(event) => updateValue("ctdnaTrend", event.target.value)} /></label>
+        </>
       )}
 
-      {/* Treatment Change */}
-      {eventType === "Treatment Change" && (
-        <section className="space-y-4">
-          <h4 className="font-bold">Treatment Change Details</h4>
-
-          <label className="block">Change Type</label>
-          <select
-            className="bg-gray-800 p-2 rounded w-full"
-            value={changeType}
-            onChange={(e) => setChangeType(e.target.value)}
-          >
-            <option value="">Select...</option>
-            {changeTypes.map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
-
-          <label className="block">Reason</label>
-          <textarea
-            className="bg-gray-800 p-2 rounded w-full"
-            value={changeReason}
-            onChange={(e) => setChangeReason(e.target.value)}
-          />
-        </section>
+      {eventType === "Note" && (
+        <label className="block text-sm">Note<textarea required className={inputClass} rows={5} value={values.noteText} onChange={(event) => updateValue("noteText", event.target.value)} /></label>
       )}
 
-      {/* Additional Details */}
-      <section>
-        <label className="block mb-2">Additional Details (optional)</label>
-        <textarea
-          className="bg-gray-800 p-2 rounded w-full"
-          value={details}
-          onChange={(e) => setDetails(e.target.value)}
-        />
-      </section>
+      {eventType === "Other" && (
+        <label className="block text-sm">Description<textarea required className={inputClass} rows={4} value={values.otherDescription} onChange={(event) => updateValue("otherDescription", event.target.value)} /></label>
+      )}
 
-      {/* Buttons */}
-      <div className="flex space-x-4">
-        <button
-          className="bg-blue-600 px-4 py-2 rounded font-bold"
-          onClick={handleSubmit}
-        >
-          Save Event
-        </button>
-
-        <button
-          className="bg-gray-700 px-4 py-2 rounded"
-          onClick={onCancel}
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
+      {error && <p role="alert" className="text-sm text-rose-300">{error}</p>}
+      <button
+        type="submit"
+        disabled={saving}
+        className="rounded bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {saving ? "Saving…" : "Save event"}
+      </button>
+      <p className="text-xs text-gray-400">Supported event types: diagnosis, imaging, treatment start, ctDNA result, note, and other.</p>
+    </form>
   );
 }

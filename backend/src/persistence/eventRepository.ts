@@ -1,4 +1,5 @@
 import { UnifiedEvent } from "../types/UnifiedEvents";
+import { EventQuery, EventQueryResult } from "./eventQuery";
 
 export interface SaveResult {
   created: boolean;
@@ -12,4 +13,5 @@ export interface EventRepository {
   save(event: UnifiedEvent): Promise<SaveResult>;
   getByUid(uid: string): Promise<UnifiedEvent | null>;
   list(): Promise<UnifiedEvent[]>;
+  query(query: EventQuery): Promise<EventQueryResult>;
 }

@@ -94,4 +94,15 @@ describe("FileEventRepository", () => {
     await fs.writeFile(file, JSON.stringify({ version: 1, events: [] }), "utf8");
     await expect(repo.save(event("E1"))).resolves.toEqual({ created: true });
   });
+
+  test("query filters and paginates the stored events", async () => {
+    await repo.save(event("E1", { eventDate: "2024-01-01" }));
+    await repo.save(event("E2", { eventDate: "2024-02-01", masterId: "M2" }));
+    await repo.save(event("E3", { eventDate: "2024-03-01" }));
+
+    const result = await repo.query({ masterId: "M1", order: "desc", limit: 1, offset: 0 });
+
+    expect(result.total).toBe(2);
+    expect(result.events.map((e) => e.uid)).toEqual(["E3"]);
+  });
 });

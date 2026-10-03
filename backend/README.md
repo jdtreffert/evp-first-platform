@@ -62,7 +62,20 @@ Configure the location with `EVP_DATA_FILE` (default `data/events.json`, relativ
 working directory). The store contains patient data: `backend/data/` is git-ignored and
 should not be committed.
 
-Planned: `/events/query` (reads from the repository) and `/events/batch`.
+`GET /api/events/query` — filter stored events. All parameters are optional; unknown or invalid ones return 400 with `details`.
+
+| Parameter | Meaning |
+|-----------|---------|
+| `masterId`, `eventType` | Exact match |
+| `from`, `to` | Inclusive `YYYY-MM-DD` range on the event's recorded calendar date (`from` must not be after `to`); undated events never match a range |
+| `order` | `asc` (default) or `desc` by event date; undated events always last, ties broken by `uid` |
+| `limit`, `offset` | Pagination; `limit` 1-500 (default 50), `offset` default 0 |
+
+Response: `{ "events": [...], "total": n, "limit": n, "offset": n }`, where `total` counts matches before pagination.
+
+`GET /api/events/:uid` — one event: 200, 404 if not found, 400 for a malformed `uid`.
+
+Planned: `/events/batch`.
 
 ## Scripts
 

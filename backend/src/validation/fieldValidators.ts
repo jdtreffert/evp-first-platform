@@ -20,3 +20,9 @@ export function isValidEventDate(value: string): boolean {
   if (!match) return false;
   return isRealCalendarDate(Number(match[1]), Number(match[2]), Number(match[3]));
 }
+
+/** Accepts only a real calendar date in YYYY-MM-DD form (no time component). */
+export function isValidDateOnly(value: string): boolean {
+  const match = DATE_ONLY.exec(value);
+  return match !== null && isRealCalendarDate(Number(match[1]), Number(match[2]), Number(match[3]));
+}

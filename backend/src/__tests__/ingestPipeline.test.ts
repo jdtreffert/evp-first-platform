@@ -90,4 +90,69 @@ describe("ingestion pipeline (HTTP -> normalize -> validate -> persist)", () => 
     expect(await fs.readFile(file, "utf8")).toBe("{corrupt");
     spy.mockRestore();
   });
+
+  describe("query", () => {
+    const get = (route: string) => fetch(`${base}${route}`);
+    const ingest = (uid: string, masterId: string, date: string) =>
+      post(
+        "/ingest",
+        JSON.stringify({ id: uid, fields: { Event_Type: "Note", Event_UID: uid, Master_ID: masterId, Event_Date: date } }),
+      );
+
+    beforeEach(async () => {
+      await ingest("N1", "M1", "2024-01-01");
+      await ingest("N2", "M2", "2024-02-01");
+      await ingest("N3", "M1", "2024-03-01");
+    });
+
+    test("filters by patient, newest first", async () => {
+      const res = await get("/query?masterId=M1&order=desc");
+      const body = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(body.total).toBe(2);
+      expect(body.events.map((e: { uid: string }) => e.uid)).toEqual(["N3", "N1"]);
+    });
+
+    test("filters by date range and paginates", async () => {
+      const body = await (await get("/query?from=2024-01-15&limit=1")).json();
+
+      expect(body.total).toBe(2);
+      expect(body.events.map((e: { uid: string }) => e.uid)).toEqual(["N2"]);
+    });
+
+    test("returns an empty page when nothing matches", async () => {
+      expect(await (await get("/query?masterId=NOPE")).json()).toMatchObject({ events: [], total: 0 });
+    });
+
+    test("an empty store queries cleanly", async () => {
+      await fs.rm(file);
+      expect(await (await get("/query")).json()).toMatchObject({ events: [], total: 0 });
+    });
+
+    test("rejects invalid or unknown parameters with 400 and details", async () => {
+      const res = await get("/query?from=2024-02-30&bogus=1");
+      const body = await res.json();
+
+      expect(res.status).toBe(400);
+      expect(body.error).toBe("Invalid query parameters");
+      expect(body.details.length).toBeGreaterThan(0);
+    });
+
+    test("gets a single event by uid", async () => {
+      const res = await get("/N2");
+
+      expect(res.status).toBe(200);
+      expect((await res.json()).masterId).toBe("M2");
+    });
+
+    test("unknown uid is 404 and a malformed uid is 400", async () => {
+      expect((await get("/missing")).status).toBe(404);
+      expect((await get("/bad%20uid")).status).toBe(400);
+    });
+
+    test("the query route is not shadowed by the uid route", async () => {
+      expect((await get("/query")).status).toBe(200);
+    });
+  });
 });

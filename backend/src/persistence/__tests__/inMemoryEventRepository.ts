@@ -1,4 +1,5 @@
 import { UnifiedEvent } from "../../types/UnifiedEvents";
+import { EventQuery, EventQueryResult, applyEventQuery } from "../eventQuery";
 import { EventRepository, SaveResult } from "../eventRepository";
 
 export class InMemoryEventRepository implements EventRepository {
@@ -16,5 +17,9 @@ export class InMemoryEventRepository implements EventRepository {
 
   async list(): Promise<UnifiedEvent[]> {
     return [...this.events.values()];
+  }
+
+  async query(query: EventQuery): Promise<EventQueryResult> {
+    return applyEventQuery([...this.events.values()], query);
   }
 }

@@ -1,6 +1,7 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { UnifiedEvent } from "../types/UnifiedEvents";
+import { EventQuery, EventQueryResult, applyEventQuery } from "./eventQuery";
 import { EventRepository, SaveResult } from "./eventRepository";
 
 interface StoreFile {
@@ -47,6 +48,10 @@ export class FileEventRepository implements EventRepository {
 
   list(): Promise<UnifiedEvent[]> {
     return this.enqueue(() => this.readAll());
+  }
+
+  query(query: EventQuery): Promise<EventQueryResult> {
+    return this.enqueue(async () => applyEventQuery(await this.readAll(), query));
   }
 
   private enqueue<T>(task: () => Promise<T>): Promise<T> {

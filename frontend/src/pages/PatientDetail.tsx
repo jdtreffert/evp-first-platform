@@ -1,13 +1,12 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import EventForm from "../components/events/EventForm";
 
 interface EventRecord {
   id: string;
   eventType: string;
   eventDate: string;
   eventSummary: string;
-  eventDetails: any;
+  eventDetails: unknown;
   sourceDocumentURL: string;
   createdAt: string;
 }
@@ -17,29 +16,28 @@ export default function PatientDetail() {
   const [events, setEvents] = useState<EventRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
-  async function fetchEvents() {
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/events/${masterId}`);
-      const data = await res.json();
-      setEvents(data);
-    } catch (err) {
-      console.error("Failed to fetch events:", err);
-    } finally {
-      setLoading(false);
-    }
-  }
-
   useEffect(() => {
-    fetchEvents();
+    let active = true;
+    const fetchEvents = async () => {
+      try {
+        const res = await fetch(`/api/events/${masterId}`);
+        const data = await res.json() as EventRecord[];
+        if (active) setEvents(data);
+      } catch (err) {
+        console.error("Failed to fetch events:", err);
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+    void fetchEvents();
+    return () => {
+      active = false;
+    };
   }, [masterId]);
 
   return (
     <div className="p-6 text-white">
       <h1 className="text-2xl font-bold mb-6">Patient Details</h1>
-
-      {/* Event Form */}
-      <EventForm masterId={masterId!} onSuccess={fetchEvents} />
 
       <h2 className="text-xl font-semibold mt-10 mb-4">Events</h2>
 

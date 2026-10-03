@@ -10,7 +10,7 @@ export interface SaveResult {
  * identity: saving an existing uid replaces the stored event (idempotent upsert).
  */
 export interface EventRepository {
-  save(event: UnifiedEvent): Promise<SaveResult>;
+  save(event: UnifiedEvent, options?: { ownerMasterId?: string }): Promise<SaveResult>;
   getByUid(uid: string): Promise<UnifiedEvent | null>;
   list(): Promise<UnifiedEvent[]>;
   query(query: EventQuery): Promise<EventQueryResult>;

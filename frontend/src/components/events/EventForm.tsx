@@ -1,6 +1,36 @@
 import { useState } from "react";
 
-export default function EventForm({ onSave, onCancel }) {
+export interface EventDraft {
+  eventType: string;
+  eventDate: string;
+  title: string;
+  summary: string;
+  details: string;
+  modality: string;
+  findings: string;
+  impression: string;
+  visualFindings: string;
+  biopsyResults: string;
+  depth: string;
+  margins: string;
+  lvi: string;
+  variantHistology: string;
+  surgeonNotes: string;
+  ctdnaVendor: string;
+  assayType: string;
+  ctdnaResult: string;
+  ctdnaValue: string;
+  ctdnaTrend: string;
+  changeType: string;
+  changeReason: string;
+}
+
+interface EventFormProps {
+  onSave: (event: EventDraft) => void;
+  onCancel: () => void;
+}
+
+export default function EventForm({ onSave, onCancel }: EventFormProps) {
   // Core fields
   const [eventType, setEventType] = useState("");
   const [eventDate, setEventDate] = useState("");

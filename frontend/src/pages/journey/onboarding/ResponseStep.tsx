@@ -1,6 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import type { FormSetter, ResponseForm } from "./types";
 
-export default function ResponseStep({ response, setResponse, onNext, onBack }) {
+interface ResponseStepProps {
+  response: ResponseForm;
+  setResponse: FormSetter<ResponseForm>;
+  onNext: () => void;
+  onBack: () => void;
+}
+
+export default function ResponseStep({ response, setResponse, onNext, onBack }: ResponseStepProps) {
   // Local state initialized from parent
   const [bestResponse, setBestResponse] = useState(response.bestResponse || "");
   const [responseDate, setResponseDate] = useState(response.responseDate || "");
@@ -8,14 +16,6 @@ export default function ResponseStep({ response, setResponse, onNext, onBack }) 
     response.responseModalities || []
   );
   const [responseNotes, setResponseNotes] = useState(response.responseNotes || "");
-
-  // Sync local state when navigating back
-  useEffect(() => {
-    setBestResponse(response.bestResponse || "");
-    setResponseDate(response.responseDate || "");
-    setResponseModalities(response.responseModalities || []);
-    setResponseNotes(response.responseNotes || "");
-  }, [response]);
 
   const responseOptions = [
     "Complete Response (CR)",

@@ -49,6 +49,18 @@ describe("FileEventRepository", () => {
     expect(all[0].eventSummary).toBe("new");
   });
 
+  test("patient-scoped saves reject writes outside the owner and cross-owner uid replacement", async () => {
+    await repo.save(event("OWN", { masterId: "M1" }), { ownerMasterId: "M1" });
+    await expect(repo.save(event("OTHER", { masterId: "M2" }), { ownerMasterId: "M1" })).rejects.toMatchObject({
+      status: 403,
+    });
+    await repo.save(event("SHARED", { masterId: "M2" }));
+    await expect(repo.save(event("SHARED", { masterId: "M1" }), { ownerMasterId: "M1" })).rejects.toMatchObject({
+      status: 403,
+    });
+    expect((await repo.getByUid("SHARED"))?.masterId).toBe("M2");
+  });
+
   test("preserves zero values and nulls through a round trip", async () => {
     await repo.save(event("E1", { ctDNAValue: 0, qolPain: null }));
     expect(await repo.getByUid("E1")).toMatchObject({ ctDNAValue: 0, qolPain: null });

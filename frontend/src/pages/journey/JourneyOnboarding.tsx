@@ -4,25 +4,34 @@ import TreatmentStep from "./onboarding/TreatmentStep";
 import ResponseStep from "./onboarding/ResponseStep";
 import QoLStep from "./onboarding/QoLStep";
 import DiagnosticSummaryStep from "./onboarding/DiagnosticSummaryStep";
-import { useNavigate } from "react-router-dom";
+import type {
+  DiagnosisForm,
+  QualityOfLifeForm,
+  ResponseForm,
+  TreatmentForm,
+} from "./onboarding/types";
 
 export default function JourneyOnboarding() {
-  const navigate = useNavigate();
-
   // Shared onboarding state
-  const [diagnosis, setDiagnosis] = useState({});
-  const [treatment, setTreatment] = useState({});
-  const [response, setResponse] = useState({});
-  const [qol, setQol] = useState({});
+  const [diagnosis, setDiagnosis] = useState<DiagnosisForm>({});
+  const [treatment, setTreatment] = useState<TreatmentForm>({});
+  const [response, setResponse] = useState<ResponseForm>({});
+  const [qol, setQol] = useState<QualityOfLifeForm>({});
 
   const [step, setStep] = useState(1);
+  const [completed, setCompleted] = useState(false);
 
   const goToStep = (n: number) => setStep(n);
+  const handleCompleteOnboarding = () => setCompleted(true);
 
   return (
     <div className="text-white p-6 space-y-6">
 
       <h2 className="text-xl font-bold mb-4">Onboarding</h2>
+      <p className="rounded border border-amber-700 bg-amber-950/50 p-3 text-sm text-amber-100">
+        This onboarding draft is not saved yet. Event submission will be connected to your account in the next workflow.
+      </p>
+      {completed && <p role="status">Draft complete. It has not been submitted or saved.</p>}
 
       {/* Stepper */}
       <div className="flex space-x-4 mb-6">
@@ -83,7 +92,7 @@ export default function JourneyOnboarding() {
           treatment={treatment}
           response={response}
           qol={qol}
-          onEditSection={(section) => {
+          onEditSection={(section: string) => {
             if (section === "diagnosis") goToStep(1);
             if (section === "treatment") goToStep(2);
             if (section === "response") goToStep(3);
@@ -95,33 +104,3 @@ export default function JourneyOnboarding() {
     </div>
   );
 }
-
-const handleCompleteOnboarding = async () => {
-  try {
-    const response = await fetch("/api/onboarding/complete", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        diagnosis,
-        treatment,
-        responseData: response,   // rename if needed
-        qol,
-        user: {
-          email: currentUser.email,
-          firstName: currentUser.firstName,
-          lastName: currentUser.lastName
-        }
-      })
-    });
-
-    if (!response.ok) {
-      console.error("Failed to complete onboarding");
-      return;
-    }
-
-    // Redirect to dashboard
-    navigate("/journey");
-  } catch (err) {
-    console.error("Error completing onboarding", err);
-  }
-};

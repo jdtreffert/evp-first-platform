@@ -39,7 +39,38 @@ Endpoints (full details, parameters and examples in the [API reference](docs/api
 | `POST /api/events/validate` | Validate a `UnifiedEvent` without storing it |
 | `GET /api/events/query` | Filter stored events by `masterId`, `eventType`, date range, with pagination |
 | `GET /api/events/:uid` | Fetch one event |
+| `POST /api/auth/login` | Request a passwordless email code |
+| `POST /api/auth/verify` | Verify a code and establish a cookie session |
+| `POST /api/auth/register` | Start invite-bound patient registration |
+| `GET /api/auth/me` | Get the current account |
+| `POST /api/auth/logout` | Revoke the current session |
 | `GET /` | Health check |
+
+All event endpoints require an authenticated session. Roles are enforced by the
+backend: administrators have full read/write access, clinical users are read-only,
+and patients are restricted to their linked `masterId`. No role can delete events.
+
+## Authentication and configuration
+
+Authentication uses a file-backed account/session repository and a provider-neutral
+email interface. The included SMTP adapter is configured with `SMTP_HOST` and
+`SMTP_FROM` (plus optional paired `SMTP_USER` and `SMTP_PASSWORD`). Without SMTP,
+the server starts but code requests fail with HTTP 503; no codes are printed to logs.
+
+Set `AUTH_SESSION_SECRET` to a random value of at least 32 characters and
+`ADMIN_BOOTSTRAP_SECRET` to establish the first administrator once. The bootstrap
+endpoint is disabled after an administrator account has been created. Use
+`FRONTEND_ORIGIN` for the exact browser origin; cookie credentials are enabled only
+for that origin.
+
+OTP codes expire after 10 minutes, allow five failed attempts, and are rate-limited
+per email and source IP. Sessions expire after 12 hours or 30 minutes idle and use
+HttpOnly, SameSite=Lax cookies (Secure in production). Patient signup requires a
+single-use administrator-issued invite bound to one `masterId`.
+
+`EVP_AUTH_FILE` (default `data/auth.json`) configures account/session storage. Both
+authentication and event stores contain sensitive data; the default `data/` directory
+is git-ignored. See [the API reference](docs/api.md) for the role matrix and endpoints.
 
 ## Persistence
 

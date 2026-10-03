@@ -5,8 +5,12 @@ import { persistEvent } from "../services/persistenceService";
 
 export function createIngestionController(repository: EventRepository) {
   return async function ingestEventController(req: Request, res: Response): Promise<void> {
-    const event = ingestEvent(req.body);
-    const { created } = await persistEvent(repository, event);
+    const event = ingestEvent(req.body, {
+      masterId: req.authUser?.role === "patient" ? req.authUser.masterId ?? undefined : undefined,
+    });
+    const { created } = await persistEvent(repository, event, {
+      ownerMasterId: req.authUser?.role === "patient" ? req.authUser.masterId ?? undefined : undefined,
+    });
     res.status(created ? 201 : 200).json(event);
   };
 }

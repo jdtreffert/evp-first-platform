@@ -1,6 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import type { DiagnosisForm, FormSetter } from "./types";
 
-export default function DiagnosisStep({ diagnosis, setDiagnosis, onNext }) {
+interface DiagnosisStepProps {
+  diagnosis: DiagnosisForm;
+  setDiagnosis: FormSetter<DiagnosisForm>;
+  onNext: () => void;
+}
+
+export default function DiagnosisStep({ diagnosis, setDiagnosis, onNext }: DiagnosisStepProps) {
   // -----------------------------
   // Existing fields
   // -----------------------------
@@ -63,7 +70,7 @@ export default function DiagnosisStep({ diagnosis, setDiagnosis, onNext }) {
   // -----------------------------
   // Auto‑mapping TNM → Clinical Stage
   // -----------------------------
-  const mapTNMToStage = (t, n, m) => {
+  const mapTNMToStage = (t: string, n: string, m: string) => {
     if (!t || !n || !m) return "";
 
     if (m === "M1") return "Stage IVB";
@@ -77,31 +84,15 @@ export default function DiagnosisStep({ diagnosis, setDiagnosis, onNext }) {
     return "";
   };
 
-  useEffect(() => {
-    const autoStage = mapTNMToStage(tStage, nStage, mStage);
-    if (autoStage && clinicalStage !== autoStage) {
-      setClinicalStage(autoStage);
-    }
-  }, [tStage, nStage, mStage]);
+  const updateTnm = (setter: (value: string) => void, value: string, next: [string, string, string]) => {
+    setter(value);
+    const autoStage = mapTNMToStage(...next);
+    if (autoStage) setClinicalStage(autoStage);
+  };
 
   // -----------------------------
   // Sync state when diagnosis changes
   // -----------------------------
-  useEffect(() => {
-    setDiagnosisDate(diagnosis.diagnosisDate || "");
-    setHistology(diagnosis.histology || "");
-    setSymptoms(diagnosis.symptoms || "");
-    setInitialImaging(diagnosis.initialImaging || []);
-    setInitialCystoscopyNotes(diagnosis.initialCystoscopyNotes || "");
-
-    setClinicalStage(diagnosis.clinicalStage || "");
-    setTStage(diagnosis.tStage || "");
-    setNStage(diagnosis.nStage || "");
-    setMStage(diagnosis.mStage || "");
-
-    setVariantHistology(diagnosis.variantHistology || []);
-  }, [diagnosis]);
-
   // -----------------------------
   // Save and continue
   // -----------------------------
@@ -172,7 +163,7 @@ export default function DiagnosisStep({ diagnosis, setDiagnosis, onNext }) {
             <select
               className="bg-gray-800 p-2 rounded"
               value={tStage}
-              onChange={(e) => setTStage(e.target.value)}
+              onChange={(e) => updateTnm(setTStage, e.target.value, [e.target.value, nStage, mStage])}
             >
               <option value="">Select...</option>
               {tOptions.map((opt) => (
@@ -186,7 +177,7 @@ export default function DiagnosisStep({ diagnosis, setDiagnosis, onNext }) {
             <select
               className="bg-gray-800 p-2 rounded"
               value={nStage}
-              onChange={(e) => setNStage(e.target.value)}
+              onChange={(e) => updateTnm(setNStage, e.target.value, [tStage, e.target.value, mStage])}
             >
               <option value="">Select...</option>
               {nOptions.map((opt) => (
@@ -200,7 +191,7 @@ export default function DiagnosisStep({ diagnosis, setDiagnosis, onNext }) {
             <select
               className="bg-gray-800 p-2 rounded"
               value={mStage}
-              onChange={(e) => setMStage(e.target.value)}
+              onChange={(e) => updateTnm(setMStage, e.target.value, [tStage, nStage, e.target.value])}
             >
               <option value="">Select...</option>
               {mOptions.map((opt) => (

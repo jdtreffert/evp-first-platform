@@ -3,19 +3,22 @@ import { Server } from "http";
 import { AddressInfo } from "net";
 import os from "os";
 import path from "path";
-import { createApp } from "../app";
 import { FileEventRepository } from "../persistence/fileEventRepository";
+import { createAuthenticatedTestApp } from "./testAuth";
 
 describe("ingestion pipeline (HTTP -> normalize -> validate -> persist)", () => {
   let dir: string;
   let file: string;
   let server: Server;
   let base: string;
+  let cookie: string;
 
   beforeEach(async () => {
     dir = await fs.mkdtemp(path.join(os.tmpdir(), "evp-pipeline-"));
     file = path.join(dir, "events.json");
-    server = createApp({ repository: new FileEventRepository(file) }).listen(0);
+    const fixture = await createAuthenticatedTestApp(new FileEventRepository(file));
+    server = fixture.app.listen(0);
+    cookie = fixture.cookie;
     await new Promise<void>((resolve) => server.once("listening", resolve));
     base = `http://127.0.0.1:${(server.address() as AddressInfo).port}/api/events`;
   });
@@ -26,7 +29,11 @@ describe("ingestion pipeline (HTTP -> normalize -> validate -> persist)", () => 
   });
 
   const post = (route: string, body: string) =>
-    fetch(`${base}${route}`, { method: "POST", headers: { "content-type": "application/json" }, body });
+    fetch(`${base}${route}`, {
+      method: "POST",
+      headers: { "content-type": "application/json", cookie },
+      body,
+    });
 
   const stored = async () => JSON.parse(await fs.readFile(file, "utf8")).events;
 
@@ -92,7 +99,7 @@ describe("ingestion pipeline (HTTP -> normalize -> validate -> persist)", () => 
   });
 
   describe("query", () => {
-    const get = (route: string) => fetch(`${base}${route}`);
+    const get = (route: string) => fetch(`${base}${route}`, { headers: { cookie } });
     const ingest = (uid: string, masterId: string, date: string) =>
       post(
         "/ingest",

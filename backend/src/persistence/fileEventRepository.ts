@@ -3,6 +3,7 @@ import path from "path";
 import { UnifiedEvent } from "../types/UnifiedEvents";
 import { EventQuery, EventQueryResult, applyEventQuery } from "./eventQuery";
 import { EventRepository, SaveResult } from "./eventRepository";
+import { HttpError } from "../utils/httpError";
 
 interface StoreFile {
   version: 1;
@@ -25,10 +26,18 @@ export class FileEventRepository implements EventRepository {
 
   constructor(private readonly filePath: string) {}
 
-  save(event: UnifiedEvent): Promise<SaveResult> {
+  save(event: UnifiedEvent, options: { ownerMasterId?: string } = {}): Promise<SaveResult> {
     return this.enqueue(async () => {
       const events = await this.readAll();
       const index = events.findIndex((e) => e.uid === event.uid);
+      if (options.ownerMasterId !== undefined) {
+        if (event.masterId !== options.ownerMasterId) {
+          throw new HttpError(403, "Patients may only write events for their own patient record");
+        }
+        if (index !== -1 && events[index].masterId !== options.ownerMasterId) {
+          throw new HttpError(403, "Patients may not replace another patient's event");
+        }
+      }
       if (index === -1) {
         events.push(event);
       } else {

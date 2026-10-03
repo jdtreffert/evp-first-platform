@@ -18,7 +18,11 @@ export interface BatchResult {
  * reported by index, so one bad record never discards the rest. Records run in order,
  * so a repeated uid within a batch replaces the earlier one (reported as "updated").
  */
-export async function ingestBatch(repository: EventRepository, body: unknown): Promise<BatchResult> {
+export async function ingestBatch(
+  repository: EventRepository,
+  body: unknown,
+  options: { masterId?: string } = {},
+): Promise<BatchResult> {
   const parsed = batchRequestSchema.safeParse(body);
   if (!parsed.success) {
     throw new HttpError(
@@ -32,8 +36,8 @@ export async function ingestBatch(repository: EventRepository, body: unknown): P
 
   for (const [index, record] of parsed.data.records.entries()) {
     try {
-      const event = ingestEvent(record);
-      const { created } = await persistEvent(repository, event);
+      const event = ingestEvent(record, options);
+      const { created } = await persistEvent(repository, event, { ownerMasterId: options.masterId });
       results.push({ index, status: created ? "created" : "updated", uid: event.uid });
     } catch (err) {
       if (err instanceof HttpError) {

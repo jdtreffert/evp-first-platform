@@ -1,24 +1,23 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import type { FormSetter, QualityOfLifeForm } from "./types";
 
-export default function QoLStep({ qol, setQol, onNext, onBack }) {
+interface QoLStepProps {
+  qol: QualityOfLifeForm;
+  setQol: FormSetter<QualityOfLifeForm>;
+  onNext: () => void;
+  onBack: () => void;
+}
+
+export default function QoLStep({ qol, setQol, onNext, onBack }: QoLStepProps) {
   // Local state initialized from parent
-  const [physicalScore, setPhysicalScore] = useState(qol.physicalScore || 5);
-  const [emotionalScore, setEmotionalScore] = useState(qol.emotionalScore || 5);
-  const [functionalScore, setFunctionalScore] = useState(qol.functionalScore || 5);
+  const [physicalScore, setPhysicalScore] = useState(qol.physicalScore ?? 5);
+  const [emotionalScore, setEmotionalScore] = useState(qol.emotionalScore ?? 5);
+  const [functionalScore, setFunctionalScore] = useState(qol.functionalScore ?? 5);
 
   const [bladderSymptoms, setBladderSymptoms] = useState(
     qol.bladderSymptoms || []
   );
   const [bladderNotes, setBladderNotes] = useState(qol.bladderNotes || "");
-
-  // Sync local state when navigating back
-  useEffect(() => {
-    setPhysicalScore(qol.physicalScore || 5);
-    setEmotionalScore(qol.emotionalScore || 5);
-    setFunctionalScore(qol.functionalScore || 5);
-    setBladderSymptoms(qol.bladderSymptoms || []);
-    setBladderNotes(qol.bladderNotes || "");
-  }, [qol]);
 
   const symptomOptions = [
     "Urgency",

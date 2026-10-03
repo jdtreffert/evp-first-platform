@@ -1,6 +1,15 @@
 import { useState } from "react";
 
-export default function EventCard({ event }) {
+interface EventCardData {
+  id: string;
+  date: string;
+  type: string;
+  title: string;
+  summary: string;
+  details: string;
+}
+
+export default function EventCard({ event }: { event: EventCardData }) {
   const [open, setOpen] = useState(false);
 
   return (

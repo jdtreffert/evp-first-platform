@@ -1,4 +1,13 @@
-export function InputField({ label, value, onChange, type = "text" }) {
+import type { ChangeEvent } from "react";
+
+interface InputFieldProps {
+  label: string;
+  value: string;
+  onChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  type?: string;
+}
+
+export function InputField({ label, value, onChange, type = "text" }: InputFieldProps) {
   return (
     <div className="flex flex-col gap-2">
       <label className="text-textHeading dark:text-darkTextHeading font-medium">

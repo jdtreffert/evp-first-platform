@@ -1,8 +1,22 @@
 # API Reference
 
-Base path: `/api`. All request and response bodies are JSON. Health check: `GET /` returns plain text.
-The server listens on `PORT` (default 3000). There is currently **no authentication**
-(see [limitations](./architecture.md#known-limitations)).
+Base path: `/api`. Request and response bodies are JSON. The health check `GET /` returns
+plain text. The server listens on `PORT` (default 3000).
+
+Except for `POST /auth/login`, `/auth/register`, `/auth/bootstrap`, and `/auth/verify`,
+all API endpoints require the `evp_session` HttpOnly cookie. The browser must send
+credentials (`credentials: "include"`). Cookie sessions last up to 12 hours and expire
+after 30 minutes idle.
+
+| Role | Events | Account administration |
+|------|--------|------------------------|
+| `administrator` | Read and write all patient records | Create patient invites; provision administrator and clinical accounts |
+| `clinical` | Read all events; no writes | None |
+| `patient` | Read/create/edit only linked patient record; cannot delete | None |
+
+Patient `masterId` filters and ingestion fields are overridden by the server using the
+account's linked patient record. Cross-patient uid replacement is rejected. No role may
+delete events. Requests with an `Origin` header must match `FRONTEND_ORIGIN`.
 
 ## Errors
 
@@ -15,11 +29,12 @@ Errors use `{ "error": string, "details"?: [...] }`. Validation details are
 | 404 | Event not found |
 | 413 | Request body over 5 MB |
 | 422 | Valid request, but the event cannot be accepted (unsupported type, normalization or validation failure) |
+| 429 | Authentication request rate limit exceeded |
 | 500 | Unexpected error; the body is always `{ "error": "Internal server error" }` |
 
 ## POST /api/events/ingest
 
-Normalizes, validates, and stores one event.
+Administrator and patient only. Normalizes, validates, and stores one event.
 
 Request: `{ "id": string, "fields": { "Event_Type": string, ... } }`
 
@@ -39,7 +54,8 @@ See the [pipeline](./ingestion-pipeline.md).
 
 ## POST /api/events/batch
 
-Ingests up to 500 records independently. Valid records are stored; invalid ones are reported.
+Administrator and patient only. Ingests up to 500 records independently. Valid records
+are stored; invalid ones are reported. Patient records are forced to their linked `masterId`.
 
 Request: `{ "records": [ { "id", "fields" }, ... ] }`
 
@@ -66,7 +82,8 @@ are upserts by `uid`; resend only the failures.
 
 ## POST /api/events/validate
 
-Checks a `UnifiedEvent` without storing it. Always 200 for a JSON body; inspect `valid`.
+Any authenticated role can check a `UnifiedEvent` without storing it. Always 200 for a
+valid JSON request body; inspect `valid`.
 
 ```json
 { "valid": false, "errors": [{ "path": "uid", "message": "Invalid uid: ..." }] }
@@ -91,15 +108,54 @@ Response: `{ "events": [UnifiedEvent], "total": number, "limit": number, "offset
 
 ## GET /api/events/:uid
 
-Returns one `UnifiedEvent`: 200, 404 if no such event, 400 if `uid` is malformed.
+Any authenticated role may read. Returns one `UnifiedEvent`: 200, 404 if no such event
+(or if a patient requests an event belonging to another patient), 400 if `uid` is malformed.
+
+## Authentication
+
+All auth responses avoid revealing whether a login email or patient invite exists.
+
+### POST /api/auth/login
+
+Request `{ "email": "person@example.org" }`; returns 202 with a generic message. A
+registered email receives a six-digit code. Codes expire after 10 minutes, allow five
+incorrect attempts, and can be requested at most once per minute per email.
+
+### POST /api/auth/register
+
+Request `{ "email": "patient@example.org", "inviteCode": "..." }`; returns 202 with a
+generic message. A valid, unused administrator-issued invite sends an OTP. The invite
+is bound to one patient `masterId` and expires after seven days. The account is created
+only after OTP verification; the invite is single-use.
+
+### POST /api/auth/bootstrap
+
+For first-administrator setup only. Request `{ "email": "...", "secret": "..." }`,
+where `secret` matches `ADMIN_BOOTSTRAP_SECRET`. Returns 202 and sends an OTP. Once the
+first administrator verifies the code, bootstrap is disabled.
+
+### POST /api/auth/verify
+
+Request `{ "email": "...", "code": "123456" }`. On success, returns `{ "user": ... }`
+and sets the HttpOnly `evp_session` cookie. The session lasts 12 hours maximum and
+expires after 30 minutes idle.
+
+### GET /api/auth/me and POST /api/auth/logout
+
+`GET /auth/me` returns the current public account or 401. `POST /auth/logout` revokes
+that session and clears the cookie.
+
+### POST /api/auth/invites (administrator)
+
+Request `{ "masterId": "M123" }`; returns a single-use invite code and its expiry.
+
+### POST /api/auth/accounts (administrator)
+
+Request `{ "email": "...", "role": "clinical" }` or `"administrator"`. Creates the
+account and sends a sign-in code. Patient accounts are created only by invite redemption.
 
 ## Example session
 
 ```sh
-curl -X POST http://127.0.0.1:3000/api/events/ingest \
-  -H 'content-type: application/json' \
-  -d '{"id":"rec1","fields":{"Event_Type":"Note","Event_UID":"N1","Master_ID":"M1","Note_Text":"hello"}}'
-
-curl 'http://127.0.0.1:3000/api/events/query?masterId=M1&order=desc&limit=10'
-curl http://127.0.0.1:3000/api/events/N1
+# Authenticate first; then send the evp_session cookie with event requests.
 ```

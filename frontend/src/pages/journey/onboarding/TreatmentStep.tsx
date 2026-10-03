@@ -1,6 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import type { FormSetter, TreatmentForm } from "./types";
 
-export default function TreatmentStep({ treatment, setTreatment, onNext, onBack }) {
+interface TreatmentStepProps {
+  treatment: TreatmentForm;
+  setTreatment: FormSetter<TreatmentForm>;
+  onNext: () => void;
+  onBack: () => void;
+}
+
+export default function TreatmentStep({ treatment, setTreatment, onNext, onBack }: TreatmentStepProps) {
   // Local state initialized from parent
   const [turbtDate, setTurbtDate] = useState(treatment.turbtDate || "");
   const [turbtNotes, setTurbtNotes] = useState(treatment.turbtNotes || "");
@@ -25,33 +33,6 @@ export default function TreatmentStep({ treatment, setTreatment, onNext, onBack 
 
   const [rcDate, setRcDate] = useState(treatment.rcDate || "");
   const [rcNotes, setRcNotes] = useState(treatment.rcNotes || "");
-
-  // Sync local state when navigating back
-  useEffect(() => {
-    setTurbtDate(treatment.turbtDate || "");
-    setTurbtNotes(treatment.turbtNotes || "");
-
-    setBcgStart(treatment.bcgStart || "");
-    setBcgEnd(treatment.bcgEnd || "");
-    setBcgNotes(treatment.bcgNotes || "");
-
-    setChemoRegimen(treatment.chemoRegimen || "");
-    setChemoStart(treatment.chemoStart || "");
-    setChemoEnd(treatment.chemoEnd || "");
-    setChemoNotes(treatment.chemoNotes || "");
-
-    setIoAgent(treatment.ioAgent || "");
-    setIoStart(treatment.ioStart || "");
-    setIoEnd(treatment.ioEnd || "");
-    setIoNotes(treatment.ioNotes || "");
-
-    setRadiationStart(treatment.radiationStart || "");
-    setRadiationEnd(treatment.radiationEnd || "");
-    setRadiationNotes(treatment.radiationNotes || "");
-
-    setRcDate(treatment.rcDate || "");
-    setRcNotes(treatment.rcNotes || "");
-  }, [treatment]);
 
   const handleNext = () => {
     setTreatment({

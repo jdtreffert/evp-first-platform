@@ -5,12 +5,14 @@ import { RawEventRecord, UnifiedEvent } from "../types/UnifiedEvents";
 import { HttpError } from "../utils/httpError";
 import { validateEvent } from "./validationService";
 
-export function ingestEvent(input: unknown): UnifiedEvent {
+export function ingestEvent(input: unknown, options: { masterId?: string } = {}): UnifiedEvent {
   const parsed = rawEventRecordSchema.safeParse(input);
   if (!parsed.success) {
     throw new HttpError(400, "Invalid event record: expected { id, fields }");
   }
-  const raw: RawEventRecord = parsed.data;
+  const raw: RawEventRecord = options.masterId === undefined
+    ? parsed.data
+    : { ...parsed.data, fields: { ...parsed.data.fields, Master_ID: options.masterId } };
 
   const eventType = detectEventType(raw);
   if (!eventType) {

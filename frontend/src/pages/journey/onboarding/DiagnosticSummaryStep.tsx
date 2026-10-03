@@ -1,4 +1,19 @@
-import React from "react";
+import type {
+  DiagnosisForm,
+  OnboardingSection,
+  QualityOfLifeForm,
+  ResponseForm,
+  TreatmentForm,
+} from "./types";
+
+interface DiagnosticSummaryStepProps {
+  diagnosis: DiagnosisForm;
+  treatment: TreatmentForm;
+  response: ResponseForm;
+  qol: QualityOfLifeForm;
+  onEditSection: (section: OnboardingSection) => void;
+  onComplete: () => void;
+}
 
 export default function DiagnosticSummaryStep({
   diagnosis,
@@ -6,8 +21,8 @@ export default function DiagnosticSummaryStep({
   response,
   qol,
   onEditSection,
-  onComplete
-}) {
+  onComplete,
+}: DiagnosticSummaryStepProps) {
   return (
     <div className="space-y-10 text-white">
 

@@ -75,7 +75,28 @@ Response: `{ "events": [...], "total": n, "limit": n, "offset": n }`, where `tot
 
 `GET /api/events/:uid` — one event: 200, 404 if not found, 400 for a malformed `uid`.
 
-Planned: `/events/batch`.
+`POST /api/events/batch` — body `{ "records": [ { "id", "fields" }, ... ] }` (1-500 records, 5 MB max body).
+
+Each record goes through the same pipeline as `/ingest`, independently: valid records are stored and invalid ones are reported, so one bad record never discards the rest. Records are processed in order; a repeated `uid` replaces the earlier one.
+
+```json
+{
+  "summary": { "received": 3, "created": 1, "updated": 1, "failed": 1 },
+  "results": [
+    { "index": 0, "status": "created", "uid": "A" },
+    { "index": 1, "status": "updated", "uid": "B" },
+    { "index": 2, "status": "failed", "error": "Normalized event failed validation", "details": [{ "path": "eventDate", "message": "..." }] }
+  ]
+}
+```
+
+| Status | Meaning |
+|--------|---------|
+| 200 | The batch was processed; check `summary.failed` and per-record `results` (failures do not change the status) |
+| 400 | Body is not `{ records: [...] }`, is empty, or has more than 500 records; nothing was stored |
+| 413 | Body exceeds 5 MB |
+
+Retrying is safe: re-sending records updates them by `uid`, so resend only the failed ones.
 
 ## Scripts
 

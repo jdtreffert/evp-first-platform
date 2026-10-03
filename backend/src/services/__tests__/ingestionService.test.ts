@@ -49,6 +49,17 @@ describe("ingestEvent", () => {
     }
   });
 
+  test("an unusable Treatment record is a 422, not a server error", () => {
+    try {
+      ingestEvent(record({ Event_Type: "Treatment" }));
+      throw new Error("expected failure");
+    } catch (e) {
+      expect(e).toBeInstanceOf(HttpError);
+      expect((e as HttpError).status).toBe(422);
+      expect((e as HttpError).message).toContain("Unknown Treatment subtype");
+    }
+  });
+
   test("rejects a record without Master_ID", () => {
     expect(() => ingestEvent({ id: "r", fields: { Event_Type: "Note" } })).toThrow(
       "Normalized event failed validation",

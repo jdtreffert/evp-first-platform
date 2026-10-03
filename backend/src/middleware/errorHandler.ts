@@ -17,6 +17,10 @@ export function errorHandler(
     res.status(400).json({ error: "Malformed JSON body" });
     return;
   }
+  if ((err as { type?: string } | null)?.type === "entity.too.large") {
+    res.status(413).json({ error: "Request body too large" });
+    return;
+  }
   console.error(err);
   res.status(500).json({ error: "Internal server error" });
 }

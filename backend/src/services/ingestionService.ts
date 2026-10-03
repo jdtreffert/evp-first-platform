@@ -24,7 +24,13 @@ export function ingestEvent(input: unknown): UnifiedEvent {
     throw new HttpError(422, `Unsupported event type: ${eventType}`);
   }
 
-  const event = normalizer(raw);
+  let event: UnifiedEvent;
+  try {
+    event = normalizer(raw);
+  } catch (err) {
+    // Normalizers throw only on unusable input (e.g. an unrecognized Treatment subtype).
+    throw new HttpError(422, `Could not normalize ${eventType} record: ${(err as Error).message}`);
+  }
 
   const validation = validateEvent(event);
   if (!validation.valid) {

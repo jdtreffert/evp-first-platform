@@ -1,0 +1,10 @@
+import { Request, Response } from "express";
+import { EventRepository } from "../persistence/eventRepository";
+import { ingestBatch } from "../services/batchIngestionService";
+
+export function createBatchController(repository: EventRepository) {
+  return async function batchIngestController(req: Request, res: Response): Promise<void> {
+    // 200 even with failures: the request was processed; per-record outcomes are in the body.
+    res.status(200).json(await ingestBatch(repository, req.body));
+  };
+}

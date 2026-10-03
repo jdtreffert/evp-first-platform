@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { createBatchController } from "../controllers/batchController";
 import { createIngestionController } from "../controllers/ingestionController";
 import { createQueryController } from "../controllers/queryController";
 import { validateEventController } from "../controllers/validationController";
@@ -9,6 +10,7 @@ export function createEventsRouter(repository: EventRepository): Router {
   const { queryEventsController, getEventController } = createQueryController(repository);
 
   router.post("/ingest", createIngestionController(repository));
+  router.post("/batch", createBatchController(repository));
   router.post("/validate", validateEventController);
   router.get("/query", queryEventsController);
   // Must stay after the fixed GET routes so "query" is never treated as a uid.

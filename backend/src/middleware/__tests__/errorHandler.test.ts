@@ -31,6 +31,14 @@ describe("errorHandler", () => {
     expect(res.json).toHaveBeenCalledWith({ error: "Malformed JSON body" });
   });
 
+  test("maps oversized bodies to 413", () => {
+    const res = mockRes();
+    const err = Object.assign(new Error("too large"), { type: "entity.too.large" });
+    errorHandler(err, {} as Request, res as unknown as Response, jest.fn());
+    expect(res.status).toHaveBeenCalledWith(413);
+    expect(res.json).toHaveBeenCalledWith({ error: "Request body too large" });
+  });
+
   test("hides details of unexpected errors", () => {
     const spy = jest.spyOn(console, "error").mockImplementation(() => undefined);
     const res = mockRes();

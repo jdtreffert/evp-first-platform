@@ -155,4 +155,52 @@ describe("ingestion pipeline (HTTP -> normalize -> validate -> persist)", () => 
       expect((await get("/query")).status).toBe(200);
     });
   });
+
+  describe("batch", () => {
+    const rec = (uid: string, extra: Record<string, unknown> = {}) => ({
+      id: uid,
+      fields: { Event_Type: "Note", Event_UID: uid, Master_ID: "M1", ...extra },
+    });
+
+    test("stores valid records, reports failures, and returns 200", async () => {
+      const res = await post("/batch", JSON.stringify({ records: [rec("A"), rec("B", { Event_Date: "bad" }), rec("C")] }));
+      const body = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(body.summary).toEqual({ received: 3, created: 2, updated: 0, failed: 1 });
+      expect(body.results[1]).toMatchObject({ index: 1, status: "failed" });
+      expect((await stored()).map((e: { uid: string }) => e.uid)).toEqual(["A", "C"]);
+    });
+
+    test("retrying the same batch updates and writes no duplicates", async () => {
+      const payload = JSON.stringify({ records: [rec("A"), rec("B")] });
+      await post("/batch", payload);
+      const body = await (await post("/batch", payload)).json();
+
+      expect(body.summary).toMatchObject({ created: 0, updated: 2 });
+      expect(await stored()).toHaveLength(2);
+    });
+
+    test("an invalid request body is 400 and writes nothing", async () => {
+      const res = await post("/batch", JSON.stringify({ records: [] }));
+
+      expect(res.status).toBe(400);
+      await expect(fs.access(file)).rejects.toThrow();
+    });
+
+    test("accepts a batch larger than the default 100kb body limit", async () => {
+      const padding = "x".repeat(1000);
+      const records = Array.from({ length: 300 }, (_, i) => rec(`E${i}`, { Note_Text: padding }));
+      const res = await post("/batch", JSON.stringify({ records }));
+
+      expect(res.status).toBe(200);
+      expect((await res.json()).summary.created).toBe(300);
+    });
+
+    test("a body over the size limit is 413", async () => {
+      const res = await post("/batch", JSON.stringify({ records: [rec("A", { Note_Text: "x".repeat(6 * 1024 * 1024) })] }));
+
+      expect(res.status).toBe(413);
+    });
+  });
 });

@@ -13,6 +13,11 @@ export class SmtpEmailProvider implements EmailProvider {
       port: options.port,
       secure: options.secure,
       auth: options.user && options.password ? { user: options.user, pass: options.password } : undefined,
+      requireTLS: !options.secure,
+      tls: { minVersion: "TLSv1.2" },
+      connectionTimeout: 10_000,
+      greetingTimeout: 10_000,
+      socketTimeout: 20_000,
     });
   }
 

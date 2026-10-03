@@ -52,6 +52,12 @@ Request: `{ "id": string, "fields": { "Event_Type": string, ... } }`
 `Master_ID` is required; `Event_Date` is optional but must be a real date if present.
 See the [pipeline](./ingestion-pipeline.md).
 
+The browser event-entry form currently covers diagnosis, TURBT/pathology, cytology,
+imaging and response, cystoscopy and biopsy, somatic/germline testing, ctDNA/utDNA,
+treatment start/change/response/outcome/regimen details, recurrence, progression,
+quality of life, symptoms, labs, decisions, notes, other events, and document metadata.
+File upload/storage is not implemented yet; document metadata does not attach a file.
+
 ## POST /api/events/batch
 
 Administrator and patient only. Ingests up to 500 records independently. Valid records
@@ -114,6 +120,13 @@ Any authenticated role may read. Returns one `UnifiedEvent`: 200, 404 if no such
 ## Authentication
 
 All auth responses avoid revealing whether a login email or patient invite exists.
+
+OTP email delivery requires SMTP configuration. `SMTP_HOST` and `SMTP_FROM` must be
+configured together; `SMTP_USER` and `SMTP_PASSWORD` must also be paired. Submission
+port 587 uses required STARTTLS, and port 465 uses implicit TLS. Without SMTP, login
+request endpoints return their generic accepted response, but delivery to a registered
+account fails with HTTP 503. Configure provider credentials through deployment secrets,
+not committed environment files.
 
 ### POST /api/auth/login
 

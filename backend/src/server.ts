@@ -6,6 +6,7 @@ import { FileAuthRepository } from "./auth/fileAuthRepository";
 import { AuthService } from "./auth/authService";
 import { SmtpEmailProvider } from "./auth/smtpEmailProvider";
 import { UnconfiguredEmailProvider } from "./auth/emailProvider";
+import { readSmtpConfiguration } from "./auth/smtpConfig";
 
 dotenv.config();
 
@@ -17,21 +18,9 @@ if (!sessionSecret) {
   throw new Error("AUTH_SESSION_SECRET is required; configure a random secret of at least 32 characters");
 }
 
-const smtpHost = process.env.SMTP_HOST;
-const smtpFrom = process.env.SMTP_FROM;
-const smtpUser = process.env.SMTP_USER;
-const smtpPassword = process.env.SMTP_PASSWORD;
-if (Boolean(smtpHost) !== Boolean(smtpFrom) || Boolean(smtpUser) !== Boolean(smtpPassword)) {
-  throw new Error("Configure SMTP_HOST and SMTP_FROM together; SMTP_USER and SMTP_PASSWORD must also be paired");
-}
-const emailProvider = smtpHost && smtpFrom
-  ? new SmtpEmailProvider(smtpFrom, {
-      host: smtpHost,
-      port: Number(process.env.SMTP_PORT || 587),
-      secure: process.env.SMTP_SECURE === "true",
-      user: smtpUser,
-      password: smtpPassword,
-    })
+const smtpConfiguration = readSmtpConfiguration(process.env);
+const emailProvider = smtpConfiguration
+  ? new SmtpEmailProvider(smtpConfiguration.from, smtpConfiguration)
   : new UnconfiguredEmailProvider();
 const frontendOrigin = process.env.FRONTEND_ORIGIN || "http://localhost:5173";
 const auth = new AuthService({

@@ -81,6 +81,7 @@ no internal details (the real error is logged).
 ## Known limitations
 
 - **SMTP must be configured for sign-in.** Without a provider, OTP requests fail with 503; the app never logs a code.
+- **SMTP transport is TLS-only.** Configure the provider submission host and verified sender; port 587 requires STARTTLS and port 465 uses implicit TLS.
 - **File auth and event stores are single-process only.** They serialize within a process, not across multiple server instances.
 - **No external identity provider or account recovery.** Email OTP is the only login method for the MVP.
 - **No event deletion or audit log.** Upserts replace a matching uid; correction/version history is not yet implemented.

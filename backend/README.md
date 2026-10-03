@@ -53,9 +53,13 @@ and patients are restricted to their linked `masterId`. No role can delete event
 ## Authentication and configuration
 
 Authentication uses a file-backed account/session repository and a provider-neutral
-email interface. The included SMTP adapter is configured with `SMTP_HOST` and
-`SMTP_FROM` (plus optional paired `SMTP_USER` and `SMTP_PASSWORD`). Without SMTP,
-the server starts but code requests fail with HTTP 503; no codes are printed to logs.
+email interface. To enable OTP delivery, copy `.env.example` to `.env` and configure
+the SMTP submission host, verified sender address, and (if required) paired credentials.
+Port 587 uses STARTTLS; port 465 uses implicit TLS. TLS is required and limited to
+TLS 1.2 or later. SMTP configuration is validated at startup. Without a configured
+host and sender, the server starts but code requests fail with HTTP 503; no codes are
+printed to logs. Keep provider credentials in an environment secret store in production,
+not in source control.
 
 Set `AUTH_SESSION_SECRET` to a random value of at least 32 characters and
 `ADMIN_BOOTSTRAP_SECRET` to establish the first administrator once. The bootstrap
@@ -71,6 +75,21 @@ single-use administrator-issued invite bound to one `masterId`.
 `EVP_AUTH_FILE` (default `data/auth.json`) configures account/session storage. Both
 authentication and event stores contain sensitive data; the default `data/` directory
 is git-ignored. See [the API reference](docs/api.md) for the role matrix and endpoints.
+
+Example SMTP submission settings:
+
+```dotenv
+SMTP_HOST=smtp.example-provider.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_FROM=EVP First <codes@example.org>
+SMTP_USER=provider-issued-username
+SMTP_PASSWORD=provider-issued-password
+```
+
+Use the exact SMTP host, sender/domain verification, port, and credentials supplied by
+your email provider. `SMTP_SECURE` can be omitted; port 465 then defaults to implicit
+TLS and other ports default to STARTTLS.
 
 ## Persistence
 

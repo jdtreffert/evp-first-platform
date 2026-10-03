@@ -1,75 +1,33 @@
-# React + TypeScript + Vite
+# EVP First Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React, TypeScript, and Vite client for the EVP First backend.
 
-Currently, two official plugins are available:
+## Local development
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+1. Start the backend from `backend/` with `npm run dev`.
+2. Set `VITE_API_BASE_URL` if the API is not at `http://localhost:3000/api`.
+3. Start the client from `frontend/` with `npm run dev`.
 
-## React Compiler
+The backend must allow the frontend origin through `FRONTEND_ORIGIN`. Authenticated
+requests use the HttpOnly session cookie (`credentials: include`); the browser does
+not receive or store OTP/session secrets in JavaScript.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Patient journey
 
-## Expanding the ESLint configuration
+The Timeline tab loads persisted UnifiedEvents through the authenticated query API.
+Patients are automatically scoped to their linked patient record; administrators and
+clinical users must enter a patient master ID before loading a timeline. Patients and
+administrators can submit events; clinical users are read-only.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+The event-entry form maps its fields to registered backend normalizers for diagnosis,
+TURBT/pathology, cytology, imaging and response, cystoscopy and biopsy, somatic and
+germline testing, ctDNA and utDNA, treatment subtypes, recurrence, progression, quality
+of life, symptoms, labs, decisions, notes, other events, document metadata, and event
+measures. The backend remains authoritative for normalization, validation, ownership,
+and persistence. Document metadata can be entered, but document file upload/storage is
+not yet available.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Checks
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
-```
-
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
-```
+- `npm run build` — TypeScript project build and Vite production bundle
+- `npm run lint` — ESLint

@@ -1,4 +1,5 @@
 import { useAuth } from "../auth/useAuth";
+import AdminPanel from "../components/AdminPanel";
 
 export default function Account() {
   const { user } = useAuth();
@@ -23,6 +24,7 @@ export default function Account() {
           </div>
         )}
       </dl>
+      {user?.role === "administrator" && <AdminPanel />}
     </div>
   );
 }

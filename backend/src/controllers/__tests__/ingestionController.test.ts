@@ -11,7 +11,7 @@ function mockRes() {
 describe("ingestEventController", () => {
   test("responds 201 with the UnifiedEvent", () => {
     const res = mockRes();
-    const req = { body: { id: "r1", fields: { Event_Type: "Other", Other_Description: "x" } } };
+    const req = { body: { id: "r1", fields: { Event_Type: "Other", Master_ID: "M1", Other_Description: "x" } } };
     ingestEventController(req as Request, res as unknown as Response);
 
     expect(res.status).toHaveBeenCalledWith(201);

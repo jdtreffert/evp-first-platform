@@ -8,7 +8,9 @@ export function errorHandler(
   _next: NextFunction,
 ): void {
   if (err instanceof HttpError) {
-    res.status(err.status).json({ error: err.message });
+    res.status(err.status).json(
+      err.details === undefined ? { error: err.message } : { error: err.message, details: err.details },
+    );
     return;
   }
   if ((err as { type?: string } | null)?.type === "entity.parse.failed") {

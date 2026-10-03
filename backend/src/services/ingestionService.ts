@@ -3,6 +3,7 @@ import { normalizerRegistry } from "../normalizers/normalizerRegistry";
 import { rawEventRecordSchema } from "../schemas/rawEventRecordSchema";
 import { RawEventRecord, UnifiedEvent } from "../types/UnifiedEvents";
 import { HttpError } from "../utils/httpError";
+import { validateEvent } from "./validationService";
 
 export function ingestEvent(input: unknown): UnifiedEvent {
   const parsed = rawEventRecordSchema.safeParse(input);
@@ -23,5 +24,12 @@ export function ingestEvent(input: unknown): UnifiedEvent {
     throw new HttpError(422, `Unsupported event type: ${eventType}`);
   }
 
-  return normalizer(raw);
+  const event = normalizer(raw);
+
+  const validation = validateEvent(event);
+  if (!validation.valid) {
+    throw new HttpError(422, "Normalized event failed validation", validation.errors);
+  }
+
+  return event;
 }

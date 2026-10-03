@@ -8,7 +8,7 @@ export function normalizeSomatic(raw: RawEventRecord): UnifiedEvent {
   const vendor = f.Somatic_Vendor || null;
   const testType = f.Somatic_Test_Type || null;
   const findings = f.Somatic_Key_Findings || [];
-  const pdl1 = f.Somatic_PDL1_CPS || null;
+  const pdl1 = f.Somatic_PDL1_CPS ?? null;
   const erbb2 = f.Somatic_ERBB2_Expression || null;
   const notes = f.Somatic_Notes || null;
 

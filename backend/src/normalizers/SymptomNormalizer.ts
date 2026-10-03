@@ -7,8 +7,8 @@ export function normalizeSymptom(raw: RawEventRecord): UnifiedEvent {
 
   const description = f.Symptom_Description || null;
   const type = f.Symptom_Type || null;
-  const severity = f.Symptom_Severity || null;
-  const duration = f.Symptom_Duration || null;
+  const severity = f.Symptom_Severity ?? null;
+  const duration = f.Symptom_Duration ?? null;
   const durationUnits = f.Symptom_Duration_Units || null;
 
   const eventSummary = description

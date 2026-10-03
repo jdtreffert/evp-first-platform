@@ -7,7 +7,7 @@ export function normalizeUtDNA(raw: RawEventRecord): UnifiedEvent {
 
   const vendor = f.utDNA_Vendor || null;
   const assayType = f.utDNA_Assay_Type || null;
-  const value = f.utDNA_Value || null;
+  const value = f.utDNA_Value ?? null;
   const units = f.utDNA_Units || null;
   const trend = f.utDNA_Trend || null;
   const notes = f.utDNA_Notes || null;

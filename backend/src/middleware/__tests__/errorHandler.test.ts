@@ -16,6 +16,13 @@ describe("errorHandler", () => {
     expect(res.json).toHaveBeenCalledWith({ error: "nope" });
   });
 
+  test("includes error details when present", () => {
+    const res = mockRes();
+    const details = [{ path: "uid", message: "bad" }];
+    errorHandler(new HttpError(422, "invalid", details), {} as Request, res as unknown as Response, jest.fn());
+    expect(res.json).toHaveBeenCalledWith({ error: "invalid", details });
+  });
+
   test("maps body-parser JSON syntax errors to 400", () => {
     const res = mockRes();
     const err = Object.assign(new SyntaxError("bad"), { type: "entity.parse.failed" });

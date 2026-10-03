@@ -8,7 +8,7 @@ export function normalizeTreatmentChange(raw: RawEventRecord): UnifiedEvent {
   const changeType = f.Treatment_Change_Type || null;
   const reason = f.Treatment_Change_Reason || null;
   const newRegimen = f.Treatment_Change_New_Regimen || null;
-  const toxicityGrade = f.Treatment_Change_Toxicity_Grade || null;
+  const toxicityGrade = f.Treatment_Change_Toxicity_Grade ?? null;
 
   const eventSummary = changeType
     ? `Treatment change: ${changeType}`

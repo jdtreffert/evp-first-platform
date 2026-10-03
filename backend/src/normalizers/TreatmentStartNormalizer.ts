@@ -6,7 +6,7 @@ export function normalizeTreatmentStart(raw: RawEventRecord): UnifiedEvent {
   const f = raw.fields;
 
   const name = f.Treatment_Name || null;
-  const cycle = f.Treatment_Cycle || null;
+  const cycle = f.Treatment_Cycle ?? null;
   const intent = f.Treatment_Intent || null;
 
   const eventSummary = name

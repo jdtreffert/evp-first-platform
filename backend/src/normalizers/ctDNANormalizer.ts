@@ -7,7 +7,7 @@ export function normalizeCtDNA(raw: RawEventRecord): UnifiedEvent {
 
   const vendor = f.ctDNA_Vendor || null;
   const assayType = f.ctDNA_Assay_Type || null;
-  const value = f.ctDNA_Value || null;
+  const value = f.ctDNA_Value ?? null;
   const units = f.ctDNA_Units || null;
   const trend = f.ctDNA_Trend || null;
 

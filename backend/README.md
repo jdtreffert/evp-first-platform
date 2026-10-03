@@ -11,7 +11,7 @@ raw record { id, fields }
   -> detect Event_Type          (src/ingestion/detectEventType.ts)
   -> normalizerRegistry lookup  (src/normalizers/normalizerRegistry.ts)
   -> normalizer -> UnifiedEvent (pure, no I/O, input not mutated)
-  -> [validation]   planned
+  -> validate UnifiedEvent      (src/schemas/unifiedEventSchema.ts)
   -> [persistence]  planned
   -> response
 ```
@@ -36,11 +36,14 @@ Conventions: strict TypeScript, named exports only, tests colocated in
 |--------|---------|
 | 201 | Body is the resulting `UnifiedEvent` |
 | 400 | Malformed JSON, invalid record shape, or missing `Event_Type` |
-| 422 | `Event_Type` has no registered normalizer |
+| 422 | Unregistered `Event_Type`, or the normalized event failed validation (`details` lists `{ path, message }` errors) |
+
+`POST /api/events/validate` — body is a `UnifiedEvent`; always 200 with `{ "valid": boolean, "errors": [{ "path", "message" }] }`.
+See [the UnifiedEvent spec](src/schemas/UnifiedEventSpec.md).
 
 `GET /` — health check.
 
-Planned: `/events/query`, `/events/batch`, `/events/validate`.
+Planned: `/events/query`, `/events/batch`.
 
 ## Scripts
 

@@ -1,7 +1,10 @@
 import { ingestEvent } from "../ingestionService";
 import { HttpError } from "../../utils/httpError";
 
-const record = (fields: Record<string, unknown>) => ({ id: "rec1", fields });
+const record = (fields: Record<string, unknown>) => ({
+  id: "rec1",
+  fields: { Master_ID: "M1", ...fields },
+});
 
 describe("ingestEvent", () => {
   test("normalizes a record using the registry entry for its Event_Type", () => {
@@ -11,6 +14,7 @@ describe("ingestEvent", () => {
     expect(event.eventType).toBe("Note");
     expect(event.uid).toBe("E1");
     expect(event.payload).toEqual(input);
+    expect(event.masterId).toBe("M1");
   });
 
   test("routes generic Treatment records to the matching subtype", () => {
@@ -31,6 +35,25 @@ describe("ingestEvent", () => {
       }
     },
   );
+
+  test("rejects a normalized event that fails validation with 422 and details", () => {
+    try {
+      ingestEvent(record({ Event_Type: "Note", Event_Date: "2024-02-30" }));
+      throw new Error("expected failure");
+    } catch (e) {
+      expect(e).toBeInstanceOf(HttpError);
+      expect((e as HttpError).status).toBe(422);
+      expect((e as HttpError).details).toEqual([
+        expect.objectContaining({ path: "eventDate" }),
+      ]);
+    }
+  });
+
+  test("rejects a record without Master_ID", () => {
+    expect(() => ingestEvent({ id: "r", fields: { Event_Type: "Note" } })).toThrow(
+      "Normalized event failed validation",
+    );
+  });
 
   test("rejects a missing Event_Type with 400", () => {
     expect(() => ingestEvent(record({}))).toThrow("Missing Event_Type");

@@ -7,7 +7,7 @@ export function normalizeImagingResponse(raw: RawEventRecord): UnifiedEvent {
 
   const category = f.Imaging_Response_Category || null;
   const criteria = f.Imaging_Response_Criteria || null;
-  const targetChange = f.Imaging_Response_Target_Lesion_Change || null;
+  const targetChange = f.Imaging_Response_Target_Lesion_Change ?? null;
 
   const eventSummary = category
     ? `Imaging response: ${category}`

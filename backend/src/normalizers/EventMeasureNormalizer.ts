@@ -6,7 +6,7 @@ export function normalizeEventMeasure(raw: RawEventRecord): UnifiedEvent {
   const f = raw.fields;
 
   const measureType = f.Event_Measure_Type || null;
-  const value = f.Event_Measure_Value || null;
+  const value = f.Event_Measure_Value ?? null;
   const units = f.Event_Measure_Units || null;
 
   const eventSummary = measureType

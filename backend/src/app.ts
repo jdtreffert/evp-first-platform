@@ -1,9 +1,14 @@
 import cors from "cors";
 import express from "express";
 import { errorHandler } from "./middleware/errorHandler";
-import { apiRouter } from "./routes";
+import { EventRepository } from "./persistence/eventRepository";
+import { createApiRouter } from "./routes";
 
-export function createApp(): express.Express {
+export interface AppDependencies {
+  repository: EventRepository;
+}
+
+export function createApp({ repository }: AppDependencies): express.Express {
   const app = express();
 
   app.use(cors());
@@ -13,7 +18,7 @@ export function createApp(): express.Express {
     res.send("EVP First backend running");
   });
 
-  app.use("/api", apiRouter);
+  app.use("/api", createApiRouter(repository));
   app.use(errorHandler);
 
   return app;

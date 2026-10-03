@@ -26,3 +26,6 @@ logs/
 
 # Vite / React
 .vite/
+
+# Local event store (patient data)
+backend/data/

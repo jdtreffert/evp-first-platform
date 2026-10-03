@@ -1,8 +1,13 @@
 import { Router } from "express";
-import { ingestEventController } from "../controllers/ingestionController";
+import { createIngestionController } from "../controllers/ingestionController";
 import { validateEventController } from "../controllers/validationController";
+import { EventRepository } from "../persistence/eventRepository";
 
-export const eventsRouter = Router();
+export function createEventsRouter(repository: EventRepository): Router {
+  const router = Router();
 
-eventsRouter.post("/ingest", ingestEventController);
-eventsRouter.post("/validate", validateEventController);
+  router.post("/ingest", createIngestionController(repository));
+  router.post("/validate", validateEventController);
+
+  return router;
+}

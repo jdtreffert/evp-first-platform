@@ -1,6 +1,12 @@
 import { Request, Response } from "express";
+import { EventRepository } from "../persistence/eventRepository";
 import { ingestEvent } from "../services/ingestionService";
+import { persistEvent } from "../services/persistenceService";
 
-export function ingestEventController(req: Request, res: Response): void {
-  res.status(201).json(ingestEvent(req.body));
+export function createIngestionController(repository: EventRepository) {
+  return async function ingestEventController(req: Request, res: Response): Promise<void> {
+    const event = ingestEvent(req.body);
+    const { created } = await persistEvent(repository, event);
+    res.status(created ? 201 : 200).json(event);
+  };
 }

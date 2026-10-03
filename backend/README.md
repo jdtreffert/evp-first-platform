@@ -12,7 +12,7 @@ raw record { id, fields }
   -> normalizerRegistry lookup  (src/normalizers/normalizerRegistry.ts)
   -> normalizer -> UnifiedEvent (pure, no I/O, input not mutated)
   -> validate UnifiedEvent      (src/schemas/unifiedEventSchema.ts)
-  -> [persistence]  planned
+  -> persist via EventRepository (src/persistence/)
   -> response
 ```
 
@@ -22,7 +22,7 @@ raw record { id, fields }
 src/
   app.ts, server.ts, index.ts
   controllers/   services/   routes/   middleware/
-  ingestion/     schemas/    normalizers/   types/   utils/
+  ingestion/     schemas/    persistence/   normalizers/   types/   utils/
 ```
 
 Conventions: strict TypeScript, named exports only, tests colocated in
@@ -34,7 +34,8 @@ Conventions: strict TypeScript, named exports only, tests colocated in
 
 | Status | Meaning |
 |--------|---------|
-| 201 | Body is the resulting `UnifiedEvent` |
+| 201 | Event was stored; body is the resulting `UnifiedEvent` |
+| 200 | An event with the same `uid` already existed and was replaced (idempotent re-ingest) |
 | 400 | Malformed JSON, invalid record shape, or missing `Event_Type` |
 | 422 | Unregistered `Event_Type`, or the normalized event failed validation (`details` lists `{ path, message }` errors) |
 
@@ -43,7 +44,25 @@ See [the UnifiedEvent spec](src/schemas/UnifiedEventSpec.md).
 
 `GET /` — health check.
 
-Planned: `/events/query`, `/events/batch`.
+## Persistence
+
+Events are stored through the `EventRepository` interface
+([src/persistence/eventRepository.ts](src/persistence/eventRepository.ts)); `uid` is the
+identity and saving an existing `uid` replaces the event. The initial implementation,
+`FileEventRepository`, keeps a JSON file (`{ "version": 1, "events": [...] }`):
+
+- operations are serialized, so concurrent requests cannot lose writes
+- writes go to a temp file and are renamed into place
+- a missing file is an empty store; a corrupt or unrecognized file is an error and is never overwritten
+
+A database-backed store only needs to implement the same interface and be passed to
+`createApp({ repository })`.
+
+Configure the location with `EVP_DATA_FILE` (default `data/events.json`, relative to the
+working directory). The store contains patient data: `backend/data/` is git-ignored and
+should not be committed.
+
+Planned: `/events/query` (reads from the repository) and `/events/batch`.
 
 ## Scripts
 

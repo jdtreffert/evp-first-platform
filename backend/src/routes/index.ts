@@ -1,6 +1,11 @@
 import { Router } from "express";
-import { eventsRouter } from "./eventsRoute";
+import { EventRepository } from "../persistence/eventRepository";
+import { createEventsRouter } from "./eventsRoute";
 
-export const apiRouter = Router();
+export function createApiRouter(repository: EventRepository): Router {
+  const router = Router();
 
-apiRouter.use("/events", eventsRouter);
+  router.use("/events", createEventsRouter(repository));
+
+  return router;
+}

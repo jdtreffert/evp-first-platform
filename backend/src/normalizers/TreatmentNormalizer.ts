@@ -4,35 +4,34 @@ import { RawEventRecord, UnifiedEvent } from "../types/UnifiedEvents";
 import { normalizeTreatmentStart } from "./TreatmentStartNormalizer";
 import { normalizeTreatmentChange } from "./TreatmentChangeNormalizer";
 import { normalizeTreatmentResponse } from "./TreatmentResponseNormalizer";
-import { normalizeTreatmentOutcome } from "./TreatmentOutcomeNormalizer";
-import { normalizeTreatmentRegimenDetails } from "./TreatmentRegimenDetailsNormalizer";
 
+/**
+ * Dispatcher only: routes a generic Treatment record to Treatment_Start, Treatment_Change or
+ * Treatment_Response from the fields present. Treatment is not stored as an event type.
+ */
 export function normalizeTreatment(rawEvent: RawEventRecord): UnifiedEvent {
   const f = rawEvent.fields;
 
-  // Treatment Start
   if (f.Treatment_Start_Date || f.Treatment_Start_Reason) {
     return normalizeTreatmentStart(rawEvent);
   }
 
-  // Treatment Change
-  if (f.Treatment_Change_Reason || f.Treatment_Change_Date) {
+  if (
+    f.Treatment_Change_Type || f.Treatment_Change_Reason || f.Treatment_Change_New_Regimen ||
+    f.Treatment_Change_Toxicity_Grade !== undefined || f.Treatment_Change_Date
+  ) {
     return normalizeTreatmentChange(rawEvent);
   }
 
-  // Treatment Response
-  if (f.Treatment_Response_Category || f.Treatment_Response_Date) {
+  if (
+    f.Treatment_Response_Category || f.Treatment_Response_Modality || f.Treatment_Response_Notes ||
+    f.Treatment_Response_Date
+  ) {
     return normalizeTreatmentResponse(rawEvent);
   }
 
-  // Treatment Outcome
-  if (f.Treatment_Outcome || f.Treatment_Outcome_Date) {
-    return normalizeTreatmentOutcome(rawEvent);
-  }
-
-  // Treatment Regimen Details
-  if (f.Treatment_Regimen_Name || f.Treatment_Regimen_Type) {
-    return normalizeTreatmentRegimenDetails(rawEvent);
+  if (f.Treatment_Name || f.Treatment_Cycle !== undefined || f.Treatment_Intent) {
+    return normalizeTreatmentStart(rawEvent);
   }
 
   throw new Error("Unknown Treatment subtype — no matching fields found");

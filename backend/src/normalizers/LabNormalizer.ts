@@ -1,4 +1,4 @@
-// src/normalizers/LabsNormalizer.ts
+// src/normalizers/LabNormalizer.ts
 
 import { RawEventRecord, UnifiedEvent } from "../types/UnifiedEvents";
 
@@ -14,7 +14,7 @@ const parseLabValues = (text: string | null): Record<string, string> => {
   return map;
 };
 
-export function normalizeLabs(raw: RawEventRecord): UnifiedEvent {
+export function normalizeLab(raw: RawEventRecord): UnifiedEvent {
   const f = raw.fields;
 
   const labFlags = f.Lab_Flags || [];
@@ -24,13 +24,13 @@ export function normalizeLabs(raw: RawEventRecord): UnifiedEvent {
 
   const eventSummary =
     labFlags.length > 0
-      ? `Labs: ${labFlags.join(", ")}`
-      : "Labs: No flagged results";
+      ? `Lab: ${labFlags.join(", ")}`
+      : "Lab: No flagged results";
 
   return {
     uid: f.Event_UID || raw.id,
     masterId: f.Master_ID || "",
-    eventType: "Labs",
+    eventType: "Lab",
     eventDate: f.Event_Date || null,
 
     eventSummary,

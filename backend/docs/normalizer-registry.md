@@ -17,7 +17,7 @@ validation reads its keys to decide which `eventType` values are legal.
 | `Cystoscopy_Biopsy` | `normalizeCystoscopyBiopsy` | `Cystoscopy_Biopsy` |
 | `Imaging` | `normalizeImaging` | `Imaging` |
 | `Imaging_Response` | `normalizeImagingResponse` | `Imaging_Response` |
-| `Labs` | `normalizeLabs` | `Labs` |
+| `Lab` | `normalizeLab` | `Lab` |
 | `Somatic` | `normalizeSomatic` | `Somatic` |
 | `Germline` | `normalizeGermline` | `Germline` |
 | `ctDNA` | `normalizeCtDNA` | `ctDNA` |
@@ -26,8 +26,6 @@ validation reads its keys to decide which `eventType` values are legal.
 | `Treatment_Start` | `normalizeTreatmentStart` | `Treatment_Start` |
 | `Treatment_Change` | `normalizeTreatmentChange` | `Treatment_Change` |
 | `Treatment_Response` | `normalizeTreatmentResponse` | `Treatment_Response` |
-| `Treatment_Outcome` | `normalizeTreatmentOutcome` | `Treatment_Outcome` |
-| `Treatment_Regimen_Details` | `normalizeTreatmentRegimenDetails` | `Treatment_Regimen_Details` |
 | `Recurrence` | `normalizeRecurrence` | `Recurrence` |
 | `Progression` | `normalizeProgression` | `Progression` |
 | `Symptom` | `normalizeSymptom` | `Symptom` |
@@ -38,21 +36,24 @@ validation reads its keys to decide which `eventType` values are legal.
 | `Note` | `normalizeNote` | `Note` |
 | `Other` | `normalizeOther` | `Other` |
 
-### Airtable alignment
+### Schema alignment
 
-The Airtable `Event_Type` select field defines 21 options, listed in
-[eventTypes.ts](../src/schemas/eventTypes.ts). All 21 are registered. The registry also accepts
-7 platform-only types that have no Airtable option yet: `Labs`, `Pathology`, `Document`,
-`Event_Measure`, `Treatment`, `Treatment_Outcome` and `Treatment_Regimen_Details`. A test fails if
-the two lists and the registry drift apart. If Airtable gains options for these types, move them
-from `platformOnlyEventTypes` to `airtableEventTypes`.
+The schema documentation (`UnifiedEventsSchema`) defines the `Event_Type` values, listed in
+[eventTypes.ts](../src/schemas/eventTypes.ts) as `airtableEventTypes` (23 values: the original 21
+plus `Lab` and `Pathology`). The registry also accepts `Document`, `Event_Measure` and `Treatment`,
+which are outside that list. A test fails if the lists and the registry drift apart.
+
+`Treatment_Outcome` and `Treatment_Regimen_Details` are not event types. Outcomes are recorded with
+`Treatment_Response`, `Recurrence` and `Progression`; `Treatment_Regimen_Details` is an attribute of
+`Treatment_Start` and `Treatment_Change`.
 
 ### The `Treatment` dispatcher
 
-[`normalizeTreatment`](../src/normalizers/TreatmentNormalizer.ts) inspects the record's fields and
-delegates to one subtype normalizer, checking in this order: start, change, response, outcome,
-regimen details. The first match wins. If no subtype fields are present it throws, which the
-pipeline reports as 422. The stored `eventType` is the subtype, not `Treatment`.
+[`normalizeTreatment`](../src/normalizers/TreatmentNormalizer.ts) is a dispatcher, not a stored event
+type. It inspects the record's fields and delegates to `Treatment_Start`, `Treatment_Change` or
+`Treatment_Response`, checking in that order; the first match wins. A record with only general
+treatment fields (`Treatment_Name`, `Treatment_Cycle`, `Treatment_Intent`) is a start. If no fields
+match it throws, which the pipeline reports as 422. The stored `eventType` is the subtype.
 
 ## Normalizer rules
 

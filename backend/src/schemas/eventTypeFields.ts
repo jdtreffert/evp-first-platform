@@ -4,8 +4,8 @@ import { eventFieldCatalog } from "./eventFieldCatalog";
 export const commonEventFields = ["Event_Date", "Event_Source"] as const;
 
 /**
- * Schema fields entered for each event type. Treatment_Outcome, Treatment_Regimen_Details,
- * Labs, Document and Event_Measure are platform event types without an Event_Type option.
+ * Schema fields entered for each event type. Document and Event_Measure are platform event
+ * types without an Event_Type option. Treatment is only a dispatcher, not an event type to enter.
  */
 export const eventTypeFields: Record<string, readonly string[]> = {
   Diagnosis: [
@@ -35,18 +35,16 @@ export const eventTypeFields: Record<string, readonly string[]> = {
   ctDNA: ["ctDNA_Vendor", "ctDNA_Assay_Type", "ctDNA_Value", "ctDNA_Units", "ctDNA_Trend"],
   utDNA: ["utDNA_Vendor", "utDNA_Assay_Type", "utDNA_Value", "utDNA_Units", "utDNA_Trend", "utDNA_Notes"],
   Treatment_Start: [
-    "Treatment_Name", "Treatment_Cycle", "Treatment_Intent",
+    "Treatment_Name", "Treatment_Cycle", "Treatment_Intent", "Treatment_Regimen_Details",
     "Treatment_Physician_Recommendation", "Treatment_Patient_Preference",
   ],
   Treatment_Change: [
-    "Treatment_Name", "Treatment_Change_Type", "Treatment_Change_Reason",
+    "Treatment_Name", "Treatment_Change_Type", "Treatment_Change_Reason", "Treatment_Regimen_Details",
     "Treatment_Change_New_Regimen", "Treatment_Change_Toxicity_Grade",
   ],
   Treatment_Response: [
     "Treatment_Name", "Treatment_Response_Category", "Treatment_Response_Modality", "Treatment_Response_Notes",
   ],
-  Treatment_Outcome: ["Treatment_Name", "Treatment_Outcome"],
-  Treatment_Regimen_Details: ["Treatment_Name", "Treatment_Regimen_Details"],
   Recurrence: [
     "Recurrence_Location", "Recurrence_Spread_Category", "Recurrence_Modality",
     "Recurrence_Confirmation", "Recurrence_Notes",
@@ -62,7 +60,7 @@ export const eventTypeFields: Record<string, readonly string[]> = {
   Decision: ["Decision_Type", "Decision_Consensus", "Decision_Notes"],
   Note: ["Event_Summary", "Event_Details"],
   Other: ["Event_Summary", "Event_Details"],
-  Labs: ["Lab_Flags", "Lab_Values", "Lab_Significance_Reasons", "Lab_Notes"],
+  Lab: ["Lab_Flags", "Lab_Values", "Lab_Significance_Reasons", "Lab_Notes"],
   Document: ["Document_Type", "Document_Redaction_Status"],
   Event_Measure: ["Event_Measure_Type", "Numeric_Value", "Numeric_Units"],
 };

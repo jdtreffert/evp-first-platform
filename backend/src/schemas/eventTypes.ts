@@ -1,4 +1,4 @@
-/** Event_Type options defined in the Airtable single-select field. */
+/** Event_Type values in the schema documentation (Lab and Pathology are additions to the original 21). */
 export const airtableEventTypes = [
   "Diagnosis",
   "TURBT",
@@ -21,15 +21,13 @@ export const airtableEventTypes = [
   "Decision",
   "Note",
   "Other",
+  "Lab",
+  "Pathology",
 ] as const;
 
-/** Registered platform event types that have no Airtable Event_Type option yet. */
+/** Registered types outside the schema list. Treatment is a dispatcher to the treatment event types. */
 export const platformOnlyEventTypes = [
-  "Labs",
-  "Pathology",
   "Document",
   "Event_Measure",
   "Treatment",
-  "Treatment_Outcome",
-  "Treatment_Regimen_Details",
 ] as const;

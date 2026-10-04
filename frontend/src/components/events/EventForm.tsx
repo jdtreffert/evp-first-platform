@@ -7,7 +7,7 @@ import { eventTypeFields } from "../../../../backend/src/schemas/eventTypeFields
 
 const eventTypeLabels: Record<string, string> = {
   QoL: "Quality of life",
-  Labs: "Lab work",
+  Lab: "Lab work",
   Imaging_Response: "Imaging response",
   Cystoscopy_Biopsy: "Cystoscopy biopsy",
   Event_Measure: "Measurement",

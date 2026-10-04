@@ -19,14 +19,19 @@ describe("normalizeTreatment", () => {
       "Treatment_Response",
     ],
     [
-      "treatment outcome",
-      { Treatment_Outcome_Date: "2024-01-02", Treatment_Outcome: "Completed" },
-      "Treatment_Outcome",
+      "schema-named treatment start",
+      { Treatment_Name: "EVP", Treatment_Intent: "Bladder-preserving" },
+      "Treatment_Start",
     ],
     [
-      "regimen details",
-      { Treatment_Regimen_Name: "Regimen A" },
-      "Treatment_Regimen_Details",
+      "schema-named treatment change",
+      { Treatment_Change_Type: "Hold" },
+      "Treatment_Change",
+    ],
+    [
+      "schema-named treatment response",
+      { Treatment_Response_Category: "CR" },
+      "Treatment_Response",
     ],
   ])("selects the %s normalizer", (_label, fields, eventType) => {
     const raw = mockRecord(fields);

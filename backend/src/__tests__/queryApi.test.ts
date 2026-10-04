@@ -33,7 +33,7 @@ describe("query API (HTTP)", () => {
     base = `http://127.0.0.1:${(server.address() as AddressInfo).port}/api/events`;
 
     await ingest("Note", "N1", "M1", "2024-03-01");
-    await ingest("Labs", "L1", "M1", "2024-01-10");
+    await ingest("Lab", "L1", "M1", "2024-01-10");
     await ingest("Note", "N2", "M2", "2024-02-01");
   });
 
@@ -80,7 +80,7 @@ describe("query API (HTTP)", () => {
   });
 
   test("ingested events are immediately queryable by type", async () => {
-    const body = await (await fetch(`${base}/query?eventType=Labs`, { headers: { cookie } })).json();
+    const body = await (await fetch(`${base}/query?eventType=Lab`, { headers: { cookie } })).json();
     expect(body.events).toHaveLength(1);
     expect(body.events[0].uid).toBe("L1");
   });

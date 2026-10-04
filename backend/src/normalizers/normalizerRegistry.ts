@@ -19,8 +19,6 @@ import { normalizeUtDNA } from "./utDNANormalizer";
 import { normalizeTreatmentStart } from "./TreatmentStartNormalizer";
 import { normalizeTreatmentChange } from "./TreatmentChangeNormalizer";
 import { normalizeTreatmentResponse } from "./TreatmentResponseNormalizer";
-import { normalizeTreatmentOutcome } from "./TreatmentOutcomeNormalizer";
-import { normalizeTreatmentRegimenDetails } from "./TreatmentRegimenDetailsNormalizer";
 
 import { normalizeRecurrence } from "./RecurrenceNormalizer";
 import { normalizeProgression } from "./ProgressionNormalizer";
@@ -37,8 +35,7 @@ import { normalizeEventMeasure } from "./EventMeasureNormalizer";
 
 import { normalizePathology } from "./PathologyNormalizer";
 
-// ⭐ NEW IMPORT
-import { normalizeLabs } from "./LabsNormalizer";
+import { normalizeLab } from "./LabNormalizer";
 
 import { NormalizerRegistry } from "../types/UnifiedEvents";
 
@@ -63,8 +60,6 @@ export const normalizerRegistry: NormalizerRegistry = {
   Treatment_Start: normalizeTreatmentStart,
   Treatment_Change: normalizeTreatmentChange,
   Treatment_Response: normalizeTreatmentResponse,
-  Treatment_Outcome: normalizeTreatmentOutcome,
-  Treatment_Regimen_Details: normalizeTreatmentRegimenDetails,
 
   Recurrence: normalizeRecurrence,
   Progression: normalizeProgression,
@@ -72,8 +67,7 @@ export const normalizerRegistry: NormalizerRegistry = {
   QoL: normalizeQoL,
   Symptom: normalizeSymptom,
 
-  // ⭐ NEW ENTRY
-  Labs: normalizeLabs,
+  Lab: normalizeLab,
 
   Decision: normalizeDecision,
 

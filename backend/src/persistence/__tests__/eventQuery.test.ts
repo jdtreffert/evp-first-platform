@@ -17,7 +17,7 @@ const data = [
   ev("c", "2024-03-01"),
   ev("a", "2024-01-01"),
   ev("undated", null),
-  ev("b", "2024-02-01T23:30:00-05:00", { masterId: "M2", eventType: "Labs" }),
+  ev("b", "2024-02-01T23:30:00-05:00", { masterId: "M2", eventType: "Lab" }),
 ];
 
 describe("applyEventQuery", () => {
@@ -37,7 +37,7 @@ describe("applyEventQuery", () => {
 
   test("filters by masterId and eventType", () => {
     expect(uids(applyEventQuery(data, q({ masterId: "M2" })).events)).toEqual(["b"]);
-    expect(uids(applyEventQuery(data, q({ eventType: "Labs" })).events)).toEqual(["b"]);
+    expect(uids(applyEventQuery(data, q({ eventType: "Lab" })).events)).toEqual(["b"]);
     expect(applyEventQuery(data, q({ masterId: "M2", eventType: "Note" })).total).toBe(0);
   });
 

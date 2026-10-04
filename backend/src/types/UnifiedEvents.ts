@@ -31,7 +31,7 @@ export interface UnifiedEvent {
   documentType?: string | null;
   documentRedactionStatus?: string | null;
 
-  // Labs block
+  // Lab block
   labFlags?: string[];
   labValues?: Record<string, string>;
   labSignificanceReasons?: string[];
@@ -120,7 +120,6 @@ export interface UnifiedEvent {
   treatmentName?: string | null;
   treatmentCycle?: number | null;
   treatmentIntent?: string | null;
-  treatmentOutcome?: string | null;
   treatmentRegimenDetails?: string | null;
   treatmentPhysicianRecommendation?: string | null;
   treatmentPatientPreference?: string | null;

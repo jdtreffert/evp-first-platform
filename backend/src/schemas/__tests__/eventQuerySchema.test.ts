@@ -7,8 +7,8 @@ describe("eventQuerySchema", () => {
 
   test("parses and coerces valid parameters", () => {
     expect(
-      eventQuerySchema.parse({ masterId: "M1", eventType: "Labs", from: "2024-01-01", to: "2024-02-29", order: "desc", limit: "10", offset: "20" }),
-    ).toEqual({ masterId: "M1", eventType: "Labs", from: "2024-01-01", to: "2024-02-29", order: "desc", limit: 10, offset: 20 });
+      eventQuerySchema.parse({ masterId: "M1", eventType: "Lab", from: "2024-01-01", to: "2024-02-29", order: "desc", limit: "10", offset: "20" }),
+    ).toEqual({ masterId: "M1", eventType: "Lab", from: "2024-01-01", to: "2024-02-29", order: "desc", limit: 10, offset: 20 });
   });
 
   test.each([

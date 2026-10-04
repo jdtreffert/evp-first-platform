@@ -1,7 +1,7 @@
-import { normalizeLabs } from "../LabsNormalizer";
+import { normalizeLab } from "../LabNormalizer";
 import { mockRecord } from "./testUtils";
 
-test("normalizeLabs produces unified event", () => {
+test("normalizeLab produces unified event", () => {
   const raw = mockRecord({
     Event_UID: "E1",
     Master_ID: "M1",
@@ -12,14 +12,14 @@ test("normalizeLabs produces unified event", () => {
     Lab_Notes: "Repeat test recommended",
   });
 
-  const e = normalizeLabs(raw);
+  const e = normalizeLab(raw);
 
   expect(e.uid).toBe("E1");
   expect(e.masterId).toBe("M1");
-  expect(e.eventType).toBe("Labs");
+  expect(e.eventType).toBe("Lab");
   expect(e.eventDate).toBe("2024-01-01");
 
-  expect(e.eventSummary).toContain("Labs:");
+  expect(e.eventSummary).toContain("Lab:");
   expect(e.labFlags).toContain("Sodium_high");
 
   // --- Fix: assert defined before dereferencing ---

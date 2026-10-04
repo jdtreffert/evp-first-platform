@@ -6,12 +6,14 @@ export const relationshipFields = ["Event_Related_UID", "Event_Relationship"] as
 
 export const commonEventFields = ["Event_Date", "Event_Source"] as const;
 
+/** Optional single measurement (type, numeric value, free-text units) that any event may carry. */
+export const measureFields = ["Event_Measure_Type", "Numeric_Value", "Numeric_Units"] as const;
+
 /** Optional attributes that link any event to a document; a document is not an event itself. */
 export const documentFields = ["Document_Attachment", "Document_Type", "Document_Redaction_Status"] as const;
 
 /**
- * Schema fields entered for each event type. Event_Measure is a platform event type without an
- * Event_Type option. Treatment is only a dispatcher, not an event type to enter.
+ * Schema fields entered for each event type. Treatment is only a dispatcher, not an event type to enter.
  */
 export const eventTypeFields: Record<string, readonly string[]> = {
   Diagnosis: [
@@ -67,7 +69,6 @@ export const eventTypeFields: Record<string, readonly string[]> = {
   Decision: ["Decision_Type", "Decision_Consensus", "Decision_Notes"],
   Note: ["Event_Summary", "Event_Details"],
   Lab: ["Lab_Flags", "Lab_Values", "Lab_Significance_Reasons", "Lab_Notes"],
-  Event_Measure: ["Event_Measure_Type", "Numeric_Value", "Numeric_Units"],
 };
 
 for (const [type, fields] of Object.entries(eventTypeFields)) {

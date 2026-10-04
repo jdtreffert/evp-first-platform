@@ -1,5 +1,4 @@
 import { normalizeCtDNA } from "../ctDNANormalizer";
-import { normalizeEventMeasure } from "../EventMeasureNormalizer";
 import { normalizeImagingResponse } from "../ImagingResponseNormalizer";
 import { normalizeQoL } from "../QoLNormalizer";
 import { normalizeSomatic } from "../SomaticNormalizer";
@@ -24,7 +23,7 @@ describe("numeric zero values are preserved, not converted to null", () => {
     expect([e.qolPhysical, e.qolEmotional, e.qolUrinary, e.qolPain, e.qolFatigue]).toEqual([0, 0, 0, 0, 0]);
   });
 
-  test("symptom, somatic, treatment, imaging response and measure values", () => {
+  test("symptom, somatic, treatment, imaging response values", () => {
     const s = normalizeSymptom(mockRecord({ Symptom_Severity: 0, Symptom_Duration: 0 }));
     expect([s.symptomSeverity, s.symptomDuration]).toEqual([0, 0]);
     expect(normalizeSomatic(mockRecord({ Somatic_PDL1_CPS: 0 })).somaticPDL1CPS).toBe(0);
@@ -33,7 +32,6 @@ describe("numeric zero values are preserved, not converted to null", () => {
       .treatmentChangeToxicityGrade).toBe(0);
     expect(normalizeImagingResponse(mockRecord({ Imaging_Response_Target_Lesion_Change: 0 }))
       .imagingResponseTargetLesionChange).toBe(0);
-    expect(normalizeEventMeasure(mockRecord({ Event_Measure_Value: 0 })).eventMeasureValue).toBe(0);
   });
 
   test("absent values are still null", () => {

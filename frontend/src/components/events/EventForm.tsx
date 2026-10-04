@@ -3,14 +3,13 @@ import type { FormEvent } from "react";
 import type { RawEventRecord } from "../../../../backend/src/types/UnifiedEvents";
 import { eventFieldCatalog } from "../../../../backend/src/schemas/eventFieldCatalog";
 import type { FieldDefinition } from "../../../../backend/src/schemas/eventFieldCatalog";
-import { documentFields, eventTypeFields, relationshipFields } from "../../../../backend/src/schemas/eventTypeFields";
+import { documentFields, eventTypeFields, measureFields, relationshipFields } from "../../../../backend/src/schemas/eventTypeFields";
 
 const eventTypeLabels: Record<string, string> = {
   QoL: "Quality of life",
   Lab: "Lab work",
   Imaging_Response: "Imaging response",
   Cystoscopy_Biopsy: "Cystoscopy biopsy",
-  Event_Measure: "Measurement",
 };
 
 const fieldLabels: Record<string, string> = {
@@ -182,7 +181,7 @@ export default function EventForm({
       Master_ID: masterId,
     };
 
-    for (const name of [...fieldNames, ...linkableDocumentFields, ...relationshipFields]) {
+    for (const name of [...fieldNames, ...linkableDocumentFields, ...relationshipFields, ...measureFields]) {
       const value = values[name];
       if (!isFilled(value)) continue;
       fields[name] = eventFieldCatalog[name].kind === "number" ? Number(value) : Array.isArray(value) ? value : value?.trim();
@@ -242,6 +241,20 @@ export default function EventForm({
         <summary className="cursor-pointer text-sm text-gray-300">Linked document (optional)</summary>
         <div className="mt-3 space-y-5">
           {linkableDocumentFields.map((name) => (
+            <FieldInput
+              key={name}
+              field={eventFieldCatalog[name]}
+              value={values[name]}
+              onChange={(value) => setValues((previous) => ({ ...previous, [name]: value }))}
+            />
+          ))}
+        </div>
+      </details>
+
+      <details className="rounded border border-gray-700 p-3">
+        <summary className="cursor-pointer text-sm text-gray-300">Additional measurement (optional)</summary>
+        <div className="mt-3 space-y-5">
+          {measureFields.map((name) => (
             <FieldInput
               key={name}
               field={eventFieldCatalog[name]}

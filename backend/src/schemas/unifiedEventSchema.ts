@@ -116,7 +116,7 @@ export const unifiedEventSchema = z.strictObject({
   treatmentPatientPreference: text,
 
   eventMeasureType: text,
-  eventMeasureValue: z.union([z.string(), z.number().finite()]).nullable().optional(),
+  eventMeasureValue: num,
   eventMeasureUnits: text,
   noteText: text,
 

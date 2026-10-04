@@ -185,6 +185,10 @@ Regenerate the catalog after editing the schema spreadsheet: export it as Excel 
 `node scripts/generateFieldCatalog.mjs <path to UnifiedEventsSchema.txt>` in `backend/`. Then update
 `src/schemas/eventTypeFields.ts` if event types or their fields changed.
 
+Any event may also carry one optional measurement: `Event_Measure_Type` (a schema option), a numeric
+`Numeric_Value` and free-text `Numeric_Units`. Type and value must be given together; units are optional.
+They are stored as `eventMeasureType`, `eventMeasureValue` and `eventMeasureUnits`.
+
 Any event may also carry `Event_Related_UID` and `Event_Relationship` (`Produced_By`, `Triggered_By`,
 `Assessed_By`, `Derived_From`, `Related_To`) to link it to another event, for example a Pathology
 event produced by a TURBT. They are stored as `relatedEventUid` and `eventRelationship`.

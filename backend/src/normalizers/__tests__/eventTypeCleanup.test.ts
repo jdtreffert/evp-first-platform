@@ -29,7 +29,7 @@ describe("optional document attributes", () => {
     expect("Document" in normalizerRegistry).toBe(false);
   });
 
-  test.each(["Note", "QoL", "Symptom", "Event_Measure", "TURBT", "Lab"])(
+  test.each(["Note", "QoL", "Symptom", "TURBT", "Lab"])(
     "%s can carry document attributes",
     (type) => {
       const event = ingestEvent({
@@ -43,6 +43,7 @@ describe("optional document attributes", () => {
           Symptom_Type: "Fatigue",
           Event_Measure_Type: "Creatinine",
           Numeric_Value: 1.1,
+          Numeric_Units: "mg/dL",
           TURBT_Histology: "Other",
           Lab_Flags: ["WBC_low"],
           Document_Type: "Lab Report",
@@ -78,5 +79,28 @@ describe("pathology and related events", () => {
     expect(() =>
       ingestEvent({ id: "p3", fields: { ...base, Event_Type: "Note", Event_Details: "x", Event_Relationship: "Bogus" } }),
     ).toThrow("Event fields failed schema validation");
+  });
+});
+
+describe("optional event measure", () => {
+  const note = { ...base, Event_Type: "Note", Event_UID: "m1", Event_Details: "x" };
+
+  test("Event_Measure is no longer an event type", () => {
+    expect("Event_Measure" in normalizerRegistry).toBe(false);
+  });
+
+  test("any event can carry one measurement with free-text units", () => {
+    const event = ingestEvent({ id: "m1", fields: { ...note, Event_Measure_Type: "Tumor size", Numeric_Value: 0, Numeric_Units: "cm" } });
+    expect([event.eventMeasureType, event.eventMeasureValue, event.eventMeasureUnits]).toEqual(["Tumor size", 0, "cm"]);
+  });
+
+  test("type and value must be given together", () => {
+    expect(() => ingestEvent({ id: "m1", fields: { ...note, Event_Measure_Type: "PSA" } })).toThrow("schema validation");
+    expect(() => ingestEvent({ id: "m1", fields: { ...note, Numeric_Value: 2 } })).toThrow("schema validation");
+    expect(() => ingestEvent({ id: "m1", fields: { ...note, Numeric_Units: "ng/mL" } })).toThrow("schema validation");
+  });
+
+  test("rejects a measure type the schema does not define", () => {
+    expect(() => ingestEvent({ id: "m1", fields: { ...note, Event_Measure_Type: "Bogus", Numeric_Value: 1 } })).toThrow("schema validation");
   });
 });

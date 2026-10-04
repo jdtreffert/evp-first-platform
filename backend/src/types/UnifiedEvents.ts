@@ -130,7 +130,7 @@ export interface UnifiedEvent {
 
   // Other event blocks
   eventMeasureType?: string | null;
-  eventMeasureValue?: string | number | null;
+  eventMeasureValue?: number | null;
   eventMeasureUnits?: string | null;
   noteText?: string | null;
 

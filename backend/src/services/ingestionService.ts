@@ -40,6 +40,18 @@ export function ingestEvent(input: unknown, options: { masterId?: string } = {})
     throw new HttpError(422, `Could not normalize ${eventType} record: ${(err as Error).message}`);
   }
 
+  const measureType = raw.fields.Event_Measure_Type || null;
+  const measureValue = raw.fields.Numeric_Value ?? null;
+  const measureUnits = raw.fields.Numeric_Units || null;
+  if ((measureType !== null) !== (measureValue !== null) || (measureUnits !== null && measureValue === null)) {
+    throw new HttpError(422, "Event fields failed schema validation", [
+      { path: "fields.Event_Measure_Type", message: "Measure type, numeric value and units must be given together (units are optional)" },
+    ]);
+  }
+  event.eventMeasureType = measureType;
+  event.eventMeasureValue = measureValue;
+  event.eventMeasureUnits = measureUnits;
+
   event.relatedEventUid = raw.fields.Event_Related_UID || null;
   event.eventRelationship = raw.fields.Event_Relationship || null;
 

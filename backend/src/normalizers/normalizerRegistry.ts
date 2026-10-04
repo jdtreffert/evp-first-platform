@@ -29,7 +29,6 @@ import { normalizeSymptom } from "./SymptomNormalizer";
 import { normalizeDecision } from "./DecisionNormalizer";
 
 import { normalizeNote } from "./NoteNormalizer";
-import { normalizeOther } from "./OtherNormalizer";
 import { normalizeEventMeasure } from "./EventMeasureNormalizer";
 
 import { normalizePathology } from "./PathologyNormalizer";
@@ -71,7 +70,6 @@ export const normalizerRegistry: NormalizerRegistry = {
   Decision: normalizeDecision,
 
   Note: normalizeNote,
-  Other: normalizeOther,
   Event_Measure: normalizeEventMeasure,
 
   Pathology: normalizePathology,

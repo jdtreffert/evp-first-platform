@@ -62,7 +62,6 @@ export const eventTypeFields: Record<string, readonly string[]> = {
   ],
   Decision: ["Decision_Type", "Decision_Consensus", "Decision_Notes"],
   Note: ["Event_Summary", "Event_Details"],
-  Other: ["Event_Summary", "Event_Details"],
   Lab: ["Lab_Flags", "Lab_Values", "Lab_Significance_Reasons", "Lab_Notes"],
   Event_Measure: ["Event_Measure_Type", "Numeric_Value", "Numeric_Units"],
 };

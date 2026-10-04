@@ -129,7 +129,6 @@ export interface UnifiedEvent {
   eventMeasureValue?: string | number | null;
   eventMeasureUnits?: string | null;
   noteText?: string | null;
-  otherDescription?: string | null;
 
   treatmentChangeType?: string | null;
   treatmentChangeReason?: string | null;

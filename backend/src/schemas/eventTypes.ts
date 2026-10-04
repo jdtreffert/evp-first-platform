@@ -1,4 +1,4 @@
-/** Event_Type values in the schema documentation (Lab and Pathology are additions to the original 21). */
+/** Event_Type values in the schema documentation (the original 21 minus Other, plus Lab and Pathology). */
 export const airtableEventTypes = [
   "Diagnosis",
   "TURBT",
@@ -20,7 +20,6 @@ export const airtableEventTypes = [
   "Symptom",
   "Decision",
   "Note",
-  "Other",
   "Lab",
   "Pathology",
 ] as const;

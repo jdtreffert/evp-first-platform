@@ -11,7 +11,7 @@ function mockRes() {
 
 const validBody = {
   id: "r1",
-  fields: { Event_Type: "Other", Master_ID: "M1", Other_Description: "x" },
+  fields: { Event_Type: "Note", Master_ID: "M1", Event_Details: "x" },
 };
 
 describe("createIngestionController", () => {
@@ -22,7 +22,7 @@ describe("createIngestionController", () => {
     await createIngestionController(repo)({ body: validBody } as Request, res as unknown as Response);
 
     expect(res.status).toHaveBeenCalledWith(201);
-    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ eventType: "Other", uid: "r1" }));
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ eventType: "Note", uid: "r1" }));
     expect(repo.events.has("r1")).toBe(true);
   });
 

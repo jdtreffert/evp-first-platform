@@ -29,7 +29,7 @@ describe("optional document attributes", () => {
     expect("Document" in normalizerRegistry).toBe(false);
   });
 
-  test.each(["Note", "Other", "QoL", "Symptom", "Event_Measure", "TURBT", "Lab"])(
+  test.each(["Note", "QoL", "Symptom", "Event_Measure", "TURBT", "Lab"])(
     "%s can carry document attributes",
     (type) => {
       const event = ingestEvent({

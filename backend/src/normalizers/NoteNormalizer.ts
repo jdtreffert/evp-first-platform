@@ -27,6 +27,10 @@ export function normalizeNote(raw: RawEventRecord): UnifiedEvent {
 
     noteText: notes,
 
+    documentAttachment: f.Document_Attachment || [],
+    documentType: f.Document_Type || null,
+    documentRedactionStatus: f.Document_Redaction_Status || null,
+
     payload: raw,
   };
 }

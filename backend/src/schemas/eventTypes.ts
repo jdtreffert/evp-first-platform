@@ -27,7 +27,6 @@ export const airtableEventTypes = [
 
 /** Registered types outside the schema list. Treatment is a dispatcher to the treatment event types. */
 export const platformOnlyEventTypes = [
-  "Document",
   "Event_Measure",
   "Treatment",
 ] as const;

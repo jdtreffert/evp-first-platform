@@ -3,7 +3,7 @@ import type { FormEvent } from "react";
 import type { RawEventRecord } from "../../../../backend/src/types/UnifiedEvents";
 import { eventFieldCatalog } from "../../../../backend/src/schemas/eventFieldCatalog";
 import type { FieldDefinition } from "../../../../backend/src/schemas/eventFieldCatalog";
-import { eventTypeFields } from "../../../../backend/src/schemas/eventTypeFields";
+import { documentFields, eventTypeFields } from "../../../../backend/src/schemas/eventTypeFields";
 
 const eventTypeLabels: Record<string, string> = {
   QoL: "Quality of life",
@@ -31,7 +31,12 @@ const fieldLabels: Record<string, string> = {
   Event_Measure_Type: "Measure type",
   Event_Source: "Source",
   Event_Date: "Event date",
+  Document_Type: "Document type",
+  Document_Redaction_Status: "Redaction status",
 };
+
+// Attachments cannot be uploaded yet, so only the optional document attributes are offered.
+const linkableDocumentFields = documentFields.filter((name) => name !== "Document_Attachment");
 
 const placeholders: Record<string, string> = {
   Lab_Values: "Creatinine: 1.1\nHemoglobin: 13.2",
@@ -174,7 +179,7 @@ export default function EventForm({
       Master_ID: masterId,
     };
 
-    for (const name of fieldNames) {
+    for (const name of [...fieldNames, ...linkableDocumentFields]) {
       const value = values[name];
       if (!isFilled(value)) continue;
       fields[name] = eventFieldCatalog[name].kind === "number" ? Number(value) : Array.isArray(value) ? value : value?.trim();
@@ -229,6 +234,20 @@ export default function EventForm({
           onChange={(value) => setValues((previous) => ({ ...previous, [name]: value }))}
         />
       ))}
+
+      <details className="rounded border border-gray-700 p-3">
+        <summary className="cursor-pointer text-sm text-gray-300">Linked document (optional)</summary>
+        <div className="mt-3 space-y-5">
+          {linkableDocumentFields.map((name) => (
+            <FieldInput
+              key={name}
+              field={eventFieldCatalog[name]}
+              value={values[name]}
+              onChange={(value) => setValues((previous) => ({ ...previous, [name]: value }))}
+            />
+          ))}
+        </div>
+      </details>
 
       {error && <p role="alert" className="text-sm text-rose-300">{error}</p>}
       <button

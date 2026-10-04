@@ -3,9 +3,12 @@ import { eventFieldCatalog } from "./eventFieldCatalog";
 /** Fields every event type accepts. */
 export const commonEventFields = ["Event_Date", "Event_Source"] as const;
 
+/** Optional attributes that link any event to a document; a document is not an event itself. */
+export const documentFields = ["Document_Attachment", "Document_Type", "Document_Redaction_Status"] as const;
+
 /**
- * Schema fields entered for each event type. Document and Event_Measure are platform event
- * types without an Event_Type option. Treatment is only a dispatcher, not an event type to enter.
+ * Schema fields entered for each event type. Event_Measure is a platform event type without an
+ * Event_Type option. Treatment is only a dispatcher, not an event type to enter.
  */
 export const eventTypeFields: Record<string, readonly string[]> = {
   Diagnosis: [
@@ -61,7 +64,6 @@ export const eventTypeFields: Record<string, readonly string[]> = {
   Note: ["Event_Summary", "Event_Details"],
   Other: ["Event_Summary", "Event_Details"],
   Lab: ["Lab_Flags", "Lab_Values", "Lab_Significance_Reasons", "Lab_Notes"],
-  Document: ["Document_Type", "Document_Redaction_Status"],
   Event_Measure: ["Event_Measure_Type", "Numeric_Value", "Numeric_Units"],
 };
 

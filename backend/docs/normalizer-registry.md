@@ -31,7 +31,6 @@ validation reads its keys to decide which `eventType` values are legal.
 | `Symptom` | `normalizeSymptom` | `Symptom` |
 | `QoL` | `normalizeQoL` | `QoL` |
 | `Decision` | `normalizeDecision` | `Decision` |
-| `Document` | `normalizeDocument` | `Document` |
 | `Event_Measure` | `normalizeEventMeasure` | `Event_Measure` |
 | `Note` | `normalizeNote` | `Note` |
 | `Other` | `normalizeOther` | `Other` |
@@ -40,7 +39,7 @@ validation reads its keys to decide which `eventType` values are legal.
 
 The schema documentation (`UnifiedEventsSchema`) defines the `Event_Type` values, listed in
 [eventTypes.ts](../src/schemas/eventTypes.ts) as `airtableEventTypes` (23 values: the original 21
-plus `Lab` and `Pathology`). The registry also accepts `Document`, `Event_Measure` and `Treatment`,
+plus `Lab` and `Pathology`). The registry also accepts `Event_Measure` and `Treatment`,
 which are outside that list. A test fails if the lists and the registry drift apart.
 
 `Treatment_Outcome` and `Treatment_Regimen_Details` are not event types. Outcomes are recorded with

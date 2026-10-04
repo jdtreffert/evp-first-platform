@@ -23,3 +23,34 @@ describe("event type cleanup", () => {
     expect(event.eventType).toBe("Lab");
   });
 });
+
+describe("optional document attributes", () => {
+  test("Document is no longer an event type", () => {
+    expect("Document" in normalizerRegistry).toBe(false);
+  });
+
+  test.each(["Note", "Other", "QoL", "Symptom", "Event_Measure", "TURBT", "Lab"])(
+    "%s can carry document attributes",
+    (type) => {
+      const event = ingestEvent({
+        id: "d1",
+        fields: {
+          ...base,
+          Event_Type: type,
+          Event_UID: "d1",
+          Event_Details: "text",
+          QoL_Physical: 3,
+          Symptom_Type: "Fatigue",
+          Event_Measure_Type: "Creatinine",
+          Numeric_Value: 1.1,
+          TURBT_Histology: "Other",
+          Lab_Flags: ["WBC_low"],
+          Document_Type: "Lab Report",
+          Document_Redaction_Status: "Redacted",
+        },
+      });
+      expect(event.documentType).toBe("Lab Report");
+      expect(event.documentRedactionStatus).toBe("Redacted");
+    },
+  );
+});

@@ -40,6 +40,9 @@ export function ingestEvent(input: unknown, options: { masterId?: string } = {})
     throw new HttpError(422, `Could not normalize ${eventType} record: ${(err as Error).message}`);
   }
 
+  event.relatedEventUid = raw.fields.Event_Related_UID || null;
+  event.eventRelationship = raw.fields.Event_Relationship || null;
+
   const validation = validateEvent(event);
   if (!validation.valid) {
     throw new HttpError(422, "Normalized event failed validation", validation.errors);

@@ -26,6 +26,10 @@ export interface UnifiedEvent {
   // Source (Patient, Clinician, Lab, Imaging Center, etc.)
   eventSource?: string | null;
 
+  // Link to another event (for example a lab that triggered a decision)
+  relatedEventUid?: string | null;
+  eventRelationship?: string | null;
+
   // Document block (shared across many event types)
   documentAttachment?: any[];
   documentType?: string | null;
@@ -36,7 +40,6 @@ export interface UnifiedEvent {
   labValues?: Record<string, string>;
   labSignificanceReasons?: string[];
   labNotes?: string | null;
-  triggeredDecisionId?: string | null;
 
   // Imaging block
   imagingModality?: string | null;
@@ -58,6 +61,7 @@ export interface UnifiedEvent {
   pathologyMargins?: string | null;
   pathologyLVI?: string | null;
   pathologyNotes?: string | null;
+  pathologyReportDate?: string | null;
 
   // Diagnosis staging
   diagnosisInitialPresentation?: string | null;

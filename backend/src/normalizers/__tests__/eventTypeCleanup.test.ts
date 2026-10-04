@@ -54,3 +54,29 @@ describe("optional document attributes", () => {
     },
   );
 });
+
+describe("pathology and related events", () => {
+  test("Pathology carries its report date", () => {
+    const event = ingestEvent({
+      id: "p1",
+      fields: { ...base, Event_Type: "Pathology", Event_UID: "p1", Pathology_Report_Date: "2026-01-05", Pathology_Depth: "T1" },
+    });
+    expect(event.pathologyReportDate).toBe("2026-01-05");
+    expect(event.pathologyDepth).toBe("T1");
+  });
+
+  test("any event can reference a related event", () => {
+    const event = ingestEvent({
+      id: "p2",
+      fields: { ...base, Event_Type: "Pathology", Event_UID: "p2", Pathology_Grade: "High-grade", Event_Related_UID: "t1", Event_Relationship: "Produced_By" },
+    });
+    expect(event.relatedEventUid).toBe("t1");
+    expect(event.eventRelationship).toBe("Produced_By");
+  });
+
+  test("rejects a relationship the schema does not define", () => {
+    expect(() =>
+      ingestEvent({ id: "p3", fields: { ...base, Event_Type: "Note", Event_Details: "x", Event_Relationship: "Bogus" } }),
+    ).toThrow("Event fields failed schema validation");
+  });
+});

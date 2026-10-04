@@ -12,6 +12,7 @@ export function normalizePathology(raw: RawEventRecord): UnifiedEvent {
   const margins = f.Pathology_Margins || null;
   const lvi = f.Pathology_LVI || null;
   const notes = f.Pathology_Notes || null;
+  const reportDate = f.Pathology_Report_Date || null;
 
   const eventSummary = histology && grade
     ? `Pathology: ${histology}, Grade ${grade}`
@@ -32,6 +33,7 @@ export function normalizePathology(raw: RawEventRecord): UnifiedEvent {
       pathologyMargins: margins,
       pathologyLVI: lvi,
       pathologyNotes: notes,
+      pathologyReportDate: reportDate,
     },
 
     eventSource: f.Event_Source || null,
@@ -43,6 +45,7 @@ export function normalizePathology(raw: RawEventRecord): UnifiedEvent {
     pathologyMargins: margins,
     pathologyLVI: lvi,
     pathologyNotes: notes,
+    pathologyReportDate: reportDate,
 
     documentAttachment: f.Document_Attachment || [],
     documentType: f.Document_Type || null,

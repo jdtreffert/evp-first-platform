@@ -28,6 +28,8 @@ export const unifiedEventSchema = z.strictObject({
   eventDetails: z.record(z.string(), z.any()).optional(),
   payload: rawEventRecordSchema,
   eventSource: text,
+  relatedEventUid: text,
+  eventRelationship: text,
 
   documentAttachment: z.array(z.any()).optional(),
   documentType: text,
@@ -37,7 +39,6 @@ export const unifiedEventSchema = z.strictObject({
   labValues: z.record(z.string(), z.string()).optional(),
   labSignificanceReasons: textList,
   labNotes: text,
-  triggeredDecisionId: text,
 
   imagingModality: text,
   imagingResult: text,
@@ -56,6 +57,7 @@ export const unifiedEventSchema = z.strictObject({
   pathologyMargins: text,
   pathologyLVI: text,
   pathologyNotes: text,
+  pathologyReportDate: text,
 
   diagnosisInitialPresentation: text,
   tumorStage: text,

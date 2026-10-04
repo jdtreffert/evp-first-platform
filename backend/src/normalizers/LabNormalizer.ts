@@ -48,8 +48,6 @@ export function normalizeLab(raw: RawEventRecord): UnifiedEvent {
     labSignificanceReasons,
     labNotes,
 
-    triggeredDecisionId: f.Lab_Triggered_Decision_ID?.[0] || null,
-
     documentAttachment: f.Document_Attachment || [],
     documentType: f.Document_Type || null,
     documentRedactionStatus: f.Document_Redaction_Status || null,

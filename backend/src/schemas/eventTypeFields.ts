@@ -1,6 +1,9 @@
 import { eventFieldCatalog } from "./eventFieldCatalog";
 
 /** Fields every event type accepts. */
+/** Optional attributes that relate an event to another event by its UID. */
+export const relationshipFields = ["Event_Related_UID", "Event_Relationship"] as const;
+
 export const commonEventFields = ["Event_Date", "Event_Source"] as const;
 
 /** Optional attributes that link any event to a document; a document is not an event itself. */
@@ -15,9 +18,10 @@ export const eventTypeFields: Record<string, readonly string[]> = {
     "Diagnosis_Histology", "Diagnosis_Grade", "Diagnosis_Variant_Histology",
     "Diagnosis_Initial_Presentation", "T", "N", "M", "Stage",
   ],
-  TURBT: [
-    "TURBT_Histology", "TURBT_Grade", "TURBT_Variant_Histology", "TURBT_Depth", "TURBT_Margins",
-    "TURBT_LVI", "TURBT_Completeness", "TURBT_Surgeion_Notes", "TURBT_Specimen_Notes",
+  TURBT: ["TURBT_Completeness", "TURBT_Surgeon_Notes", "TURBT_Specimen_Notes"],
+  Pathology: [
+    "Pathology_Report_Date", "Pathology_Histology", "Pathology_Grade", "Pathology_Variant_Histology",
+    "Pathology_Depth", "Pathology_Margins", "Pathology_LVI", "Pathology_Notes",
   ],
   Cytology: ["Cytology_Result", "Cytology_Category", "Cytology_Specimen", "Cytology_Notes"],
   Imaging: ["Imaging_Modality", "Imaging_Region", "Imaging_Result", "Imaging_ComparisonToPrior", "Imaging_Notes"],

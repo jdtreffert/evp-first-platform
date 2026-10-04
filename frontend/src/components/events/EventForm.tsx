@@ -3,7 +3,7 @@ import type { FormEvent } from "react";
 import type { RawEventRecord } from "../../../../backend/src/types/UnifiedEvents";
 import { eventFieldCatalog } from "../../../../backend/src/schemas/eventFieldCatalog";
 import type { FieldDefinition } from "../../../../backend/src/schemas/eventFieldCatalog";
-import { documentFields, eventTypeFields } from "../../../../backend/src/schemas/eventTypeFields";
+import { documentFields, eventTypeFields, relationshipFields } from "../../../../backend/src/schemas/eventTypeFields";
 
 const eventTypeLabels: Record<string, string> = {
   QoL: "Quality of life",
@@ -18,8 +18,11 @@ const fieldLabels: Record<string, string> = {
   N: "N (nodes)",
   M: "M (metastasis)",
   Treatment_Name: "Treatment",
-  TURBT_LVI: "Lymphovascular invasion (LVI)",
-  TURBT_Surgeion_Notes: "Surgeon notes",
+  Pathology_LVI: "Lymphovascular invasion (LVI)",
+  Pathology_Report_Date: "Report date",
+  TURBT_Surgeon_Notes: "Surgeon notes",
+  Event_Related_UID: "Related event ID",
+  Event_Relationship: "Relationship",
   Imaging_ComparisonToPrior: "Comparison to prior",
   Imaging_Response_Critera: "Response criteria",
   Imaging_Response_Target_Lesion_Change: "Target lesion change",
@@ -120,7 +123,7 @@ function FieldInput({
         />
       ) : (
         <input
-          type={field.kind === "number" ? "number" : "text"}
+          type={field.kind === "number" ? "number" : field.kind === "date" ? "date" : "text"}
           step={field.kind === "number" ? "any" : undefined}
           className={inputClass}
           value={text}
@@ -179,7 +182,7 @@ export default function EventForm({
       Master_ID: masterId,
     };
 
-    for (const name of [...fieldNames, ...linkableDocumentFields]) {
+    for (const name of [...fieldNames, ...linkableDocumentFields, ...relationshipFields]) {
       const value = values[name];
       if (!isFilled(value)) continue;
       fields[name] = eventFieldCatalog[name].kind === "number" ? Number(value) : Array.isArray(value) ? value : value?.trim();
@@ -239,6 +242,20 @@ export default function EventForm({
         <summary className="cursor-pointer text-sm text-gray-300">Linked document (optional)</summary>
         <div className="mt-3 space-y-5">
           {linkableDocumentFields.map((name) => (
+            <FieldInput
+              key={name}
+              field={eventFieldCatalog[name]}
+              value={values[name]}
+              onChange={(value) => setValues((previous) => ({ ...previous, [name]: value }))}
+            />
+          ))}
+        </div>
+      </details>
+
+      <details className="rounded border border-gray-700 p-3">
+        <summary className="cursor-pointer text-sm text-gray-300">Related event (optional)</summary>
+        <div className="mt-3 space-y-5">
+          {relationshipFields.map((name) => (
             <FieldInput
               key={name}
               field={eventFieldCatalog[name]}

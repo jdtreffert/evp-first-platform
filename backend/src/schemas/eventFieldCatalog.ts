@@ -34,10 +34,20 @@ export const eventFieldCatalog: Record<string, FieldDefinition> = {
       "Lab",
       "Other",
     ] },
+  Event_Related_UID: { name: "Event_Related_UID", kind: "text" },
+  Event_Relationship: { name: "Event_Relationship", kind: "single", options: [
+      "Produced_By",
+      "Triggered_By",
+      "Assessed_By",
+      "Derived_From",
+      "Related_To",
+    ] },
   Event_Type: { name: "Event_Type", kind: "single", options: [
       "Diagnosis",
       "TURBT",
+      "Pathology",
       "Cytology",
+      "Lab",
       "Imaging",
       "Imaging_Response",
       "Cystoscopy",
@@ -55,7 +65,6 @@ export const eventFieldCatalog: Record<string, FieldDefinition> = {
       "Symptom",
       "Decision",
       "Note",
-      "Other",
     ] },
   Event_Summary: { name: "Event_Summary", kind: "text" },
   Event_Details: { name: "Event_Details", kind: "longText" },
@@ -129,20 +138,27 @@ export const eventFieldCatalog: Record<string, FieldDefinition> = {
       "Stage IIIA",
       "Stage IIIB",
     ] },
-  TURBT_Histology: { name: "TURBT_Histology", kind: "single", options: [
+  TURBT_Completeness: { name: "TURBT_Completeness", kind: "single", options: [
+      "Complete",
+      "Incomplete",
+    ] },
+  TURBT_Surgeon_Notes: { name: "TURBT_Surgeon_Notes", kind: "longText" },
+  TURBT_Specimen_Notes: { name: "TURBT_Specimen_Notes", kind: "longText" },
+  Pathology_Report_Date: { name: "Pathology_Report_Date", kind: "date" },
+  Pathology_Histology: { name: "Pathology_Histology", kind: "single", options: [
       "Urothelial carcinoma",
       "Squamous cell carcinoma",
       "Adenocarcinoma",
       "Small cell carcinoma",
       "Other",
     ] },
-  TURBT_Grade: { name: "TURBT_Grade", kind: "single", options: [
+  Pathology_Grade: { name: "Pathology_Grade", kind: "single", options: [
       "Low-grade",
       "High-grade",
       "Not graded/Not applicable",
       "Unknown",
     ] },
-  TURBT_Variant_Histology: { name: "TURBT_Variant_Histology", kind: "multi", options: [
+  Pathology_Variant_Histology: { name: "Pathology_Variant_Histology", kind: "multi", options: [
       "None",
       "Plasmacytoid",
       "Sarcomatoid",
@@ -153,7 +169,7 @@ export const eventFieldCatalog: Record<string, FieldDefinition> = {
       "Small cell features",
       "Other",
     ] },
-  TURBT_Depth: { name: "TURBT_Depth", kind: "single", options: [
+  Pathology_Depth: { name: "Pathology_Depth", kind: "single", options: [
       "Tis",
       "Ta",
       "T1",
@@ -161,22 +177,17 @@ export const eventFieldCatalog: Record<string, FieldDefinition> = {
       "T3",
       "T4",
     ] },
-  TURBT_Margins: { name: "TURBT_Margins", kind: "single", options: [
+  Pathology_Margins: { name: "Pathology_Margins", kind: "single", options: [
       "Negative",
       "Positive",
       "Unknown",
     ] },
-  TURBT_LVI: { name: "TURBT_LVI", kind: "single", options: [
+  Pathology_LVI: { name: "Pathology_LVI", kind: "single", options: [
       "Present",
       "Absent",
       "Unknown",
     ] },
-  TURBT_Completeness: { name: "TURBT_Completeness", kind: "single", options: [
-      "Complete",
-      "Incomplete",
-    ] },
-  TURBT_Surgeion_Notes: { name: "TURBT_Surgeion_Notes", kind: "longText" },
-  TURBT_Specimen_Notes: { name: "TURBT_Specimen_Notes", kind: "longText" },
+  Pathology_Notes: { name: "Pathology_Notes", kind: "longText" },
   Cytology_Result: { name: "Cytology_Result", kind: "single", options: [
       "Negative",
       "Atypical",
@@ -225,7 +236,6 @@ export const eventFieldCatalog: Record<string, FieldDefinition> = {
       "Requires_provider_followup",
     ] },
   Lab_Notes: { name: "Lab_Notes", kind: "longText" },
-  Lab_Triggered_Decision_ID: { name: "Lab_Triggered_Decision_ID", kind: "linked" },
   Treatment_Name: { name: "Treatment_Name", kind: "single", options: [
       "EVP",
       "EV",
@@ -267,7 +277,6 @@ export const eventFieldCatalog: Record<string, FieldDefinition> = {
       "Bladder-preserving",
       "Palliative",
     ] },
-  Treatment_Outcome: { name: "Treatment_Outcome", kind: "text" },
   Treatment_Regimen_Details: { name: "Treatment_Regimen_Details", kind: "longText" },
   Treatment_Physician_Recommendation: { name: "Treatment_Physician_Recommendation", kind: "longText" },
   Treatment_Patient_Preference: { name: "Treatment_Patient_Preference", kind: "longText" },

@@ -180,3 +180,11 @@ Field names, kinds and allowed values come from `UnifiedEventsSchema` and are ke
 event type. Ingestion rejects select values that are not defined options. Normalizers read the schema
 field names (for example `TURBT_Histology`) and still accept the earlier names (`Pathology_Histology`).
 The web form is generated from the same two files.
+
+Regenerate the catalog after editing the schema spreadsheet: export it as Excel "Unicode Text" and run
+`node scripts/generateFieldCatalog.mjs <path to UnifiedEventsSchema.txt>` in `backend/`. Then update
+`src/schemas/eventTypeFields.ts` if event types or their fields changed.
+
+Any event may also carry `Event_Related_UID` and `Event_Relationship` (`Produced_By`, `Triggered_By`,
+`Assessed_By`, `Derived_From`, `Related_To`) to link it to another event, for example a Pathology
+event produced by a TURBT. They are stored as `relatedEventUid` and `eventRelationship`.

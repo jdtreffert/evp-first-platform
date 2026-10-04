@@ -22,7 +22,7 @@ export const eventTypeFields: Record<string, readonly string[]> = {
   ],
   TURBT: ["TURBT_Completeness", "TURBT_Surgeon_Notes", "TURBT_Specimen_Notes"],
   Pathology: [
-    "Pathology_Report_Date", "Pathology_Histology", "Pathology_Grade", "Pathology_Variant_Histology",
+    "Pathology_Histology", "Pathology_Grade", "Pathology_Variant_Histology",
     "Pathology_Depth", "Pathology_Margins", "Pathology_LVI", "Pathology_Notes",
   ],
   Cytology: ["Cytology_Result", "Cytology_Category", "Cytology_Specimen", "Cytology_Notes"],

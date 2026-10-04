@@ -192,3 +192,7 @@ They are stored as `eventMeasureType`, `eventMeasureValue` and `eventMeasureUnit
 Any event may also carry `Event_Related_UID` and `Event_Relationship` (`Produced_By`, `Triggered_By`,
 `Assessed_By`, `Derived_From`, `Related_To`) to link it to another event, for example a Pathology
 event produced by a TURBT. They are stored as `relatedEventUid` and `eventRelationship`.
+
+## Recorded-at provenance
+
+`Event_Created_At` is the full timestamp at which an event entered the repository. It is set by the server (ISO 8601) when the event is first saved and preserved on later replacement; client-supplied `Event_Created_At` and `Event_ID` values are ignored. The stored event also carries `recordedByRole`, plus `lastModifiedAt` and `lastModifiedByRole` after a replacement. `Event_Date` remains the clinical or report date. `Pathology_Report_Date` was removed; a Pathology event's `Event_Date` is its report date.

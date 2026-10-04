@@ -2,7 +2,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { UnifiedEvent } from "../types/UnifiedEvents";
 import { EventQuery, EventQueryResult, applyEventQuery } from "./eventQuery";
-import { EventRepository, SaveResult } from "./eventRepository";
+import { EventRepository, SaveOptions, SaveResult } from "./eventRepository";
 import { HttpError } from "../utils/httpError";
 
 interface StoreFile {
@@ -26,7 +26,7 @@ export class FileEventRepository implements EventRepository {
 
   constructor(private readonly filePath: string) {}
 
-  save(event: UnifiedEvent, options: { ownerMasterId?: string } = {}): Promise<SaveResult> {
+  save(event: UnifiedEvent, options: SaveOptions = {}): Promise<SaveResult> {
     return this.enqueue(async () => {
       const events = await this.readAll();
       const index = events.findIndex((e) => e.uid === event.uid);
@@ -38,9 +38,20 @@ export class FileEventRepository implements EventRepository {
           throw new HttpError(403, "Patients may not replace another patient's event");
         }
       }
+      // Provenance is stamped here, never taken from the client: recordedAt is when the event
+      // first entered the repository and is kept across replacements.
+      const now = new Date().toISOString();
+      const role = options.actorRole ?? "system";
       if (index === -1) {
+        event.recordedAt = now;
+        event.recordedByRole = role;
         events.push(event);
       } else {
+        const original = events[index];
+        event.recordedAt = original.recordedAt ?? now;
+        event.recordedByRole = original.recordedByRole ?? role;
+        event.lastModifiedAt = now;
+        event.lastModifiedByRole = role;
         events[index] = event;
       }
       await this.writeAll(events);

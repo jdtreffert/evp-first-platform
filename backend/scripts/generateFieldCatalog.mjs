@@ -12,6 +12,8 @@ const text = buffer[0] === 0xff && buffer[1] === 0xfe ? buffer.toString("utf16le
 const kinds = {
   autonumber: "system",
   "created time": "system",
+  "date-time": "system",
+  datetime: "system",
   "single line text": "text",
   "date(iso)": "date",
   "single select": "single",

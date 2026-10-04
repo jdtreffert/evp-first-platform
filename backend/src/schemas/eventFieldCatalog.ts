@@ -144,7 +144,6 @@ export const eventFieldCatalog: Record<string, FieldDefinition> = {
     ] },
   TURBT_Surgeon_Notes: { name: "TURBT_Surgeon_Notes", kind: "longText" },
   TURBT_Specimen_Notes: { name: "TURBT_Specimen_Notes", kind: "longText" },
-  Pathology_Report_Date: { name: "Pathology_Report_Date", kind: "date" },
   Pathology_Histology: { name: "Pathology_Histology", kind: "single", options: [
       "Urothelial carcinoma",
       "Squamous cell carcinoma",

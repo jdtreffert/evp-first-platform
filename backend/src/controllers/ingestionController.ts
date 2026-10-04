@@ -10,6 +10,7 @@ export function createIngestionController(repository: EventRepository) {
     });
     const { created } = await persistEvent(repository, event, {
       ownerMasterId: req.authUser?.role === "patient" ? req.authUser.masterId ?? undefined : undefined,
+      actorRole: req.authUser?.role,
     });
     res.status(created ? 201 : 200).json(event);
   };

@@ -26,6 +26,12 @@ export interface UnifiedEvent {
   // Source (Patient, Clinician, Lab, Imaging Center, etc.)
   eventSource?: string | null;
 
+  // Set by the server when the event is stored; never taken from the client.
+  recordedAt?: string;
+  recordedByRole?: string;
+  lastModifiedAt?: string;
+  lastModifiedByRole?: string;
+
   // Link to another event (for example a lab that triggered a decision)
   relatedEventUid?: string | null;
   eventRelationship?: string | null;
@@ -61,7 +67,6 @@ export interface UnifiedEvent {
   pathologyMargins?: string | null;
   pathologyLVI?: string | null;
   pathologyNotes?: string | null;
-  pathologyReportDate?: string | null;
 
   // Diagnosis staging
   diagnosisInitialPresentation?: string | null;

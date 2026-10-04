@@ -18,7 +18,6 @@ const fieldLabels: Record<string, string> = {
   M: "M (metastasis)",
   Treatment_Name: "Treatment",
   Pathology_LVI: "Lymphovascular invasion (LVI)",
-  Pathology_Report_Date: "Report date",
   TURBT_Surgeon_Notes: "Surgeon notes",
   Event_Related_UID: "Related event ID",
   Event_Relationship: "Relationship",

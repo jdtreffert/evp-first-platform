@@ -36,8 +36,8 @@ describe("FileEventRepository", () => {
   test("saves, creating parent directories, and reads back", async () => {
     expect(await repo.save(event("E1"))).toEqual({ created: true });
 
-    expect(await repo.getByUid("E1")).toEqual(event("E1"));
-    expect(await repo.list()).toEqual([event("E1")]);
+    expect(await repo.getByUid("E1")).toMatchObject(event("E1"));
+    expect(await repo.list()).toMatchObject([event("E1")]);
   });
 
   test("saving an existing uid replaces it without duplicating", async () => {

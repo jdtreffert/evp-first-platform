@@ -57,12 +57,11 @@ describe("optional document attributes", () => {
 });
 
 describe("pathology and related events", () => {
-  test("Pathology carries its report date", () => {
+  test("Pathology uses Event_Date as its report date", () => {
     const event = ingestEvent({
       id: "p1",
-      fields: { ...base, Event_Type: "Pathology", Event_UID: "p1", Pathology_Report_Date: "2026-01-05", Pathology_Depth: "T1" },
+      fields: { ...base, Event_Type: "Pathology", Event_UID: "p1", Pathology_Depth: "T1" },
     });
-    expect(event.pathologyReportDate).toBe("2026-01-05");
     expect(event.pathologyDepth).toBe("T1");
   });
 
@@ -102,5 +101,17 @@ describe("optional event measure", () => {
 
   test("rejects a measure type the schema does not define", () => {
     expect(() => ingestEvent({ id: "m1", fields: { ...note, Event_Measure_Type: "Bogus", Numeric_Value: 1 } })).toThrow("schema validation");
+  });
+});
+
+describe("server-owned provenance fields", () => {
+  test("client-supplied Event_Created_At is ignored", () => {
+    const event = ingestEvent({
+      id: "c1",
+      fields: { ...base, Event_Type: "Note", Event_UID: "c1", Event_Details: "x", Event_Created_At: "2001-01-01T00:00:00Z", Event_ID: 7 },
+    });
+    expect(event.recordedAt).toBeUndefined();
+    expect(event.payload.fields.Event_Created_At).toBeUndefined();
+    expect(event.payload.fields.Event_ID).toBeUndefined();
   });
 });

@@ -8,6 +8,7 @@ export function createBatchController(repository: EventRepository) {
     res.status(200).json(
       await ingestBatch(repository, req.body, {
         masterId: req.authUser?.role === "patient" ? req.authUser.masterId ?? undefined : undefined,
+        actorRole: req.authUser?.role,
       }),
     );
   };

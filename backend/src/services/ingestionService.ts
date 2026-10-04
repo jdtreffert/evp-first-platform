@@ -15,6 +15,12 @@ export function ingestEvent(input: unknown, options: { masterId?: string } = {})
     ? parsed.data
     : { ...parsed.data, fields: { ...parsed.data.fields, Master_ID: options.masterId } };
 
+  // Event_ID and Event_Created_At are server-owned; ignore any client-supplied values.
+  const { Event_ID: _eventId, Event_Created_At: _createdAt, ...clientFields } = raw.fields;
+  void _eventId;
+  void _createdAt;
+  raw.fields = clientFields;
+
   const eventType = detectEventType(raw);
   if (!eventType) {
     throw new HttpError(400, "Missing Event_Type");

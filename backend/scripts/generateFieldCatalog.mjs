@@ -13,6 +13,7 @@ const kinds = {
   autonumber: "system",
   "created time": "system",
   "date-time": "system",
+  "date/time (iso)": "system",
   datetime: "system",
   "single line text": "text",
   "date(iso)": "date",

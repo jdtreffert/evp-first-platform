@@ -2,6 +2,7 @@ import { detectEventType } from "../ingestion/detectEventType";
 import { normalizerRegistry } from "../normalizers/normalizerRegistry";
 import { rawEventRecordSchema } from "../schemas/rawEventRecordSchema";
 import { RawEventRecord, UnifiedEvent } from "../types/UnifiedEvents";
+import { validateFieldValues } from "../validation/fieldOptions";
 import { HttpError } from "../utils/httpError";
 import { validateEvent } from "./validationService";
 
@@ -24,6 +25,11 @@ export function ingestEvent(input: unknown, options: { masterId?: string } = {})
     : undefined;
   if (!normalizer) {
     throw new HttpError(422, `Unsupported event type: ${eventType}`);
+  }
+
+  const fieldIssues = validateFieldValues(raw.fields);
+  if (fieldIssues.length > 0) {
+    throw new HttpError(422, "Event fields failed schema validation", fieldIssues);
   }
 
   let event: UnifiedEvent;

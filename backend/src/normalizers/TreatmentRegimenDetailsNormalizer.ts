@@ -4,6 +4,7 @@ import { RawEventRecord, UnifiedEvent } from "../types/UnifiedEvents";
 
 export function normalizeTreatmentRegimenDetails(raw: RawEventRecord): UnifiedEvent {
   const f = raw.fields;
+  const treatmentName = f.Treatment_Name || null;
 
   const details = f.Treatment_Regimen_Details || null;
 
@@ -19,10 +20,13 @@ export function normalizeTreatmentRegimenDetails(raw: RawEventRecord): UnifiedEv
 
     eventSummary,
     eventDetails: {
+      treatmentName,
       treatmentRegimenDetails: details,
     },
 
     eventSource: f.Event_Source || null,
+
+    treatmentName,
 
     treatmentRegimenDetails: details,
 

@@ -57,11 +57,22 @@ export const unifiedEventSchema = z.strictObject({
   pathologyLVI: text,
   pathologyNotes: text,
 
+  diagnosisInitialPresentation: text,
+  tumorStage: text,
+  tumorT: text,
+  tumorN: text,
+  tumorM: text,
+
+  turbtCompleteness: text,
+  turbtSurgeonNotes: text,
+  turbtSpecimenNotes: text,
+
   cystoscopyFindings: text,
   cystoscopyVisibility: text,
   cystoscopyReason: text,
   cystoscopyNotes: text,
   biopsyResult: text,
+  biopsyTaken: text,
   biopsySite: text,
   biopsyNotes: text,
 

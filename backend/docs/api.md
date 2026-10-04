@@ -47,7 +47,7 @@ Request: `{ "id": string, "fields": { "Event_Type": string, ... } }`
 | 201 | Stored as a new event; body is the `UnifiedEvent` |
 | 200 | An event with the same `uid` existed and was replaced; body is the `UnifiedEvent` |
 | 400 | Invalid record shape, or missing `Event_Type` |
-| 422 | Unsupported `Event_Type`, normalization failure, or the normalized event failed validation (`details`) |
+| 422 | Unsupported `Event_Type`, a select field value outside the schema options or a non-numeric number field (`details`), normalization failure, or the normalized event failed validation (`details`) |
 
 `Master_ID` is required; `Event_Date` is optional but must be a real date if present.
 See the [pipeline](./ingestion-pipeline.md).
@@ -172,3 +172,11 @@ account and sends a sign-in code. Patient accounts are created only by invite re
 ```sh
 # Authenticate first; then send the evp_session cookie with event requests.
 ```
+
+## Field schema
+
+Field names, kinds and allowed values come from `UnifiedEventsSchema` and are kept in
+`src/schemas/eventFieldCatalog.ts`; `src/schemas/eventTypeFields.ts` lists the fields entered for each
+event type. Ingestion rejects select values that are not defined options. Normalizers read the schema
+field names (for example `TURBT_Histology`) and still accept the earlier names (`Pathology_Histology`).
+The web form is generated from the same two files.

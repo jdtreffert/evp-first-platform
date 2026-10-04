@@ -4,6 +4,7 @@ import { RawEventRecord, UnifiedEvent } from "../types/UnifiedEvents";
 
 export function normalizeTreatmentChange(raw: RawEventRecord): UnifiedEvent {
   const f = raw.fields;
+  const treatmentName = f.Treatment_Name || null;
 
   const changeType = f.Treatment_Change_Type || null;
   const reason = f.Treatment_Change_Reason || null;
@@ -22,6 +23,7 @@ export function normalizeTreatmentChange(raw: RawEventRecord): UnifiedEvent {
 
     eventSummary,
     eventDetails: {
+      treatmentName,
       treatmentChangeType: changeType,
       treatmentChangeReason: reason,
       treatmentChangeNewRegimen: newRegimen,
@@ -29,6 +31,8 @@ export function normalizeTreatmentChange(raw: RawEventRecord): UnifiedEvent {
     },
 
     eventSource: f.Event_Source || null,
+
+    treatmentName,
 
     treatmentChangeType: changeType,
     treatmentChangeReason: reason,

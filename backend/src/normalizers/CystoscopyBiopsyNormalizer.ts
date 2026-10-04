@@ -1,13 +1,15 @@
 // src/normalizers/CystoscopyBiopsyNormalizer.ts
 
+import { pickField } from "../utils/pickField";
 import { RawEventRecord, UnifiedEvent } from "../types/UnifiedEvents";
 
 export function normalizeCystoscopyBiopsy(raw: RawEventRecord): UnifiedEvent {
   const f = raw.fields;
 
-  const result = f.Biopsy_Result || null;
-  const site = f.Biopsy_Site || null;
-  const notes = f.Biopsy_Notes || null;
+  const taken = f.Cystoscopy_Biopsy_Taken || null;
+  const result = pickField(f, "Cystoscopy_Biopsy_Result", "Biopsy_Result") || null;
+  const site = pickField(f, "Cystoscopy_Biopsy_Site", "Biopsy_Site") || null;
+  const notes = pickField(f, "Cystoscopy_Biopsy_Notes", "Biopsy_Notes") || null;
 
   const eventSummary = result
     ? `Biopsy: ${result}`
@@ -21,6 +23,7 @@ export function normalizeCystoscopyBiopsy(raw: RawEventRecord): UnifiedEvent {
 
     eventSummary,
     eventDetails: {
+      biopsyTaken: taken,
       biopsyResult: result,
       biopsySite: site,
       biopsyNotes: notes,
@@ -28,6 +31,7 @@ export function normalizeCystoscopyBiopsy(raw: RawEventRecord): UnifiedEvent {
 
     eventSource: f.Event_Source || null,
 
+    biopsyTaken: taken,
     biopsyResult: result,
     biopsySite: site,
     biopsyNotes: notes,

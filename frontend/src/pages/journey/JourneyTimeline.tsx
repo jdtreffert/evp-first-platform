@@ -131,7 +131,7 @@ export default function JourneyTimeline() {
       {showForm && activeMasterId && (
         <EventForm
           masterId={activeMasterId}
-          eventSource={isPatient ? "Patient" : user?.role === "administrator" ? "Administrator" : "Clinical team"}
+          eventSource={isPatient ? "Patient" : "Clinician"}
           onSave={handleSave}
           onCancel={() => setShowForm(false)}
         />

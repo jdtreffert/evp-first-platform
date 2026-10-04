@@ -1,13 +1,14 @@
 // src/normalizers/NoteNormalizer.ts
 
+import { pickField } from "../utils/pickField";
 import { RawEventRecord, UnifiedEvent } from "../types/UnifiedEvents";
 
 export function normalizeNote(raw: RawEventRecord): UnifiedEvent {
   const f = raw.fields;
 
-  const notes = f.Note_Text || null;
+  const notes = pickField(f, "Event_Details", "Note_Text") || null;
 
-  const eventSummary = notes
+  const eventSummary = f.Event_Summary ? f.Event_Summary : notes
     ? `Note: ${notes.substring(0, 40)}...`
     : "Clinical note";
 

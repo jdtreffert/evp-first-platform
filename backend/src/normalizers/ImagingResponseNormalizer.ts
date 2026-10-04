@@ -1,12 +1,13 @@
 // src/normalizers/ImagingResponseNormalizer.ts
 
+import { pickField } from "../utils/pickField";
 import { RawEventRecord, UnifiedEvent } from "../types/UnifiedEvents";
 
 export function normalizeImagingResponse(raw: RawEventRecord): UnifiedEvent {
   const f = raw.fields;
 
   const category = f.Imaging_Response_Category || null;
-  const criteria = f.Imaging_Response_Criteria || null;
+  const criteria = pickField(f, "Imaging_Response_Critera", "Imaging_Response_Criteria") || null;
   const targetChange = f.Imaging_Response_Target_Lesion_Change ?? null;
 
   const eventSummary = category

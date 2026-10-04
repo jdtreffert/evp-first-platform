@@ -1,5 +1,6 @@
 // src/normalizers/ImagingNormalizer.ts
 
+import { pickField } from "../utils/pickField";
 import { RawEventRecord, UnifiedEvent } from "../types/UnifiedEvents";
 
 export function normalizeImaging(raw: RawEventRecord): UnifiedEvent {
@@ -8,7 +9,7 @@ export function normalizeImaging(raw: RawEventRecord): UnifiedEvent {
   const modality = f.Imaging_Modality || null;
   const result = f.Imaging_Result || null;
   const region = f.Imaging_Region || null;
-  const comparison = f.Imaging_Comparison_To_Prior || null;
+  const comparison = pickField(f, "Imaging_ComparisonToPrior", "Imaging_Comparison_To_Prior") || null;
   const notes = f.Imaging_Notes || null;
 
   const eventSummary = modality && result

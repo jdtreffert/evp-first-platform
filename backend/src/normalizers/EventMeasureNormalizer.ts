@@ -1,13 +1,14 @@
 // src/normalizers/EventMeasureNormalizer.ts
 
+import { pickField } from "../utils/pickField";
 import { RawEventRecord, UnifiedEvent } from "../types/UnifiedEvents";
 
 export function normalizeEventMeasure(raw: RawEventRecord): UnifiedEvent {
   const f = raw.fields;
 
   const measureType = f.Event_Measure_Type || null;
-  const value = f.Event_Measure_Value ?? null;
-  const units = f.Event_Measure_Units || null;
+  const value = pickField(f, "Numeric_Value", "Event_Measure_Value") ?? null;
+  const units = pickField(f, "Numeric_Units", "Event_Measure_Units") || null;
 
   const eventSummary = measureType
     ? `${measureType}: ${value} ${units || ""}`.trim()

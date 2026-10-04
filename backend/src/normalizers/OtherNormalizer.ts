@@ -1,13 +1,14 @@
 // src/normalizers/OtherNormalizer.ts
 
+import { pickField } from "../utils/pickField";
 import { RawEventRecord, UnifiedEvent } from "../types/UnifiedEvents";
 
 export function normalizeOther(raw: RawEventRecord): UnifiedEvent {
   const f = raw.fields;
 
-  const description = f.Other_Description || null;
+  const description = pickField(f, "Event_Details", "Other_Description") || null;
 
-  const eventSummary = description
+  const eventSummary = f.Event_Summary ? f.Event_Summary : description
     ? `Other: ${description}`
     : "Other event";
 

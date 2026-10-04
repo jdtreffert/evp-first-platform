@@ -59,11 +59,24 @@ export interface UnifiedEvent {
   pathologyLVI?: string | null;
   pathologyNotes?: string | null;
 
+  // Diagnosis staging
+  diagnosisInitialPresentation?: string | null;
+  tumorStage?: string | null;
+  tumorT?: string | null;
+  tumorN?: string | null;
+  tumorM?: string | null;
+
+  // TURBT-specific block
+  turbtCompleteness?: string | null;
+  turbtSurgeonNotes?: string | null;
+  turbtSpecimenNotes?: string | null;
+
   // Cystoscopy and biopsy blocks
   cystoscopyFindings?: string | null;
   cystoscopyVisibility?: string | null;
   cystoscopyReason?: string | null;
   cystoscopyNotes?: string | null;
+  biopsyTaken?: string | null;
   biopsyResult?: string | null;
   biopsySite?: string | null;
   biopsyNotes?: string | null;

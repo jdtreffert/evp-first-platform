@@ -4,6 +4,7 @@ import { RawEventRecord, UnifiedEvent } from "../types/UnifiedEvents";
 
 export function normalizeTreatmentResponse(raw: RawEventRecord): UnifiedEvent {
   const f = raw.fields;
+  const treatmentName = f.Treatment_Name || null;
 
   const category = f.Treatment_Response_Category || null;
   const modality = f.Treatment_Response_Modality || null;
@@ -21,12 +22,15 @@ export function normalizeTreatmentResponse(raw: RawEventRecord): UnifiedEvent {
 
     eventSummary,
     eventDetails: {
+      treatmentName,
       treatmentResponseCategory: category,
       treatmentResponseModality: modality,
       treatmentResponseNotes: notes,
     },
 
     eventSource: f.Event_Source || null,
+
+    treatmentName,
 
     treatmentResponseCategory: category,
     treatmentResponseModality: modality,

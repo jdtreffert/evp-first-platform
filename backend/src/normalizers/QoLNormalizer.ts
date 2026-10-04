@@ -1,16 +1,17 @@
 // src/normalizers/QoLNormalizer.ts
 
+import { pickField } from "../utils/pickField";
 import { RawEventRecord, UnifiedEvent } from "../types/UnifiedEvents";
 
 export function normalizeQoL(raw: RawEventRecord): UnifiedEvent {
   const f = raw.fields;
 
   const physical = f.QoL_Physical ?? null;
-  const emotional = f.QoL_Emotional ?? null;
+  const emotional = pickField(f, "Qol_Emotional", "QoL_Emotional") ?? null;
   const urinary = f.QoL_Urinary ?? null;
   const pain = f.QoL_Pain ?? null;
   const fatigue = f.QoL_Fatigue ?? null;
-  const notes = f.QoL_Notes || null;
+  const notes = pickField(f, "Qol_Notes", "QoL_Notes") || null;
 
   const eventSummary = "Quality of Life assessment";
 

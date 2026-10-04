@@ -10,6 +10,11 @@ export function normalizeDiagnosis(raw: RawEventRecord): UnifiedEvent {
   const margins = f.Diagnosis_Margins || null;
   const lvi = f.Diagnosis_LVI || null;
   const notes = f.Diagnosis_Notes || null;
+  const initialPresentation = f.Diagnosis_Initial_Presentation || null;
+  const t = f.T || null;
+  const n = f.N || null;
+  const m = f.M || null;
+  const stage = f.Stage || null;
 
   const eventSummary = histology && grade
     ? `Diagnosis: ${histology}, Grade ${grade}`
@@ -32,6 +37,11 @@ export function normalizeDiagnosis(raw: RawEventRecord): UnifiedEvent {
       pathologyMargins: margins,
       pathologyLVI: lvi,
       pathologyNotes: notes,
+      diagnosisInitialPresentation: initialPresentation,
+      tumorT: t,
+      tumorN: n,
+      tumorM: m,
+      tumorStage: stage,
     },
 
     eventSource: f.Event_Source || null,
@@ -43,6 +53,12 @@ export function normalizeDiagnosis(raw: RawEventRecord): UnifiedEvent {
     pathologyMargins: margins,
     pathologyLVI: lvi,
     pathologyNotes: notes,
+
+    diagnosisInitialPresentation: initialPresentation,
+    tumorT: t,
+    tumorN: n,
+    tumorM: m,
+    tumorStage: stage,
 
     documentAttachment: f.Document_Attachment || [],
     documentType: f.Document_Type || null,

@@ -134,18 +134,18 @@ function FieldInput({
 
 export default function EventForm({
   masterId,
-  eventSource,
+  defaultSource,
   onSave,
   onCancel,
 }: {
   masterId: string;
-  eventSource: string;
+  defaultSource: string;
   onSave: (event: RawEventRecord) => Promise<void>;
   onCancel: () => void;
 }) {
   const [eventType, setEventType] = useState("Note");
   const [eventDate, setEventDate] = useState(getLocalDate);
-  const [source, setSource] = useState(eventSource);
+  const [source, setSource] = useState(defaultSource);
   const [values, setValues] = useState<Record<string, string | string[]>>({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -220,7 +220,6 @@ export default function EventForm({
         <select
           className={inputClass}
           value={source}
-          disabled={eventSource === "Patient"}
           onChange={(event) => setSource(event.target.value)}
         >
           {sourceField.options?.map((option) => <option key={option} value={option}>{option}</option>)}

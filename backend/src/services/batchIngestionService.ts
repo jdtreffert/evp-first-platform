@@ -1,3 +1,4 @@
+import { DocumentStore } from "../documents/documentStore";
 import { EventRepository } from "../persistence/eventRepository";
 import { batchRequestSchema } from "../schemas/batchSchema";
 import { HttpError } from "../utils/httpError";
@@ -21,7 +22,7 @@ export interface BatchResult {
 export async function ingestBatch(
   repository: EventRepository,
   body: unknown,
-  options: { masterId?: string; actorRole?: string } = {},
+  options: { masterId?: string; actorRole?: string; documents?: DocumentStore } = {},
 ): Promise<BatchResult> {
   const parsed = batchRequestSchema.safeParse(body);
   if (!parsed.success) {
@@ -37,7 +38,7 @@ export async function ingestBatch(
   for (const [index, record] of parsed.data.records.entries()) {
     try {
       const event = ingestEvent(record, options);
-      const { created } = await persistEvent(repository, event, { ownerMasterId: options.masterId, actorRole: options.actorRole });
+      const { created } = await persistEvent(repository, event, { ownerMasterId: options.masterId, actorRole: options.actorRole, documents: options.documents });
       results.push({ index, status: created ? "created" : "updated", uid: event.uid });
     } catch (err) {
       if (err instanceof HttpError) {

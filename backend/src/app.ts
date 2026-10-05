@@ -5,14 +5,17 @@ import { EventRepository } from "./persistence/eventRepository";
 import { createApiRouter } from "./routes";
 import { AuthService } from "./auth/authService";
 import { createOriginGuard } from "./auth/originGuard";
+import { DocumentStore } from "./documents/documentStore";
+import { InMemoryDocumentStore } from "./documents/inMemoryDocumentStore";
 
 export interface AppDependencies {
   repository: EventRepository;
   auth: AuthService;
+  documents?: DocumentStore;
   frontendOrigin?: string;
 }
 
-export function createApp({ repository, auth, frontendOrigin = "http://localhost:5173" }: AppDependencies): express.Express {
+export function createApp({ repository, auth, documents = new InMemoryDocumentStore(), frontendOrigin = "http://localhost:5173" }: AppDependencies): express.Express {
   const app = express();
 
   app.use(cors({ origin: frontendOrigin, credentials: true }));
@@ -23,7 +26,7 @@ export function createApp({ repository, auth, frontendOrigin = "http://localhost
     res.send("EVP First backend running");
   });
 
-  app.use("/api", createApiRouter(repository, auth));
+  app.use("/api", createApiRouter(repository, auth, documents));
   app.use(errorHandler);
 
   return app;

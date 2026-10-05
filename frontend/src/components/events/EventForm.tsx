@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { FormEvent } from "react";
 import type { RawEventRecord } from "../../../../backend/src/types/UnifiedEvents";
 import { eventFieldCatalog } from "../../../../backend/src/schemas/eventFieldCatalog";
 import type { FieldDefinition } from "../../../../backend/src/schemas/eventFieldCatalog";
+import { ACCEPTED_DOCUMENT_TYPES, MAX_DOCUMENT_BYTES, uploadDocument } from "../../api/documents";
 import { documentFields, eventTypeFields, measureFields, relationshipFields } from "../../../../backend/src/schemas/eventTypeFields";
 
 const eventTypeLabels: Record<string, string> = {
@@ -147,6 +148,8 @@ export default function EventForm({
   const [eventDate, setEventDate] = useState(getLocalDate);
   const [source, setSource] = useState(defaultSource);
   const [values, setValues] = useState<Record<string, string | string[]>>({});
+  const [file, setFile] = useState<File | null>(null);
+  const uploaded = useRef<{ file: File; id: string } | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fieldNames = eventTypeFields[eventType];
@@ -188,6 +191,13 @@ export default function EventForm({
 
     setSaving(true);
     try {
+      if (file) {
+        // Reuse the upload when the user retries after a failed save, so the file is not stored twice.
+        if (uploaded.current?.file !== file) {
+          uploaded.current = { file, id: (await uploadDocument(file, masterId)).id };
+        }
+        fields.Document_Attachment = [uploaded.current.id];
+      }
       await onSave({ id: String(fields.Event_UID), fields });
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : "Unable to save this event.");
@@ -238,6 +248,25 @@ export default function EventForm({
       <details className="rounded border border-gray-700 p-3">
         <summary className="cursor-pointer text-sm text-gray-300">Linked document (optional)</summary>
         <div className="mt-3 space-y-5">
+          <label className="block text-sm">
+            Attach a file (PDF, PNG or JPEG, up to 25 MB)
+            <input
+              type="file"
+              accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg"
+              className={inputClass}
+              onChange={(event) => {
+                const chosen = event.target.files?.[0] ?? null;
+                if (chosen && (chosen.size > MAX_DOCUMENT_BYTES || (chosen.type && !ACCEPTED_DOCUMENT_TYPES.includes(chosen.type)))) {
+                  setError("Choose a PDF, PNG or JPEG file no larger than 25 MB.");
+                  event.target.value = "";
+                  setFile(null);
+                  return;
+                }
+                setError(null);
+                setFile(chosen);
+              }}
+            />
+          </label>
           {linkableDocumentFields.map((name) => (
             <FieldInput
               key={name}

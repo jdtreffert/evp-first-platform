@@ -103,6 +103,12 @@ Configure the location with `EVP_DATA_FILE` (default `data/events.json`, relativ
 working directory). The store contains patient data: `backend/data/` is git-ignored and
 should not be committed.
 
+Uploaded documents are stored through the `DocumentStore` interface
+([src/documents/documentStore.ts](src/documents/documentStore.ts)). `FileDocumentStore` keeps them
+on local disk under `EVP_DOCUMENT_DIR` (default `data/documents`, also git-ignored). This is
+development storage only: real patient documents from other people need encrypted storage,
+backups, audit logging and malware scanning first.
+
 ## Documentation
 
 - [Architecture](docs/architecture.md), including known limitations

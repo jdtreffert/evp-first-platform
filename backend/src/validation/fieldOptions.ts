@@ -36,6 +36,11 @@ export function validateFieldValues(fields: Record<string, unknown>): FieldIssue
           issues.push({ path: `fields.${name}`, message: `Not an allowed option: ${JSON.stringify(item)}` });
         }
       }
+    } else if (definition.kind === "attachment") {
+      // Attachments are document ids, held as a list of strings.
+      if (!Array.isArray(value) || value.some((item) => typeof item !== "string" || item === "")) {
+        issues.push({ path: `fields.${name}`, message: "Expected a list of document ids" });
+      }
     } else if (definition.kind === "number") {
       if (typeof value !== "number" || !Number.isFinite(value)) {
         issues.push({ path: `fields.${name}`, message: "Expected a number" });

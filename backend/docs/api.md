@@ -27,7 +27,7 @@ Errors use `{ "error": string, "details"?: [...] }`. Validation details are
 |--------|------|
 | 400 | Malformed JSON, invalid request shape, or invalid query parameters |
 | 404 | Event not found |
-| 413 | Request body over 5 MB |
+| 413 | Request body over 5 MB (25 MB for document uploads) |
 | 422 | Valid request, but the event cannot be accepted (unsupported type, normalization or validation failure) |
 | 429 | Authentication request rate limit exceeded |
 | 500 | Unexpected error; the body is always `{ "error": "Internal server error" }` |
@@ -166,6 +166,25 @@ Request `{ "masterId": "M123" }`; returns a single-use invite code and its expir
 
 Request `{ "email": "...", "role": "clinical" }` or `"administrator"`. Creates the
 account and sends a sign-in code. Patient accounts are created only by invite redemption.
+
+## Documents
+
+Uploaded files are stored privately (never served statically) and linked to an event through
+`Document_Attachment`, a list of document ids. Documents are immutable: no role can replace or
+delete one, and attaching a corrected file creates a new document.
+
+| Endpoint | Roles | Description |
+|----------|-------|-------------|
+| `POST /api/documents?masterId=...&filename=...` | administrator, patient | Body is the raw file with `Content-Type: application/octet-stream`. Patients always upload to their own record; the `masterId` query is required for administrators. Responds `201` with `{ id, originalName, contentType, size, uploadedAt }` |
+| `GET /api/documents/:id/meta` | all | The same metadata |
+| `GET /api/documents/:id` | all | The file, sent as an attachment with `nosniff` and a locked-down content security policy |
+
+Only PDF, PNG and JPEG files are accepted, identified from their content rather than the
+file name, up to 25 MB (`415` for other types, `413` for larger files). Patients can read only
+their own documents; other ids respond `404`. The server records the SHA-256 hash, the
+uploader's role and the upload time with each document. Saving an event whose
+`Document_Attachment` lists a document that does not exist for the same patient is rejected
+with `422`. Files are kept under `EVP_DOCUMENT_DIR` (default `data/documents`).
 
 ## Example session
 

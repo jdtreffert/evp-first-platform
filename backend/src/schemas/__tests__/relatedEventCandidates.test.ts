@@ -12,6 +12,6 @@ describe("relatedEventCandidates", () => {
   });
 
   test("a Pathology event offers TURBT events within 30 days", () => {
-    expect(relatedEventCandidates.Pathology).toMatchObject({ eventTypes: ["TURBT"], withinDays: 30 });
+    expect(relatedEventCandidates.Pathology).toMatchObject({ eventTypes: ["TURBT"], withinDays: 30, relationship: "Derived_From" });
   });
 });

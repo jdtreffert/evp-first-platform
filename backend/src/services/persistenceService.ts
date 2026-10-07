@@ -22,5 +22,11 @@ export async function persistEvent(
       }
     }
   }
+  if (event.relatedEventUid) {
+    const related = await repository.getByUid(event.relatedEventUid);
+    if (!related || related.masterId !== event.masterId) {
+      throw new HttpError(422, "Event_Related_UID must refer to an existing event for the same patient");
+    }
+  }
   return repository.save(event, saveOptions);
 }

@@ -210,7 +210,10 @@ They are stored as `eventMeasureType`, `eventMeasureValue` and `eventMeasureUnit
 
 Any event may also carry `Event_Related_UID` and `Event_Relationship` (`Produced_By`, `Triggered_By`,
 `Assessed_By`, `Derived_From`, `Related_To`) to link it to another event, for example a Pathology
-event produced by a TURBT. They are stored as `relatedEventUid` and `eventRelationship`.
+event derived from a TURBT. They are stored as `relatedEventUid` and `eventRelationship`.
+`Event_Related_UID` must refer to an existing event for the same patient, otherwise the event is
+rejected with `422`. The entry form offers TURBT events within 30 days of a Pathology event's date
+(default relationship `Derived_From`); other event types offer no picker.
 
 ## Recorded-at provenance
 

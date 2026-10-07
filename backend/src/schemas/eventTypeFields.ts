@@ -10,7 +10,7 @@ export const relationshipFields = ["Event_Related_UID", "Event_Relationship"] as
  * Other event types offer no related-event picker.
  */
 export const relatedEventCandidates: Record<string, { eventTypes: string[]; withinDays: number; relationship: string }> = {
-  Pathology: { eventTypes: ["TURBT"], withinDays: 30, relationship: "Triggered_By" },
+  Pathology: { eventTypes: ["TURBT"], withinDays: 30, relationship: "Derived_From" },
 };
 
 export const commonEventFields = ["Event_Date", "Event_Source"] as const;

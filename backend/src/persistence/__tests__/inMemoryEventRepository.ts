@@ -1,10 +1,11 @@
 import { UnifiedEvent } from "../../types/UnifiedEvents";
 import { EventQuery, EventQueryResult, applyEventQuery } from "../eventQuery";
-import { EventRepository, SaveResult } from "../eventRepository";
+import { EventRepository, EventVersion, SaveResult } from "../eventRepository";
 import { HttpError } from "../../utils/httpError";
 
 export class InMemoryEventRepository implements EventRepository {
   readonly events = new Map<string, UnifiedEvent>();
+  private readonly versions: EventVersion[] = [];
 
   async save(event: UnifiedEvent, options: { ownerMasterId?: string } = {}): Promise<SaveResult> {
     const existing = this.events.get(event.uid);
@@ -15,6 +16,9 @@ export class InMemoryEventRepository implements EventRepository {
     ) {
       throw new HttpError(403, "Patient event ownership violation");
     }
+    if (existing) {
+      this.versions.push({ event: existing, supersededAt: new Date().toISOString(), supersededByRole: "system" });
+    }
     const created = !this.events.has(event.uid);
     this.events.set(event.uid, event);
     return { created };
@@ -22,6 +26,10 @@ export class InMemoryEventRepository implements EventRepository {
 
   async getByUid(uid: string): Promise<UnifiedEvent | null> {
     return this.events.get(uid) ?? null;
+  }
+
+  async history(uid: string): Promise<EventVersion[]> {
+    return this.versions.filter((v) => v.event.uid === uid);
   }
 
   async list(): Promise<UnifiedEvent[]> {

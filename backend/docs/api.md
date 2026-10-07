@@ -112,6 +112,16 @@ Lists stored events. All parameters are optional; unknown or invalid ones return
 Response: `{ "events": [UnifiedEvent], "total": number, "limit": number, "offset": number }`.
 `total` counts all matches before pagination.
 
+## GET /api/events/:uid/history
+
+Earlier versions of an event, oldest first: `{ "uid": string, "versions": [{ "event": UnifiedEvent, "supersededAt": string, "supersededByRole": string }] }`.
+Patients can read the history of their own events only; other uids respond `404`.
+
+Editing is done by posting the event again with the same `Event_UID`. The previous version is
+kept in the history, `recordedAt` is preserved, and `lastModifiedAt` and `lastModifiedByRole` are
+set. Versions are never removed, and an existing event cannot be moved to a different patient (`422`).
+Clinical accounts cannot edit.
+
 ## GET /api/events/:uid
 
 Any authenticated role may read. Returns one `UnifiedEvent`: 200, 404 if no such event

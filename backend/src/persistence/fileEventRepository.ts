@@ -2,12 +2,14 @@ import { promises as fs } from "fs";
 import path from "path";
 import { UnifiedEvent } from "../types/UnifiedEvents";
 import { EventQuery, EventQueryResult, applyEventQuery } from "./eventQuery";
-import { EventRepository, SaveOptions, SaveResult } from "./eventRepository";
+import { EventRepository, EventVersion, SaveOptions, SaveResult } from "./eventRepository";
 import { HttpError } from "../utils/httpError";
 
 interface StoreFile {
   version: 1;
   events: UnifiedEvent[];
+  /** Superseded versions; absent in stores written before editing was supported. */
+  history?: EventVersion[];
 }
 
 function isStoreFile(value: unknown): value is StoreFile {
@@ -28,7 +30,9 @@ export class FileEventRepository implements EventRepository {
 
   save(event: UnifiedEvent, options: SaveOptions = {}): Promise<SaveResult> {
     return this.enqueue(async () => {
-      const events = await this.readAll();
+      const store = await this.readStore();
+      const events = store.events;
+      const history = store.history ?? [];
       const index = events.findIndex((e) => e.uid === event.uid);
       if (options.ownerMasterId !== undefined) {
         if (event.masterId !== options.ownerMasterId) {
@@ -48,13 +52,14 @@ export class FileEventRepository implements EventRepository {
         events.push(event);
       } else {
         const original = events[index];
+        history.push({ event: original, supersededAt: now, supersededByRole: role });
         event.recordedAt = original.recordedAt ?? now;
         event.recordedByRole = original.recordedByRole ?? role;
         event.lastModifiedAt = now;
         event.lastModifiedByRole = role;
         events[index] = event;
       }
-      await this.writeAll(events);
+      await this.writeStore({ version: 1, events, history });
       return { created: index === -1 };
     });
   }
@@ -64,6 +69,10 @@ export class FileEventRepository implements EventRepository {
       const events = await this.readAll();
       return events.find((e) => e.uid === uid) ?? null;
     });
+  }
+
+  history(uid: string): Promise<EventVersion[]> {
+    return this.enqueue(async () => ((await this.readStore()).history ?? []).filter((v) => v.event.uid === uid));
   }
 
   list(): Promise<UnifiedEvent[]> {
@@ -82,11 +91,15 @@ export class FileEventRepository implements EventRepository {
   }
 
   private async readAll(): Promise<UnifiedEvent[]> {
+    return (await this.readStore()).events;
+  }
+
+  private async readStore(): Promise<StoreFile> {
     let text: string;
     try {
       text = await fs.readFile(this.filePath, "utf8");
     } catch (err) {
-      if ((err as NodeJS.ErrnoException).code === "ENOENT") return [];
+      if ((err as NodeJS.ErrnoException).code === "ENOENT") return { version: 1, events: [] };
       throw err;
     }
 
@@ -99,11 +112,10 @@ export class FileEventRepository implements EventRepository {
     if (!isStoreFile(parsed)) {
       throw new Error(`Event store has an unrecognized format: ${this.filePath}`);
     }
-    return parsed.events;
+    return parsed;
   }
 
-  private async writeAll(events: UnifiedEvent[]): Promise<void> {
-    const store: StoreFile = { version: 1, events };
+  private async writeStore(store: StoreFile): Promise<void> {
     const tempPath = `${this.filePath}.${process.pid}.tmp`;
 
     await fs.mkdir(path.dirname(this.filePath), { recursive: true });

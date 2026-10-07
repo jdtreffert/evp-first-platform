@@ -7,6 +7,13 @@ export interface SaveOptions {
   actorRole?: string;
 }
 
+/** A superseded version of an event, kept when the event is replaced. */
+export interface EventVersion {
+  event: UnifiedEvent;
+  supersededAt: string;
+  supersededByRole: string;
+}
+
 export interface SaveResult {
   created: boolean;
 }
@@ -18,6 +25,8 @@ export interface SaveResult {
 export interface EventRepository {
   save(event: UnifiedEvent, options?: SaveOptions): Promise<SaveResult>;
   getByUid(uid: string): Promise<UnifiedEvent | null>;
+  /** Earlier versions of an event, oldest first. Versions are never removed. */
+  history(uid: string): Promise<EventVersion[]>;
   list(): Promise<UnifiedEvent[]>;
   query(query: EventQuery): Promise<EventQueryResult>;
 }

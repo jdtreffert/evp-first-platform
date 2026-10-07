@@ -4,6 +4,7 @@ import type { RawEventRecord, UnifiedEvent } from "../../../../backend/src/types
 import { eventFieldCatalog } from "../../../../backend/src/schemas/eventFieldCatalog";
 import type { FieldDefinition } from "../../../../backend/src/schemas/eventFieldCatalog";
 import { ACCEPTED_DOCUMENT_TYPES, MAX_DOCUMENT_BYTES, uploadDocument } from "../../api/documents";
+import DocumentLink from "./DocumentLink";
 import { queryEventsInRange } from "../../api/events";
 import { documentFields, eventTypeFields, measureFields, relatedEventCandidates, relationshipFields } from "../../../../backend/src/schemas/eventTypeFields";
 
@@ -68,6 +69,18 @@ function shiftDate(date: string, days: number): string {
   const shifted = new Date(`${date}T00:00:00Z`);
   shifted.setUTCDate(shifted.getUTCDate() + days);
   return shifted.toISOString().slice(0, 10);
+}
+
+/** Form values for a stored event, read from the raw record it was created from. */
+function valuesFromEvent(event: UnifiedEvent): Record<string, string | string[]> {
+  const values: Record<string, string | string[]> = {};
+  for (const [name, value] of Object.entries(event.payload.fields)) {
+    const definition = Object.prototype.hasOwnProperty.call(eventFieldCatalog, name) ? eventFieldCatalog[name] : undefined;
+    if (!definition || value === null || value === undefined || value === "") continue;
+    if (definition.kind === "multi") values[name] = Array.isArray(value) ? value.map(String) : [String(value)];
+    else if (definition.kind !== "attachment") values[name] = String(value);
+  }
+  return values;
 }
 
 function isFilled(value: string | string[] | undefined): boolean {
@@ -143,18 +156,21 @@ function FieldInput({
 export default function EventForm({
   masterId,
   defaultSource,
+  initial,
   onSave,
   onCancel,
 }: {
   masterId: string;
   defaultSource: string;
+  /** The stored event being edited; omitted when adding a new event. */
+  initial?: UnifiedEvent;
   onSave: (event: RawEventRecord) => Promise<void>;
   onCancel: () => void;
 }) {
-  const [eventType, setEventType] = useState("Note");
-  const [eventDate, setEventDate] = useState(getLocalDate);
-  const [source, setSource] = useState(defaultSource);
-  const [values, setValues] = useState<Record<string, string | string[]>>({});
+  const [eventType, setEventType] = useState(initial?.eventType ?? "Note");
+  const [eventDate, setEventDate] = useState(() => initial?.eventDate?.slice(0, 10) ?? getLocalDate());
+  const [source, setSource] = useState(initial?.eventSource ?? defaultSource);
+  const [values, setValues] = useState<Record<string, string | string[]>>(() => (initial ? valuesFromEvent(initial) : {}));
   const [file, setFile] = useState<File | null>(null);
   const uploaded = useRef<{ file: File; id: string } | null>(null);
   const [saving, setSaving] = useState(false);
@@ -199,8 +215,10 @@ export default function EventForm({
       return;
     }
 
+    // An edit starts from the stored record so nothing the form does not manage is lost.
     const fields: Record<string, unknown> = {
-      Event_UID: `web-${crypto.randomUUID()}`,
+      ...(initial?.payload.fields ?? {}),
+      Event_UID: initial?.uid ?? `web-${crypto.randomUUID()}`,
       Event_Type: eventType,
       Event_Date: eventDate,
       Event_Source: source,
@@ -209,7 +227,10 @@ export default function EventForm({
 
     const relatedUid = values.Event_Related_UID;
     const relatedChosen = typeof relatedUid === "string" && (candidates ?? []).some((candidate) => candidate.uid === relatedUid);
-    const optionalFields = [...linkableDocumentFields, ...(relatedChosen ? relationshipFields : []), ...measureFields];
+    const keepsExistingLink = initial !== undefined && relatedUid === initial.relatedEventUid;
+    const optionalFields = [...linkableDocumentFields, ...(relatedChosen || keepsExistingLink ? relationshipFields : []), ...measureFields];
+    // Cleared fields must be removed from the record rather than left at their old value.
+    for (const name of [...fieldNames, ...optionalFields, ...relationshipFields]) delete fields[name];
     for (const name of [...fieldNames, ...optionalFields]) {
       const value = values[name];
       if (!isFilled(value)) continue;
@@ -236,13 +257,13 @@ export default function EventForm({
   return (
     <form onSubmit={(event) => void handleSubmit(event)} className="space-y-5 rounded-lg border border-gray-700 bg-gray-900 p-5">
       <div className="flex items-center justify-between gap-4">
-        <h3 className="text-xl font-semibold">Add an event</h3>
+        <h3 className="text-xl font-semibold">{initial ? "Edit event" : "Add an event"}</h3>
         <button type="button" onClick={onCancel} className="text-sm text-gray-300 hover:text-white">Cancel</button>
       </div>
 
       <label className="block text-sm">
         Event type
-        <select className={inputClass} value={eventType} onChange={(event) => changeType(event.target.value)}>
+        <select className={inputClass} value={eventType} disabled={initial !== undefined} onChange={(event) => changeType(event.target.value)}>
           {Object.keys(eventTypeFields).map((type) => <option key={type} value={type}>{typeLabel(type)}</option>)}
         </select>
       </label>
@@ -275,8 +296,9 @@ export default function EventForm({
       <details className="rounded border border-gray-700 p-3">
         <summary className="cursor-pointer text-sm text-gray-300">Linked document (optional)</summary>
         <div className="mt-3 space-y-5">
+          {initial?.documentAttachment?.map((id) => <DocumentLink key={String(id)} documentId={String(id)} />)}
           <label className="block text-sm">
-            Attach a file (PDF, PNG or JPEG, up to 25 MB)
+            {initial?.documentAttachment?.length ? "Replace the attached file" : "Attach a file"} (PDF, PNG or JPEG, up to 25 MB)
             <input
               type="file"
               accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg"
@@ -372,10 +394,12 @@ export default function EventForm({
         disabled={saving}
         className="rounded bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {saving ? "Saving…" : "Save event"}
+        {saving ? "Saving…" : initial ? "Save changes" : "Save event"}
       </button>
       <p className="text-xs text-gray-400">
-        Choices come from the UnifiedEvents schema. The event is validated and stored for this patient.
+        {initial
+          ? "Saving keeps the earlier version in this event's history; nothing is deleted."
+          : "Choices come from the UnifiedEvents schema. The event is validated and stored for this patient."}
       </p>
     </form>
   );

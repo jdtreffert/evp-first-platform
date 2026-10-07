@@ -12,6 +12,14 @@ export function createQueryController(repository: EventRepository) {
       res.status(200).json(await queryEvents(repository, query));
     },
 
+    async getEventHistoryController(req: Request, res: Response): Promise<void> {
+      const event = await getEventByUid(repository, String(req.params.uid));
+      if (req.authUser?.role === "patient" && event.masterId !== req.authUser.masterId) {
+        throw new HttpError(404, "Event not found");
+      }
+      res.status(200).json({ uid: event.uid, versions: await repository.history(event.uid) });
+    },
+
     async getEventController(req: Request, res: Response): Promise<void> {
       const event = await getEventByUid(repository, String(req.params.uid));
       if (req.authUser?.role === "patient" && event.masterId !== req.authUser.masterId) {

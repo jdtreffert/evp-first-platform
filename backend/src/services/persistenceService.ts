@@ -22,6 +22,11 @@ export async function persistEvent(
       }
     }
   }
+  const existing = await repository.getByUid(event.uid);
+  // Patients replacing someone else's event are refused by the repository with a 403.
+  if (existing && existing.masterId !== event.masterId && saveOptions.ownerMasterId === undefined) {
+    throw new HttpError(422, "An event cannot be moved to a different patient record");
+  }
   if (event.relatedEventUid) {
     const related = await repository.getByUid(event.relatedEventUid);
     if (!related || related.masterId !== event.masterId) {

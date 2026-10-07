@@ -1,9 +1,20 @@
 import { useState } from "react";
 import type { UnifiedEvent } from "../../../../backend/src/types/UnifiedEvents";
 import DocumentLink from "./DocumentLink";
+import EventHistory from "./EventHistory";
 
-export default function EventCard({ event, related }: { event: UnifiedEvent; related?: UnifiedEvent }) {
+export default function EventCard({
+  event,
+  related,
+  onEdit,
+}: {
+  event: UnifiedEvent;
+  related?: UnifiedEvent;
+  /** Present only when the signed-in user may edit this event. */
+  onEdit?: () => void;
+}) {
   const [open, setOpen] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const details = event.eventDetails
     ? Object.entries(event.eventDetails).filter(([, value]) => value !== null && value !== "")
     : [];
@@ -16,16 +27,32 @@ export default function EventCard({ event, related }: { event: UnifiedEvent; rel
           <p className="text-sm text-gray-400">{event.eventType.replaceAll("_", " ")}</p>
         </div>
 
-        <button
-          type="button"
-          className="text-blue-300 underline"
-          onClick={() => setOpen(!open)}
-        >
-          {open ? "Hide" : "View"}
-        </button>
+        <div className="flex gap-4">
+          {onEdit && (
+            <button type="button" className="text-blue-300 underline" onClick={onEdit}>
+              Edit
+            </button>
+          )}
+          <button
+            type="button"
+            className="text-blue-300 underline"
+            onClick={() => setOpen(!open)}
+          >
+            {open ? "Hide" : "View"}
+          </button>
+        </div>
       </div>
 
       {event.eventDate && <p className="mt-2 text-sm text-gray-300">{event.eventDate}</p>}
+      {event.lastModifiedAt && (
+        <p className="mt-1 text-xs text-gray-400">
+          Edited {new Date(event.lastModifiedAt).toLocaleString()}{" "}
+          <button type="button" className="text-blue-300 underline" onClick={() => setShowHistory(!showHistory)}>
+            {showHistory ? "Hide history" : "History"}
+          </button>
+        </p>
+      )}
+      {showHistory && <EventHistory event={event} />}
       {event.eventSource && <p className="mt-1 text-xs text-gray-400">Source: {event.eventSource}</p>}
 
       {related && (

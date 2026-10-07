@@ -69,9 +69,12 @@ export default function JourneyTimeline() {
     }
   };
 
+  const [editing, setEditing] = useState<UnifiedEvent | null>(null);
+
   const handleSave = async (record: Parameters<typeof ingestEvent>[0]) => {
     await ingestEvent(record);
     setShowForm(false);
+    setEditing(null);
     try {
       const result = await queryEvents(activeMasterId);
       setEvents(result.events);
@@ -93,7 +96,7 @@ export default function JourneyTimeline() {
             Events are stored as validated UnifiedEvents and scoped to one patient record.
           </p>
         </div>
-        {canWrite && activeMasterId && !showForm && (
+        {canWrite && activeMasterId && !showForm && !editing && (
           <button
             type="button"
             className="rounded bg-blue-600 px-4 py-2 font-medium hover:bg-blue-500"
@@ -128,6 +131,17 @@ export default function JourneyTimeline() {
 
       {error && <p role="alert" className="rounded border border-rose-800 bg-rose-950 p-3 text-rose-200">{error}</p>}
 
+      {editing && activeMasterId && (
+        <EventForm
+          key={editing.uid}
+          masterId={activeMasterId}
+          defaultSource={isPatient ? "Patient" : "Clinician"}
+          initial={editing}
+          onSave={handleSave}
+          onCancel={() => setEditing(null)}
+        />
+      )}
+
       {showForm && activeMasterId && (
         <EventForm
           masterId={activeMasterId}
@@ -137,7 +151,7 @@ export default function JourneyTimeline() {
         />
       )}
 
-      {activeMasterId && !showForm && (
+      {activeMasterId && !showForm && !editing && (
         loading ? (
           <p aria-live="polite" className="text-gray-300">Loading timeline…</p>
         ) : events.length === 0 ? (
@@ -150,6 +164,7 @@ export default function JourneyTimeline() {
               <EventCard
                 key={event.uid}
                 event={event}
+                onEdit={canWrite ? () => setEditing(event) : undefined}
                 related={event.relatedEventUid ? events.find((other) => other.uid === event.relatedEventUid) : undefined}
               />
             ))}

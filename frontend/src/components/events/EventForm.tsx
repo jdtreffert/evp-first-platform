@@ -1,10 +1,11 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
-import type { RawEventRecord } from "../../../../backend/src/types/UnifiedEvents";
+import type { RawEventRecord, UnifiedEvent } from "../../../../backend/src/types/UnifiedEvents";
 import { eventFieldCatalog } from "../../../../backend/src/schemas/eventFieldCatalog";
 import type { FieldDefinition } from "../../../../backend/src/schemas/eventFieldCatalog";
 import { ACCEPTED_DOCUMENT_TYPES, MAX_DOCUMENT_BYTES, uploadDocument } from "../../api/documents";
-import { documentFields, eventTypeFields, measureFields, relationshipFields } from "../../../../backend/src/schemas/eventTypeFields";
+import { queryEventsInRange } from "../../api/events";
+import { documentFields, eventTypeFields, measureFields, relatedEventCandidates, relationshipFields } from "../../../../backend/src/schemas/eventTypeFields";
 
 const eventTypeLabels: Record<string, string> = {
   QoL: "Quality of life",
@@ -61,6 +62,12 @@ function getLocalDate(): string {
   const month = String(today.getMonth() + 1).padStart(2, "0");
   const day = String(today.getDate()).padStart(2, "0");
   return `${today.getFullYear()}-${month}-${day}`;
+}
+
+function shiftDate(date: string, days: number): string {
+  const shifted = new Date(`${date}T00:00:00Z`);
+  shifted.setUTCDate(shifted.getUTCDate() + days);
+  return shifted.toISOString().slice(0, 10);
 }
 
 function isFilled(value: string | string[] | undefined): boolean {
@@ -155,6 +162,23 @@ export default function EventForm({
   const fieldNames = eventTypeFields[eventType];
   const sourceField = eventFieldCatalog.Event_Source;
 
+  const candidateRule = relatedEventCandidates[eventType];
+  const candidateKey = candidateRule && eventDate ? [masterId, eventType, eventDate].join("|") : null;
+  const [loaded, setLoaded] = useState<{ key: string; events: UnifiedEvent[] | null } | null>(null);
+  // undefined while loading for the current type and date, null when the lookup failed.
+  const candidates = loaded && loaded.key === candidateKey ? loaded.events : undefined;
+
+  useEffect(() => {
+    if (!candidateRule || !candidateKey) return;
+    let active = true;
+    const from = shiftDate(eventDate, -candidateRule.withinDays);
+    const to = shiftDate(eventDate, candidateRule.withinDays);
+    Promise.all(candidateRule.eventTypes.map((type) => queryEventsInRange(masterId, type, from, to)))
+      .then((groups) => { if (active) setLoaded({ key: candidateKey, events: groups.flat() }); })
+      .catch(() => { if (active) setLoaded({ key: candidateKey, events: null }); });
+    return () => { active = false; };
+  }, [candidateKey, candidateRule, eventDate, masterId]);
+
   const changeType = (type: string) => {
     setEventType(type);
     setValues({});
@@ -183,7 +207,10 @@ export default function EventForm({
       Master_ID: masterId,
     };
 
-    for (const name of [...fieldNames, ...linkableDocumentFields, ...relationshipFields, ...measureFields]) {
+    const relatedUid = values.Event_Related_UID;
+    const relatedChosen = typeof relatedUid === "string" && (candidates ?? []).some((candidate) => candidate.uid === relatedUid);
+    const optionalFields = [...linkableDocumentFields, ...(relatedChosen ? relationshipFields : []), ...measureFields];
+    for (const name of [...fieldNames, ...optionalFields]) {
       const value = values[name];
       if (!isFilled(value)) continue;
       fields[name] = eventFieldCatalog[name].kind === "number" ? Number(value) : Array.isArray(value) ? value : value?.trim();
@@ -292,19 +319,52 @@ export default function EventForm({
         </div>
       </details>
 
-      <details className="rounded border border-gray-700 p-3">
-        <summary className="cursor-pointer text-sm text-gray-300">Related event (optional)</summary>
-        <div className="mt-3 space-y-5">
-          {relationshipFields.map((name) => (
-            <FieldInput
-              key={name}
-              field={eventFieldCatalog[name]}
-              value={values[name]}
-              onChange={(value) => setValues((previous) => ({ ...previous, [name]: value }))}
-            />
-          ))}
-        </div>
-      </details>
+      {candidateRule && (
+        <details className="rounded border border-gray-700 p-3">
+          <summary className="cursor-pointer text-sm text-gray-300">Related event (optional)</summary>
+          <div className="mt-3 space-y-5">
+            {candidates === undefined && <p className="text-sm text-gray-400">Looking for related events…</p>}
+            {candidates === null && <p className="text-sm text-rose-300">Unable to load related events.</p>}
+            {candidates && candidates.length === 0 && (
+              <p className="text-sm text-gray-400">
+                No {candidateRule.eventTypes.map(typeLabel).join(" or ")} events within {candidateRule.withinDays} days of this date.
+              </p>
+            )}
+            {candidates && candidates.length > 0 && (
+              <>
+                <label className="block text-sm">
+                  {candidateRule.eventTypes.map(typeLabel).join(" / ")} event this relates to
+                  <select
+                    className={inputClass}
+                    value={candidates.some((candidate) => candidate.uid === values.Event_Related_UID) ? String(values.Event_Related_UID) : ""}
+                    onChange={(event) => setValues((previous) => ({
+                      ...previous,
+                      Event_Related_UID: event.target.value,
+                      Event_Relationship: previous.Event_Relationship || candidateRule.relationship,
+                    }))}
+                  >
+                    <option value="">None</option>
+                    {candidates.map((candidate) => (
+                      <option key={candidate.uid} value={candidate.uid}>
+                        {[typeLabel(candidate.eventType), candidate.eventDate?.slice(0, 10) ?? "no date", candidate.eventSummary]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                {candidates.some((candidate) => candidate.uid === values.Event_Related_UID) && (
+                  <FieldInput
+                    field={eventFieldCatalog.Event_Relationship}
+                    value={values.Event_Relationship}
+                    onChange={(value) => setValues((previous) => ({ ...previous, Event_Relationship: value }))}
+                  />
+                )}
+              </>
+            )}
+          </div>
+        </details>
+      )}
 
       {error && <p role="alert" className="text-sm text-rose-300">{error}</p>}
       <button

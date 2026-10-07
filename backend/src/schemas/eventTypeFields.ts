@@ -4,6 +4,15 @@ import { eventFieldCatalog } from "./eventFieldCatalog";
 /** Optional attributes that relate an event to another event by its UID. */
 export const relationshipFields = ["Event_Related_UID", "Event_Relationship"] as const;
 
+/**
+ * Event types that offer a list of related events to choose from: the event types listed,
+ * the window in days either side of the event's own date, and the relationship recorded by default.
+ * Other event types offer no related-event picker.
+ */
+export const relatedEventCandidates: Record<string, { eventTypes: string[]; withinDays: number; relationship: string }> = {
+  Pathology: { eventTypes: ["TURBT"], withinDays: 30, relationship: "Triggered_By" },
+};
+
 export const commonEventFields = ["Event_Date", "Event_Source"] as const;
 
 /** Optional single measurement (type, numeric value, free-text units) that any event may carry. */

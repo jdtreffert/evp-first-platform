@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { UnifiedEvent } from "../../../../backend/src/types/UnifiedEvents";
 import DocumentLink from "./DocumentLink";
 
-export default function EventCard({ event }: { event: UnifiedEvent }) {
+export default function EventCard({ event, related }: { event: UnifiedEvent; related?: UnifiedEvent }) {
   const [open, setOpen] = useState(false);
   const details = event.eventDetails
     ? Object.entries(event.eventDetails).filter(([, value]) => value !== null && value !== "")
@@ -28,6 +28,12 @@ export default function EventCard({ event }: { event: UnifiedEvent }) {
       {event.eventDate && <p className="mt-2 text-sm text-gray-300">{event.eventDate}</p>}
       {event.eventSource && <p className="mt-1 text-xs text-gray-400">Source: {event.eventSource}</p>}
 
+      {related && (
+        <p className="mt-1 text-xs text-gray-400">
+          {(event.eventRelationship ?? "Related_To").replaceAll("_", " ")}: {related.eventType.replaceAll("_", " ")}
+          {related.eventDate ? ` on ${related.eventDate.slice(0, 10)}` : ""}
+        </p>
+      )}
       {(event.documentAttachment ?? []).map((id) => <DocumentLink key={String(id)} documentId={String(id)} />)}
       {event.documentType && (event.documentAttachment ?? []).length > 0 && (
         <p className="text-xs text-gray-400">Document type: {event.documentType}</p>

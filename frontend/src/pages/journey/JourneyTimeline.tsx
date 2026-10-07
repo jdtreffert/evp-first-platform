@@ -146,7 +146,13 @@ export default function JourneyTimeline() {
           </p>
         ) : (
           <div className="space-y-3">
-            {events.map((event) => <EventCard key={event.uid} event={event} />)}
+            {events.map((event) => (
+              <EventCard
+                key={event.uid}
+                event={event}
+                related={event.relatedEventUid ? events.find((other) => other.uid === event.relatedEventUid) : undefined}
+              />
+            ))}
             {events.length < totalEvents && (
               <button
                 type="button"

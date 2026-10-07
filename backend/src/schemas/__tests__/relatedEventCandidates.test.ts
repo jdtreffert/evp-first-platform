@@ -11,7 +11,17 @@ describe("relatedEventCandidates", () => {
     }
   });
 
-  test("a Pathology event offers TURBT events within 30 days", () => {
-    expect(relatedEventCandidates.Pathology).toMatchObject({ eventTypes: ["TURBT"], withinDays: 30, relationship: "Derived_From" });
+  test("each rule offers the agreed event types within 30 days", () => {
+    const types = (type: string) => [...relatedEventCandidates[type].eventTypes].sort();
+    expect(types("Imaging")).toEqual(["Decision", "Pathology", "Progression", "Recurrence", "Symptom", "Treatment_Response"]);
+    expect(types("Cystoscopy")).toEqual(["Imaging", "Symptom"]);
+    expect(types("TURBT")).toEqual(["Cystoscopy"]);
+    expect(types("Pathology")).toEqual(["Cystoscopy_Biopsy", "TURBT"]);
+    expect(Object.values(relatedEventCandidates).every((rule) => rule.withinDays === 30)).toBe(true);
+    expect(relatedEventCandidates.Pathology.relationship).toBe("Derived_From");
+  });
+
+  test("only these event types offer a picker", () => {
+    expect(Object.keys(relatedEventCandidates).sort()).toEqual(["Cystoscopy", "Imaging", "Pathology", "TURBT"]);
   });
 });

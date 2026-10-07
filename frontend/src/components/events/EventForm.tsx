@@ -349,13 +349,13 @@ export default function EventForm({
             {candidates === null && <p className="text-sm text-rose-300">Unable to load related events.</p>}
             {candidates && candidates.length === 0 && (
               <p className="text-sm text-gray-400">
-                No {candidateRule.eventTypes.map(typeLabel).join(" or ")} events within {candidateRule.withinDays} days of this date.
+                No {candidateRule.eventTypes.map(typeLabel).join(", ")} events within {candidateRule.withinDays} days of this date.
               </p>
             )}
             {candidates && candidates.length > 0 && (
               <>
                 <label className="block text-sm">
-                  {candidateRule.eventTypes.map(typeLabel).join(" / ")} event this relates to
+                  Event this relates to
                   <select
                     className={inputClass}
                     value={candidates.some((candidate) => candidate.uid === values.Event_Related_UID) ? String(values.Event_Related_UID) : ""}

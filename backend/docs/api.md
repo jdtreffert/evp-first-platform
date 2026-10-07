@@ -222,8 +222,11 @@ Any event may also carry `Event_Related_UID` and `Event_Relationship` (`Produced
 `Assessed_By`, `Derived_From`, `Related_To`) to link it to another event, for example a Pathology
 event derived from a TURBT. They are stored as `relatedEventUid` and `eventRelationship`.
 `Event_Related_UID` must refer to an existing event for the same patient, otherwise the event is
-rejected with `422`. The entry form offers TURBT events within 30 days of a Pathology event's date
-(default relationship `Derived_From`); other event types offer no picker.
+rejected with `422`. The entry form offers events for the same patient within 30 days either side of the event's
+date, by event type: Imaging offers Symptom, Pathology, Decision, Recurrence, Progression and
+Treatment_Response; Cystoscopy offers Symptom and Imaging; TURBT offers Cystoscopy; Pathology
+offers TURBT and Cystoscopy_Biopsy (default relationship `Derived_From`, others `Related_To`).
+Other event types offer no picker.
 
 ## Recorded-at provenance
 

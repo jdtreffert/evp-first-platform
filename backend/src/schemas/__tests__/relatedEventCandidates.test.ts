@@ -11,7 +11,7 @@ describe("relatedEventCandidates", () => {
     }
   });
 
-  test("each rule offers the agreed event types within 30 days", () => {
+  test("each rule offers the agreed event types and window", () => {
     const types = (type: string) => [...relatedEventCandidates[type].eventTypes].sort();
     expect(types("Imaging")).toEqual(["Decision", "Pathology", "Progression", "Recurrence", "Symptom", "Treatment_Response"]);
     expect(types("Cystoscopy")).toEqual(["Imaging", "Symptom"]);

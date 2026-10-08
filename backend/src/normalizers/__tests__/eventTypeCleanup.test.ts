@@ -126,6 +126,11 @@ describe("Imaging contrast and region options", () => {
     expect(event.imagingContrast).toBe("No Contrast");
   });
 
+  test("accepts the Whole Body region", () => {
+    const event = ingestEvent({ id: "i4", fields: { ...base, Event_Type: "Imaging", Event_UID: "i4", Imaging_Modality: "PET/CT", Imaging_Region: "Whole Body", Imaging_Result: "x" } });
+    expect(event.imagingRegion).toBe("Whole Body");
+  });
+
   test("accepts the combined contrast options", () => {
     for (const contrast of ["IV and Oral Contrast", "With and Without Contrast"]) {
       const event = ingestEvent({ id: "i3", fields: { ...base, Event_Type: "Imaging", Event_UID: "i3", Imaging_Contrast: contrast, Imaging_Result: "x" } });

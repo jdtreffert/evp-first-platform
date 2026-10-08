@@ -316,6 +316,7 @@ export const eventFieldCatalog: Record<string, FieldDefinition> = {
       "Pelvis",
       "Abdomen/Pelvis",
       "Chest/Abdomen/Pelvis",
+      "Whole Body",
       "Neck",
       "Brain",
       "Spine",

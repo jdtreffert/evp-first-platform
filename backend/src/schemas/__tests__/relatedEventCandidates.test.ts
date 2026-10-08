@@ -17,7 +17,8 @@ describe("relatedEventCandidates", () => {
     expect(types("Cystoscopy")).toEqual(["Imaging", "Symptom"]);
     expect(types("TURBT")).toEqual(["Cystoscopy"]);
     expect(types("Pathology")).toEqual(["Cystoscopy_Biopsy", "TURBT"]);
-    expect(Object.values(relatedEventCandidates).every((rule) => rule.withinDays === 30)).toBe(true);
+    const windows = Object.fromEntries(Object.entries(relatedEventCandidates).map(([type, rule]) => [type, rule.withinDays]));
+    expect(windows).toEqual({ Imaging: 90, Cystoscopy: 90, TURBT: 30, Pathology: 30 });
     expect(relatedEventCandidates.Pathology.relationship).toBe("Derived_From");
   });
 

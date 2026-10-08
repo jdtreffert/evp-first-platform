@@ -12,10 +12,10 @@ export const relationshipFields = ["Event_Related_UID", "Event_Relationship"] as
 export const relatedEventCandidates: Record<string, { eventTypes: string[]; withinDays: number; relationship: string }> = {
   Imaging: {
     eventTypes: ["Symptom", "Pathology", "Decision", "Recurrence", "Progression", "Treatment_Response"],
-    withinDays: 30,
+    withinDays: 90,
     relationship: "Related_To",
   },
-  Cystoscopy: { eventTypes: ["Symptom", "Imaging"], withinDays: 30, relationship: "Related_To" },
+  Cystoscopy: { eventTypes: ["Symptom", "Imaging"], withinDays: 90, relationship: "Related_To" },
   TURBT: { eventTypes: ["Cystoscopy"], withinDays: 30, relationship: "Related_To" },
   Pathology: { eventTypes: ["TURBT", "Cystoscopy_Biopsy"], withinDays: 30, relationship: "Derived_From" },
 };

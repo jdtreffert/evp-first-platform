@@ -334,6 +334,8 @@ export const eventFieldCatalog: Record<string, FieldDefinition> = {
   Imaging_Contrast: { name: "Imaging_Contrast", kind: "single", options: [
       "IV Contrast",
       "Oral Contrast",
+      "IV and Oral Contrast",
+      "With and Without Contrast",
       "No Contrast",
     ] },
   Imaging_Notes: { name: "Imaging_Notes", kind: "longText" },

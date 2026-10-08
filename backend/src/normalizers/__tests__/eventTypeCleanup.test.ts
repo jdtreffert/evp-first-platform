@@ -126,6 +126,13 @@ describe("Imaging contrast and region options", () => {
     expect(event.imagingContrast).toBe("No Contrast");
   });
 
+  test("accepts the combined contrast options", () => {
+    for (const contrast of ["IV and Oral Contrast", "With and Without Contrast"]) {
+      const event = ingestEvent({ id: "i3", fields: { ...base, Event_Type: "Imaging", Event_UID: "i3", Imaging_Contrast: contrast, Imaging_Result: "x" } });
+      expect(event.imagingContrast).toBe(contrast);
+    }
+  });
+
   test("rejects the retired CAP region and unknown contrast values", () => {
     for (const fields of [{ Imaging_Region: "CAP" }, { Imaging_Contrast: "Gadolinium" }]) {
       expect(() => ingestEvent({ id: "i2", fields: { ...base, Event_Type: "Imaging", Event_UID: "i2", ...fields } })).toThrow();

@@ -314,7 +314,8 @@ export const eventFieldCatalog: Record<string, FieldDefinition> = {
       "Chest",
       "Abdomen",
       "Pelvis",
-      "CAP",
+      "Abdomen/Pelvis",
+      "Chest/Abdomen/Pelvis",
       "Neck",
       "Brain",
       "Spine",
@@ -329,6 +330,11 @@ export const eventFieldCatalog: Record<string, FieldDefinition> = {
       "Stable",
       "Worse",
       "New finding",
+    ] },
+  Imaging_Contrast: { name: "Imaging_Contrast", kind: "single", options: [
+      "IV Contrast",
+      "Oral Contrast",
+      "No Contrast",
     ] },
   Imaging_Notes: { name: "Imaging_Notes", kind: "longText" },
   Imaging_Response_Category: { name: "Imaging_Response_Category", kind: "single", options: [

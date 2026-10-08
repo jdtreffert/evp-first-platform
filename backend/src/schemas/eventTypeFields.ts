@@ -42,7 +42,7 @@ export const eventTypeFields: Record<string, readonly string[]> = {
     "Pathology_Depth", "Pathology_Margins", "Pathology_LVI", "Pathology_Notes",
   ],
   Cytology: ["Cytology_Result", "Cytology_Category", "Cytology_Specimen", "Cytology_Notes"],
-  Imaging: ["Imaging_Modality", "Imaging_Region", "Imaging_Result", "Imaging_ComparisonToPrior", "Imaging_Notes"],
+  Imaging: ["Imaging_Modality", "Imaging_Contrast", "Imaging_Region", "Imaging_Result", "Imaging_ComparisonToPrior", "Imaging_Notes"],
   Imaging_Response: [
     "Imaging_Response_Category", "Imaging_Response_Critera", "Imaging_Response_Target_Lesion_Change",
   ],

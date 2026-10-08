@@ -9,6 +9,7 @@ export function normalizeImaging(raw: RawEventRecord): UnifiedEvent {
   const modality = f.Imaging_Modality || null;
   const result = f.Imaging_Result || null;
   const region = f.Imaging_Region || null;
+  const contrast = f.Imaging_Contrast || null;
   const comparison = pickField(f, "Imaging_ComparisonToPrior", "Imaging_Comparison_To_Prior") || null;
   const notes = f.Imaging_Notes || null;
 
@@ -27,6 +28,7 @@ export function normalizeImaging(raw: RawEventRecord): UnifiedEvent {
       imagingModality: modality,
       imagingResult: result,
       imagingRegion: region,
+      imagingContrast: contrast,
       imagingComparisonToPrior: comparison,
       imagingNotes: notes,
     },
@@ -36,6 +38,7 @@ export function normalizeImaging(raw: RawEventRecord): UnifiedEvent {
     imagingModality: modality,
     imagingResult: result,
     imagingRegion: region,
+    imagingContrast: contrast,
     imagingComparisonToPrior: comparison,
     imagingNotes: notes,
 

@@ -51,6 +51,7 @@ export interface UnifiedEvent {
   imagingModality?: string | null;
   imagingResult?: string | null;
   imagingRegion?: string | null;
+  imagingContrast?: string | null;
   imagingComparisonToPrior?: string | null;
   imagingNotes?: string | null;
 

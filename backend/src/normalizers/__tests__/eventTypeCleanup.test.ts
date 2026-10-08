@@ -115,3 +115,20 @@ describe("server-owned provenance fields", () => {
     expect(event.payload.fields.Event_ID).toBeUndefined();
   });
 });
+
+describe("Imaging contrast and region options", () => {
+  test("accepts the new Imaging_Region and Imaging_Contrast options", () => {
+    const event = ingestEvent({
+      id: "i1",
+      fields: { ...base, Event_Type: "Imaging", Event_UID: "i1", Imaging_Region: "Chest/Abdomen/Pelvis", Imaging_Contrast: "No Contrast", Imaging_Result: "x" },
+    });
+    expect(event.imagingRegion).toBe("Chest/Abdomen/Pelvis");
+    expect(event.imagingContrast).toBe("No Contrast");
+  });
+
+  test("rejects the retired CAP region and unknown contrast values", () => {
+    for (const fields of [{ Imaging_Region: "CAP" }, { Imaging_Contrast: "Gadolinium" }]) {
+      expect(() => ingestEvent({ id: "i2", fields: { ...base, Event_Type: "Imaging", Event_UID: "i2", ...fields } })).toThrow();
+    }
+  });
+});

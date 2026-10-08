@@ -47,6 +47,7 @@ export const unifiedEventSchema = z.strictObject({
   imagingModality: text,
   imagingResult: text,
   imagingRegion: text,
+  imagingContrast: text,
   imagingComparisonToPrior: text,
   imagingNotes: text,
 

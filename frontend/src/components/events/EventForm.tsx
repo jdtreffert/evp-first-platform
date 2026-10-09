@@ -187,8 +187,8 @@ export default function EventForm({
   useEffect(() => {
     if (!candidateRule || !candidateKey) return;
     let active = true;
-    const from = shiftDate(eventDate, -candidateRule.withinDays);
-    const to = shiftDate(eventDate, candidateRule.withinDays);
+    const from = "withinDays" in candidateRule ? shiftDate(eventDate, -candidateRule.withinDays) : undefined;
+    const to = "withinDays" in candidateRule ? shiftDate(eventDate, candidateRule.withinDays) : eventDate;
     Promise.all(candidateRule.eventTypes.map((type) => queryEventsInRange(masterId, type, from, to)))
       .then((groups) => { if (active) setLoaded({ key: candidateKey, events: groups.flat() }); })
       .catch(() => { if (active) setLoaded({ key: candidateKey, events: null }); });
@@ -349,7 +349,7 @@ export default function EventForm({
             {candidates === null && <p className="text-sm text-rose-300">Unable to load related events.</p>}
             {candidates && candidates.length === 0 && (
               <p className="text-sm text-gray-400">
-                No {candidateRule.eventTypes.map(typeLabel).join(", ")} events within {candidateRule.withinDays} days of this date.
+                No {candidateRule.eventTypes.map(typeLabel).join(", ")} events {"withinDays" in candidateRule ? `within ${candidateRule.withinDays} days of this date` : "on or before this date"}.
               </p>
             )}
             {candidates && candidates.length > 0 && (

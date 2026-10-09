@@ -17,6 +17,7 @@ import { normalizeCtDNA } from "./ctDNANormalizer";
 import { normalizeUtDNA } from "./utDNANormalizer";
 
 import { normalizeTreatmentStart } from "./TreatmentStartNormalizer";
+import { normalizeTreatmentDelivery } from "./TreatmentDeliveryNormalizer";
 import { normalizeTreatmentChange } from "./TreatmentChangeNormalizer";
 import { normalizeTreatmentResponse } from "./TreatmentResponseNormalizer";
 
@@ -55,6 +56,7 @@ export const normalizerRegistry: NormalizerRegistry = {
 
   Treatment: normalizeTreatment,
   Treatment_Start: normalizeTreatmentStart,
+  Treatment_Delivery: normalizeTreatmentDelivery,
   Treatment_Change: normalizeTreatmentChange,
   Treatment_Response: normalizeTreatmentResponse,
 

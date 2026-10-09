@@ -2,12 +2,13 @@
 
 import { RawEventRecord, UnifiedEvent } from "../types/UnifiedEvents";
 import { normalizeTreatmentStart } from "./TreatmentStartNormalizer";
+import { normalizeTreatmentDelivery } from "./TreatmentDeliveryNormalizer";
 import { normalizeTreatmentChange } from "./TreatmentChangeNormalizer";
 import { normalizeTreatmentResponse } from "./TreatmentResponseNormalizer";
 
 /**
- * Dispatcher only: routes a generic Treatment record to Treatment_Start, Treatment_Change or
- * Treatment_Response from the fields present. Treatment is not stored as an event type.
+ * Dispatcher only: routes a generic Treatment record to Treatment_Start, Treatment_Delivery,
+ * Treatment_Change or Treatment_Response from the fields present. Treatment is not stored as an event type.
  */
 export function normalizeTreatment(rawEvent: RawEventRecord): UnifiedEvent {
   const f = rawEvent.fields;
@@ -28,6 +29,13 @@ export function normalizeTreatment(rawEvent: RawEventRecord): UnifiedEvent {
     f.Treatment_Response_Date
   ) {
     return normalizeTreatmentResponse(rawEvent);
+  }
+
+  if (
+    f.Treatment_Delivery_Status || f.Treatment_Delivery_Notes || f.Treatment_Dose !== undefined ||
+    f.Treatment_Dose_Units
+  ) {
+    return normalizeTreatmentDelivery(rawEvent);
   }
 
   if (f.Treatment_Name || f.Treatment_Cycle !== undefined || f.Treatment_Intent) {

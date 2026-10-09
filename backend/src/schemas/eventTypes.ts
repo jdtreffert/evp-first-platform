@@ -1,4 +1,4 @@
-/** Event_Type values in the schema documentation (the original 21 minus Other, plus Lab and Pathology). */
+/** Event_Type values in the schema documentation (the original 21 minus Other, plus Lab, Pathology and Treatment_Delivery). */
 export const airtableEventTypes = [
   "Diagnosis",
   "TURBT",
@@ -22,6 +22,7 @@ export const airtableEventTypes = [
   "Note",
   "Lab",
   "Pathology",
+  "Treatment_Delivery",
 ] as const;
 
 /** Registered types outside the schema list. Treatment is a dispatcher to the treatment event types. */

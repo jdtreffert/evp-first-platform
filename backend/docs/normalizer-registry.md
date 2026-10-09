@@ -24,6 +24,7 @@ validation reads its keys to decide which `eventType` values are legal.
 | `utDNA` | `normalizeUtDNA` | `utDNA` |
 | `Treatment` | `normalizeTreatment` | a subtype below (dispatcher) |
 | `Treatment_Start` | `normalizeTreatmentStart` | `Treatment_Start` |
+| `Treatment_Delivery` | `normalizeTreatmentDelivery` | `Treatment_Delivery` |
 | `Treatment_Change` | `normalizeTreatmentChange` | `Treatment_Change` |
 | `Treatment_Response` | `normalizeTreatmentResponse` | `Treatment_Response` |
 | `Recurrence` | `normalizeRecurrence` | `Recurrence` |

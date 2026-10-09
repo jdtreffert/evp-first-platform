@@ -133,6 +133,15 @@ export interface UnifiedEvent {
   treatmentRegimenDetails?: string | null;
   treatmentPhysicianRecommendation?: string | null;
   treatmentPatientPreference?: string | null;
+  treatmentRoute?: string | null;
+  treatmentPlannedDose?: number | null;
+  treatmentPlannedDoseUnits?: string | null;
+
+  // Treatment delivery block
+  treatmentDose?: number | null;
+  treatmentDoseUnits?: string | null;
+  treatmentDeliveryStatus?: string | null;
+  treatmentDeliveryNotes?: string | null;
 
   // Other event blocks
   eventMeasureType?: string | null;

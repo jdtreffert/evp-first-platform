@@ -6,10 +6,18 @@ export const relationshipFields = ["Event_Related_UID", "Event_Relationship"] as
 
 /**
  * Event types that offer a list of related events to choose from: the event types listed,
- * the window in days either side of the event's own date, and the relationship recorded by default.
+ * the window in days either side of the event's own date (or all preceding events), and the
+ * relationship recorded by default.
  * Other event types offer no related-event picker.
  */
-export const relatedEventCandidates: Record<string, { eventTypes: string[]; withinDays: number; relationship: string }> = {
+export const relatedEventCandidates: Record<
+  string,
+  { eventTypes: string[]; relationship: string } & (
+    | { withinDays: number }
+    // No date range: every earlier or same-day event of the listed types is offered.
+    | { allPrecedingEvents: true }
+  )
+> = {
   Imaging: {
     eventTypes: ["Symptom", "Pathology", "Decision", "Recurrence", "Progression", "Treatment_Response"],
     withinDays: 90,
@@ -25,6 +33,8 @@ export const relatedEventCandidates: Record<string, { eventTypes: string[]; with
   },
   Decision: { eventTypes: ["Diagnosis"], withinDays: 90, relationship: "Related_To" },
   Treatment_Start: { eventTypes: ["Decision", "Diagnosis"], withinDays: 90, relationship: "Related_To" },
+  // A delivery can follow its Treatment_Start by a year or more, so no date window is applied.
+  Treatment_Delivery: { eventTypes: ["Treatment_Start"], allPrecedingEvents: true, relationship: "Related_To" },
 };
 
 export const commonEventFields = ["Event_Date", "Event_Source"] as const;
@@ -67,8 +77,13 @@ export const eventTypeFields: Record<string, readonly string[]> = {
   ctDNA: ["ctDNA_Vendor", "ctDNA_Assay_Type", "ctDNA_Value", "ctDNA_Units", "ctDNA_Trend"],
   utDNA: ["utDNA_Vendor", "utDNA_Assay_Type", "utDNA_Value", "utDNA_Units", "utDNA_Trend", "utDNA_Notes"],
   Treatment_Start: [
-    "Treatment_Name", "Treatment_Cycle", "Treatment_Intent", "Treatment_Regimen_Details",
+    "Treatment_Name", "Treatment_Intent", "Treatment_Route", "Treatment_Regimen_Details",
+    "Treatment_Planned_Dose", "Treatment_Planned_Dose_Units",
     "Treatment_Physician_Recommendation", "Treatment_Patient_Preference",
+  ],
+  Treatment_Delivery: [
+    "Treatment_Name", "Treatment_Cycle", "Treatment_Route", "Treatment_Dose", "Treatment_Dose_Units",
+    "Treatment_Delivery_Status", "Treatment_Delivery_Notes",
   ],
   Treatment_Change: [
     "Treatment_Name", "Treatment_Change_Type", "Treatment_Change_Reason", "Treatment_Regimen_Details",

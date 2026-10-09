@@ -18,6 +18,13 @@ export const relatedEventCandidates: Record<string, { eventTypes: string[]; with
   Cystoscopy: { eventTypes: ["Symptom", "Imaging"], withinDays: 90, relationship: "Related_To" },
   TURBT: { eventTypes: ["Cystoscopy"], withinDays: 30, relationship: "Related_To" },
   Pathology: { eventTypes: ["TURBT", "Cystoscopy_Biopsy"], withinDays: 30, relationship: "Derived_From" },
+  Diagnosis: {
+    eventTypes: ["Cystoscopy", "Cystoscopy_Biopsy", "Pathology", "Imaging"],
+    withinDays: 90,
+    relationship: "Derived_From",
+  },
+  Decision: { eventTypes: ["Diagnosis"], withinDays: 90, relationship: "Related_To" },
+  Treatment_Start: { eventTypes: ["Decision", "Diagnosis"], withinDays: 90, relationship: "Related_To" },
 };
 
 export const commonEventFields = ["Event_Date", "Event_Source"] as const;

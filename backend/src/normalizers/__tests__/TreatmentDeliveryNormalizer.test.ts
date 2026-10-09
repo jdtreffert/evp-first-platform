@@ -40,7 +40,7 @@ describe("Treatment_Delivery and the extended Treatment_Start", () => {
     expect(event.eventType).toBe("Treatment_Delivery");
   });
 
-  test("Treatment_Start carries its route but no planned dose", () => {
+  test("Treatment_Start carries no route or planned dose", () => {
     const event = ingestEvent({
       id: "s1",
       fields: {
@@ -48,7 +48,8 @@ describe("Treatment_Delivery and the extended Treatment_Start", () => {
         Treatment_Regimen_Details: "80 mg weekly",
       },
     });
-    expect(event).toMatchObject({ treatmentRoute: "Intravesical", treatmentRegimenDetails: "80 mg weekly" });
+    expect(event).toMatchObject({ treatmentRegimenDetails: "80 mg weekly" });
+    expect(event).not.toHaveProperty("treatmentRoute");
     expect(event).not.toHaveProperty("treatmentPlannedDose");
   });
 

@@ -225,7 +225,7 @@ event derived from a TURBT. They are stored as `relatedEventUid` and `eventRelat
 rejected with `422`. The entry form offers events for the same patient within a window either side of the event's
 date (90 days for Imaging, Cystoscopy, Diagnosis, Decision and Treatment_Start; 30 days for TURBT and Pathology), by event type: Imaging offers Symptom, Pathology, Decision, Recurrence, Progression and
 Treatment_Response; Cystoscopy offers Symptom and Imaging; TURBT offers Cystoscopy; Pathology
-offers TURBT and Cystoscopy_Biopsy; Diagnosis offers Cystoscopy, Cystoscopy_Biopsy, Pathology and Imaging; Decision offers Diagnosis; Treatment_Start offers Decision and Diagnosis. The default relationship is `Derived_From` for Pathology and Diagnosis and `Related_To` for the rest.
+offers TURBT and Cystoscopy_Biopsy; Diagnosis offers Cystoscopy, Cystoscopy_Biopsy, Pathology and Imaging; Decision offers Diagnosis; Treatment_Start offers Decision and Diagnosis; Treatment_Delivery offers every Treatment_Start on or before its date, with no date window (the 100 most recent). The default relationship is `Derived_From` for Pathology and Diagnosis and `Related_To` for the rest.
 Other event types offer no picker.
 
 ## Recorded-at provenance

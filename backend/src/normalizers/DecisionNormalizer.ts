@@ -7,6 +7,8 @@ export function normalizeDecision(raw: RawEventRecord): UnifiedEvent {
 
   const type = f.Decision_Type || null;
   const consensus = f.Decision_Consensus || null;
+  const recommendation = f.Decision_Physician_Recommendation || null;
+  const preference = f.Decision_Patient_Preference || null;
   const notes = f.Decision_Notes || null;
 
   const eventSummary = type && consensus
@@ -23,6 +25,8 @@ export function normalizeDecision(raw: RawEventRecord): UnifiedEvent {
     eventDetails: {
       decisionType: type,
       decisionConsensus: consensus,
+      decisionPhysicianRecommendation: recommendation,
+      decisionPatientPreference: preference,
       decisionNotes: notes,
     },
 
@@ -30,6 +34,8 @@ export function normalizeDecision(raw: RawEventRecord): UnifiedEvent {
 
     decisionType: type,
     decisionConsensus: consensus,
+    decisionPhysicianRecommendation: recommendation,
+    decisionPatientPreference: preference,
     decisionNotes: notes,
 
     documentAttachment: f.Document_Attachment || [],

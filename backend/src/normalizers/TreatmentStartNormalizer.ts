@@ -9,8 +9,6 @@ export function normalizeTreatmentStart(raw: RawEventRecord): UnifiedEvent {
   const name = f.Treatment_Name || null;
   const cycle = f.Treatment_Cycle ?? null;
   const intent = f.Treatment_Intent || null;
-  const recommendation = f.Treatment_Physician_Recommendation || null;
-  const preference = f.Treatment_Patient_Preference || null;
   const route = f.Treatment_Route || null;
 
   const eventSummary = name
@@ -29,8 +27,6 @@ export function normalizeTreatmentStart(raw: RawEventRecord): UnifiedEvent {
       treatmentName: name,
       treatmentCycle: cycle,
       treatmentIntent: intent,
-      treatmentPhysicianRecommendation: recommendation,
-      treatmentPatientPreference: preference,
       treatmentRoute: route,
     },
 
@@ -40,8 +36,6 @@ export function normalizeTreatmentStart(raw: RawEventRecord): UnifiedEvent {
     treatmentRegimenDetails: regimenDetails,
     treatmentCycle: cycle,
     treatmentIntent: intent,
-    treatmentPhysicianRecommendation: recommendation,
-    treatmentPatientPreference: preference,
     treatmentRoute: route,
 
     documentAttachment: f.Document_Attachment || [],

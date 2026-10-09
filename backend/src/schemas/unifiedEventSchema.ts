@@ -116,8 +116,6 @@ export const unifiedEventSchema = z.strictObject({
   treatmentCycle: num,
   treatmentIntent: text,
   treatmentRegimenDetails: text,
-  treatmentPhysicianRecommendation: text,
-  treatmentPatientPreference: text,
   treatmentRoute: text,
   treatmentDose: num,
   treatmentDoseUnits: text,
@@ -140,6 +138,8 @@ export const unifiedEventSchema = z.strictObject({
 
   decisionType: text,
   decisionConsensus: text,
+  decisionPhysicianRecommendation: text,
+  decisionPatientPreference: text,
   decisionNotes: text,
 
   symptomDescription: text,

@@ -63,3 +63,16 @@ describe("Treatment_Delivery and the extended Treatment_Start", () => {
     }
   });
 });
+
+describe("recommendation and preference live on Decision, not Treatment_Start", () => {
+  test("Treatment_Start no longer reads them", () => {
+    const event = ingestEvent({
+      id: "s2",
+      fields: {
+        Master_ID: "M1", Event_Date: "2025-03-04", Event_Type: "Treatment_Start", Event_UID: "s2", Treatment_Name: "Cisplatin",
+        Treatment_Physician_Recommendation: "x",
+      },
+    });
+    expect(event).not.toHaveProperty("treatmentPhysicianRecommendation");
+  });
+});

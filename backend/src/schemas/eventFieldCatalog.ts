@@ -305,8 +305,6 @@ export const eventFieldCatalog: Record<string, FieldDefinition> = {
       "Other",
       "Unknown",
     ] },
-  Treatment_Physician_Recommendation: { name: "Treatment_Physician_Recommendation", kind: "longText" },
-  Treatment_Patient_Preference: { name: "Treatment_Patient_Preference", kind: "longText" },
   Treatment_Delivery_Status: { name: "Treatment_Delivery_Status", kind: "single", options: [
       "Delivered as Planned",
       "Dose Reduced",
@@ -527,6 +525,8 @@ export const eventFieldCatalog: Record<string, FieldDefinition> = {
       "Multidisciplinary consensus",
       "Unknown",
     ] },
+  Decision_Physician_Recommendation: { name: "Decision_Physician_Recommendation", kind: "longText" },
+  Decision_Patient_Preference: { name: "Decision_Patient_Preference", kind: "longText" },
   Decision_Notes: { name: "Decision_Notes", kind: "longText" },
   ctDNA_Vendor: { name: "ctDNA_Vendor", kind: "single", options: [
       "Signatera(Natera)",

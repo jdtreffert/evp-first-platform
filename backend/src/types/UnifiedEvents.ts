@@ -131,8 +131,6 @@ export interface UnifiedEvent {
   treatmentCycle?: number | null;
   treatmentIntent?: string | null;
   treatmentRegimenDetails?: string | null;
-  treatmentPhysicianRecommendation?: string | null;
-  treatmentPatientPreference?: string | null;
   treatmentRoute?: string | null;
 
   // Treatment delivery block
@@ -159,6 +157,8 @@ export interface UnifiedEvent {
   // Decision block
   decisionType?: string | null;
   decisionConsensus?: string | null;
+  decisionPhysicianRecommendation?: string | null;
+  decisionPatientPreference?: string | null;
   decisionNotes?: string | null;
 
   // Symptom block

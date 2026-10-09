@@ -134,8 +134,6 @@ export interface UnifiedEvent {
   treatmentPhysicianRecommendation?: string | null;
   treatmentPatientPreference?: string | null;
   treatmentRoute?: string | null;
-  treatmentPlannedDose?: number | null;
-  treatmentPlannedDoseUnits?: string | null;
 
   // Treatment delivery block
   treatmentDose?: number | null;

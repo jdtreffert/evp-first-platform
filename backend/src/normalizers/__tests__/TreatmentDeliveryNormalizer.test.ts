@@ -40,15 +40,16 @@ describe("Treatment_Delivery and the extended Treatment_Start", () => {
     expect(event.eventType).toBe("Treatment_Delivery");
   });
 
-  test("Treatment_Start carries route and planned dose", () => {
+  test("Treatment_Start carries its route but no planned dose", () => {
     const event = ingestEvent({
       id: "s1",
       fields: {
         ...base, Event_Type: "Treatment_Start", Event_UID: "s1", Treatment_Name: "Cisplatin", Treatment_Route: "Intravesical",
-        Treatment_Planned_Dose: 80, Treatment_Planned_Dose_Units: "mg",
+        Treatment_Regimen_Details: "80 mg weekly",
       },
     });
-    expect(event).toMatchObject({ treatmentRoute: "Intravesical", treatmentPlannedDose: 80, treatmentPlannedDoseUnits: "mg" });
+    expect(event).toMatchObject({ treatmentRoute: "Intravesical", treatmentRegimenDetails: "80 mg weekly" });
+    expect(event).not.toHaveProperty("treatmentPlannedDose");
   });
 
   test("route, dose units and delivery status must be defined options and doses numbers", () => {

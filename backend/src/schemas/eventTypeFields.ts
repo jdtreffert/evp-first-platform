@@ -78,7 +78,6 @@ export const eventTypeFields: Record<string, readonly string[]> = {
   utDNA: ["utDNA_Vendor", "utDNA_Assay_Type", "utDNA_Value", "utDNA_Units", "utDNA_Trend", "utDNA_Notes"],
   Treatment_Start: [
     "Treatment_Name", "Treatment_Intent", "Treatment_Route", "Treatment_Regimen_Details",
-    "Treatment_Planned_Dose", "Treatment_Planned_Dose_Units",
     "Treatment_Physician_Recommendation", "Treatment_Patient_Preference",
   ],
   Treatment_Delivery: [

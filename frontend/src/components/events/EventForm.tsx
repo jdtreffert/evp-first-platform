@@ -5,7 +5,7 @@ import { eventFieldCatalog } from "../../../../backend/src/schemas/eventFieldCat
 import type { FieldDefinition } from "../../../../backend/src/schemas/eventFieldCatalog";
 import { ACCEPTED_DOCUMENT_TYPES, MAX_DOCUMENT_BYTES, uploadDocument } from "../../api/documents";
 import DocumentLink from "./DocumentLink";
-import { queryEventsInRange } from "../../api/events";
+import { queryEventsByType } from "../../api/events";
 import { documentFields, eventTypeFields, measureFields, relatedEventCandidates, relationshipFields } from "../../../../backend/src/schemas/eventTypeFields";
 
 const eventTypeLabels: Record<string, string> = {
@@ -63,12 +63,6 @@ function getLocalDate(): string {
   const month = String(today.getMonth() + 1).padStart(2, "0");
   const day = String(today.getDate()).padStart(2, "0");
   return `${today.getFullYear()}-${month}-${day}`;
-}
-
-function shiftDate(date: string, days: number): string {
-  const shifted = new Date(`${date}T00:00:00Z`);
-  shifted.setUTCDate(shifted.getUTCDate() + days);
-  return shifted.toISOString().slice(0, 10);
 }
 
 /** Form values for a stored event, read from the raw record it was created from. */
@@ -179,21 +173,19 @@ export default function EventForm({
   const sourceField = eventFieldCatalog.Event_Source;
 
   const candidateRule = relatedEventCandidates[eventType];
-  const candidateKey = candidateRule && eventDate ? [masterId, eventType, eventDate].join("|") : null;
+  const candidateKey = candidateRule ? [masterId, eventType].join("|") : null;
   const [loaded, setLoaded] = useState<{ key: string; events: UnifiedEvent[] | null } | null>(null);
-  // undefined while loading for the current type and date, null when the lookup failed.
+  // undefined while loading for the current type, null when the lookup failed.
   const candidates = loaded && loaded.key === candidateKey ? loaded.events : undefined;
 
   useEffect(() => {
     if (!candidateRule || !candidateKey) return;
     let active = true;
-    const from = "withinDays" in candidateRule ? shiftDate(eventDate, -candidateRule.withinDays) : undefined;
-    const to = "withinDays" in candidateRule ? shiftDate(eventDate, candidateRule.withinDays) : eventDate;
-    Promise.all(candidateRule.eventTypes.map((type) => queryEventsInRange(masterId, type, from, to)))
+    Promise.all(candidateRule.eventTypes.map((type) => queryEventsByType(masterId, type)))
       .then((groups) => { if (active) setLoaded({ key: candidateKey, events: groups.flat().filter((candidate) => candidate.uid !== initial?.uid) }); })
       .catch(() => { if (active) setLoaded({ key: candidateKey, events: null }); });
     return () => { active = false; };
-  }, [candidateKey, candidateRule, eventDate, masterId, initial?.uid]);
+  }, [candidateKey, candidateRule, masterId, initial?.uid]);
 
   const changeType = (type: string) => {
     setEventType(type);
@@ -349,7 +341,7 @@ export default function EventForm({
             {candidates === null && <p className="text-sm text-rose-300">Unable to load related events.</p>}
             {candidates && candidates.length === 0 && (
               <p className="text-sm text-gray-400">
-                No {candidateRule.eventTypes.map(typeLabel).join(", ")} events {"withinDays" in candidateRule ? `within ${candidateRule.withinDays} days of this date` : "on or before this date"}.
+                No {candidateRule.eventTypes.map(typeLabel).join(", ")} events have been recorded for this patient.
               </p>
             )}
             {candidates && candidates.length > 0 && (

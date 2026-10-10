@@ -161,6 +161,11 @@ export interface UnifiedEvent {
   decisionPatientPreference?: string | null;
   decisionNotes?: string | null;
 
+  // Procedure block
+  procedureType?: string | null;
+  procedureResult?: string | null;
+  procedureNotes?: string | null;
+
   // Symptom block
   symptomDescription?: string | null;
   symptomType?: string | null;

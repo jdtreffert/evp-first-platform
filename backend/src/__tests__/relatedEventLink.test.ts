@@ -32,3 +32,15 @@ describe("Event_Related_UID", () => {
     await expect(persistEvent(repository, pathology("P3", "M1", "T2"))).rejects.toMatchObject({ status: 422 });
   });
 });
+
+describe("self-links", () => {
+  test("an event cannot be related to itself", async () => {
+    const repository = new InMemoryEventRepository();
+    await persistEvent(repository, turbt("T9", "M1"));
+    const self = ingestEvent({
+      id: "T9",
+      fields: { Event_Type: "TURBT", Event_UID: "T9", Master_ID: "M1", Event_Date: "2026-09-01", Event_Related_UID: "T9", Event_Relationship: "Related_To" },
+    });
+    await expect(persistEvent(repository, self)).rejects.toMatchObject({ status: 422 });
+  });
+});

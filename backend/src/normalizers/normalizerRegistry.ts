@@ -35,6 +35,8 @@ import { normalizePathology } from "./PathologyNormalizer";
 
 import { normalizeLab } from "./LabNormalizer";
 
+import { normalizeProcedure } from "./ProcedureNormalizer";
+
 import { NormalizerRegistry } from "../types/UnifiedEvents";
 
 export const normalizerRegistry: NormalizerRegistry = {
@@ -73,4 +75,6 @@ export const normalizerRegistry: NormalizerRegistry = {
   Note: normalizeNote,
 
   Pathology: normalizePathology,
+
+  Procedure: normalizeProcedure,
 };

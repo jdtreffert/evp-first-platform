@@ -21,12 +21,13 @@ describe("relatedEventCandidates", () => {
     expect(types("Decision")).toEqual(["Diagnosis"]);
     expect(types("Treatment_Start")).toEqual(["Decision", "Diagnosis"]);
     expect(types("Treatment_Delivery")).toEqual(["Treatment_Start"]);
+    expect(types("Procedure")).toEqual(["Diagnosis", "Imaging", "Procedure", "Symptom", "TURBT", "Treatment_Change", "Treatment_Start"]);
     const windows = Object.fromEntries(Object.entries(relatedEventCandidates).map(([type, rule]) => [type, "withinDays" in rule ? rule.withinDays : "all preceding"]));
-    expect(windows).toEqual({ Imaging: 90, Cystoscopy: 90, TURBT: 30, Pathology: 30, Diagnosis: 90, Decision: 90, Treatment_Start: 90, Treatment_Delivery: "all preceding" });
+    expect(windows).toEqual({ Imaging: 90, Cystoscopy: 90, TURBT: 30, Pathology: 30, Diagnosis: 90, Decision: 90, Treatment_Start: 90, Treatment_Delivery: "all preceding", Procedure: 90 });
     expect(relatedEventCandidates.Pathology.relationship).toBe("Derived_From");
   });
 
   test("only these event types offer a picker", () => {
-    expect(Object.keys(relatedEventCandidates).sort()).toEqual(["Cystoscopy", "Decision", "Diagnosis", "Imaging", "Pathology", "TURBT", "Treatment_Delivery", "Treatment_Start"]);
+    expect(Object.keys(relatedEventCandidates).sort()).toEqual(["Cystoscopy", "Decision", "Diagnosis", "Imaging", "Pathology", "Procedure", "TURBT", "Treatment_Delivery", "Treatment_Start"]);
   });
 });

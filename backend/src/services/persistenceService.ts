@@ -27,6 +27,9 @@ export async function persistEvent(
   if (existing && existing.masterId !== event.masterId && saveOptions.ownerMasterId === undefined) {
     throw new HttpError(422, "An event cannot be moved to a different patient record");
   }
+  if (event.relatedEventUid === event.uid) {
+    throw new HttpError(422, "An event cannot be related to itself");
+  }
   if (event.relatedEventUid) {
     const related = await repository.getByUid(event.relatedEventUid);
     if (!related || related.masterId !== event.masterId) {

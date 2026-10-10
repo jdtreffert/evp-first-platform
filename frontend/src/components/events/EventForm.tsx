@@ -190,10 +190,10 @@ export default function EventForm({
     const from = "withinDays" in candidateRule ? shiftDate(eventDate, -candidateRule.withinDays) : undefined;
     const to = "withinDays" in candidateRule ? shiftDate(eventDate, candidateRule.withinDays) : eventDate;
     Promise.all(candidateRule.eventTypes.map((type) => queryEventsInRange(masterId, type, from, to)))
-      .then((groups) => { if (active) setLoaded({ key: candidateKey, events: groups.flat() }); })
+      .then((groups) => { if (active) setLoaded({ key: candidateKey, events: groups.flat().filter((candidate) => candidate.uid !== initial?.uid) }); })
       .catch(() => { if (active) setLoaded({ key: candidateKey, events: null }); });
     return () => { active = false; };
-  }, [candidateKey, candidateRule, eventDate, masterId]);
+  }, [candidateKey, candidateRule, eventDate, masterId, initial?.uid]);
 
   const changeType = (type: string) => {
     setEventType(type);

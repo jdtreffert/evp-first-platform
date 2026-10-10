@@ -11,6 +11,7 @@ validation reads its keys to decide which `eventType` values are legal.
 |--------------|-----------|---------------------|
 | `Diagnosis` | `normalizeDiagnosis` | `Diagnosis` |
 | `Pathology` | `normalizePathology` | `Pathology` |
+| `Procedure` | `normalizeProcedure` | `Procedure` |
 | `TURBT` | `normalizeTURBT` | `TURBT` |
 | `Cytology` | `normalizeCytology` | `Cytology` |
 | `Cystoscopy` | `normalizeCystoscopy` | `Cystoscopy` |

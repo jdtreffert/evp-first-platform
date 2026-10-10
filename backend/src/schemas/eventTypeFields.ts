@@ -35,6 +35,11 @@ export const relatedEventCandidates: Record<
   Treatment_Start: { eventTypes: ["Decision", "Diagnosis"], withinDays: 90, relationship: "Related_To" },
   // A delivery can follow its Treatment_Start by a year or more, so no date window is applied.
   Treatment_Delivery: { eventTypes: ["Treatment_Start"], allPrecedingEvents: true, relationship: "Related_To" },
+  Procedure: {
+    eventTypes: ["Procedure", "TURBT", "Symptom", "Imaging", "Diagnosis", "Treatment_Start", "Treatment_Change"],
+    withinDays: 90,
+    relationship: "Related_To",
+  },
 };
 
 export const commonEventFields = ["Event_Date", "Event_Source"] as const;
@@ -102,6 +107,7 @@ export const eventTypeFields: Record<string, readonly string[]> = {
   Symptom: [
     "Symptom_Type", "Symptom_Description", "Symptom_Severity", "Symptom_Duration", "Symptom_Duration_Units",
   ],
+  Procedure: ["Procedure_Type", "Procedure_Result", "Procedure_Notes"],
   Decision: [
     "Decision_Type", "Decision_Consensus", "Decision_Physician_Recommendation", "Decision_Patient_Preference",
     "Decision_Notes",

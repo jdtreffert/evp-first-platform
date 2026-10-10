@@ -12,10 +12,11 @@ export function ingestEvent(record: RawEventRecord): Promise<UnifiedEvent> {
   return postJson<UnifiedEvent>("/events/ingest", record);
 }
 
-/** Events of one type up to `to`, and from `from` when given; at most the 100 most recent. */
-export async function queryEventsInRange(masterId: string, eventType: string, from: string | undefined, to: string): Promise<UnifiedEvent[]> {
-  const query = new URLSearchParams({ masterId, eventType, to, order: "desc", limit: "100" });
+/** Events of one type, optionally bounded by `from` and `to`; at most the 100 most recent. */
+export async function queryEventsInRange(masterId: string, eventType: string, from: string | undefined, to: string | undefined): Promise<UnifiedEvent[]> {
+  const query = new URLSearchParams({ masterId, eventType, order: "desc", limit: "100" });
   if (from) query.set("from", from);
+  if (to) query.set("to", to);
   return (await requestJson<EventQueryResult>(`/events/query?${query.toString()}`)).events;
 }
 

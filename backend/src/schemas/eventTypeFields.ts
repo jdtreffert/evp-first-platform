@@ -1,35 +1,47 @@
 import { eventFieldCatalog } from "./eventFieldCatalog";
 
+/** Fields every event type accepts. */
 /** Optional attributes that relate an event to another event by its UID. */
 export const relationshipFields = ["Event_Related_UID", "Event_Relationship"] as const;
 
 /**
- * Event types that offer a list of related events to choose from, with the event types listed and
- * the relationship recorded by default. The list is every event of those types for the same
- * patient, with no date filtering. Other event types offer no related-event picker.
+ * Event types that offer a list of related events to choose from: the event types listed,
+ * the window in days either side of the event's own date (or all preceding events), and the
+ * relationship recorded by default.
+ * Other event types offer no related-event picker.
  */
-export const relatedEventCandidates: Record<string, { eventTypes: string[]; relationship: string }> = {
+export const relatedEventCandidates: Record<
+  string,
+  { eventTypes: string[]; relationship: string } & (
+    | { withinDays: number }
+    // No date range: every earlier or same-day event of the listed types is offered.
+    | { allPrecedingEvents: true }
+  )
+> = {
   Imaging: {
     eventTypes: ["Symptom", "Pathology", "Decision", "Recurrence", "Progression", "Treatment_Response"],
+    withinDays: 90,
     relationship: "Related_To",
   },
-  Cystoscopy: { eventTypes: ["Symptom", "Imaging"], relationship: "Related_To" },
-  TURBT: { eventTypes: ["Cystoscopy"], relationship: "Related_To" },
-  Pathology: { eventTypes: ["TURBT", "Cystoscopy_Biopsy"], relationship: "Derived_From" },
+  Cystoscopy: { eventTypes: ["Symptom", "Imaging"], withinDays: 90, relationship: "Related_To" },
+  TURBT: { eventTypes: ["Cystoscopy"], withinDays: 30, relationship: "Related_To" },
+  Pathology: { eventTypes: ["TURBT", "Cystoscopy_Biopsy"], withinDays: 30, relationship: "Derived_From" },
   Diagnosis: {
     eventTypes: ["Cystoscopy", "Cystoscopy_Biopsy", "Pathology", "Imaging"],
+    withinDays: 90,
     relationship: "Derived_From",
   },
-  Decision: { eventTypes: ["Diagnosis"], relationship: "Related_To" },
-  Treatment_Start: { eventTypes: ["Decision", "Diagnosis"], relationship: "Related_To" },
-  Treatment_Delivery: { eventTypes: ["Treatment_Start"], relationship: "Related_To" },
+  Decision: { eventTypes: ["Diagnosis"], withinDays: 90, relationship: "Related_To" },
+  Treatment_Start: { eventTypes: ["Decision", "Diagnosis"], withinDays: 90, relationship: "Related_To" },
+  // A delivery can follow its Treatment_Start by a year or more, so no date window is applied.
+  Treatment_Delivery: { eventTypes: ["Treatment_Start"], allPrecedingEvents: true, relationship: "Related_To" },
   Procedure: {
     eventTypes: ["Procedure", "TURBT", "Symptom", "Imaging", "Diagnosis", "Treatment_Start", "Treatment_Change"],
+    withinDays: 90,
     relationship: "Related_To",
   },
 };
 
-/** Fields every event type accepts. */
 export const commonEventFields = ["Event_Date", "Event_Source"] as const;
 
 /** Optional single measurement (type, numeric value, free-text units) that any event may carry. */

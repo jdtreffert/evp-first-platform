@@ -7,7 +7,8 @@
     "test": "jest",
     "dev": "tsx src/server.ts",
     "start": "node dist/server.js",
-    "build": "tsc"
+    "build": "tsc",
+    "schema:tables": "tsx scripts/exportSchemaTables.ts"
   },
   "keywords": [],
   "author": "",

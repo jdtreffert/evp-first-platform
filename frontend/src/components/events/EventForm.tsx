@@ -179,9 +179,7 @@ export default function EventForm({
   const sourceField = eventFieldCatalog.Event_Source;
 
   const candidateRule = relatedEventCandidates[eventType];
-  const candidateKey = candidateRule && eventDate
-    ? [masterId, eventType, "anyDate" in candidateRule ? "" : eventDate].join("|")
-    : null;
+  const candidateKey = candidateRule && eventDate ? [masterId, eventType, eventDate].join("|") : null;
   const [loaded, setLoaded] = useState<{ key: string; events: UnifiedEvent[] | null } | null>(null);
   // undefined while loading for the current type and date, null when the lookup failed.
   const candidates = loaded && loaded.key === candidateKey ? loaded.events : undefined;
@@ -189,9 +187,8 @@ export default function EventForm({
   useEffect(() => {
     if (!candidateRule || !candidateKey) return;
     let active = true;
-    const anyDate = "anyDate" in candidateRule;
     const from = "withinDays" in candidateRule ? shiftDate(eventDate, -candidateRule.withinDays) : undefined;
-    const to = "withinDays" in candidateRule ? shiftDate(eventDate, candidateRule.withinDays) : anyDate ? undefined : eventDate;
+    const to = "withinDays" in candidateRule ? shiftDate(eventDate, candidateRule.withinDays) : eventDate;
     Promise.all(candidateRule.eventTypes.map((type) => queryEventsInRange(masterId, type, from, to)))
       .then((groups) => { if (active) setLoaded({ key: candidateKey, events: groups.flat().filter((candidate) => candidate.uid !== initial?.uid) }); })
       .catch(() => { if (active) setLoaded({ key: candidateKey, events: null }); });
@@ -352,7 +349,7 @@ export default function EventForm({
             {candidates === null && <p className="text-sm text-rose-300">Unable to load related events.</p>}
             {candidates && candidates.length === 0 && (
               <p className="text-sm text-gray-400">
-                No {candidateRule.eventTypes.map(typeLabel).join(", ")} events {"withinDays" in candidateRule ? `within ${candidateRule.withinDays} days of this date` : "anyDate" in candidateRule ? "have been recorded for this patient" : "on or before this date"}.
+                No {candidateRule.eventTypes.map(typeLabel).join(", ")} events {"withinDays" in candidateRule ? `within ${candidateRule.withinDays} days of this date` : "on or before this date"}.
               </p>
             )}
             {candidates && candidates.length > 0 && (

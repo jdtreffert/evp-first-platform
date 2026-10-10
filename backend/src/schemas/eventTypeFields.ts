@@ -16,8 +16,6 @@ export const relatedEventCandidates: Record<
     | { withinDays: number }
     // No date range: every earlier or same-day event of the listed types is offered.
     | { allPrecedingEvents: true }
-    // No date filtering at all: every event of the listed types is offered.
-    | { anyDate: true }
   )
 > = {
   Imaging: {
@@ -39,7 +37,7 @@ export const relatedEventCandidates: Record<
   Treatment_Delivery: { eventTypes: ["Treatment_Start"], allPrecedingEvents: true, relationship: "Related_To" },
   Procedure: {
     eventTypes: ["Procedure", "TURBT", "Symptom", "Imaging", "Diagnosis", "Treatment_Start", "Treatment_Change"],
-    anyDate: true,
+    allPrecedingEvents: true,
     relationship: "Related_To",
   },
 };

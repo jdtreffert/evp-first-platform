@@ -187,7 +187,9 @@ export default function EventForm({
   useEffect(() => {
     if (!candidateRule || !candidateKey) return;
     let active = true;
-    const from = "withinDays" in candidateRule ? shiftDate(eventDate, -candidateRule.withinDays) : undefined;
+    const from = "withinDays" in candidateRule
+      ? shiftDate(eventDate, -candidateRule.withinDays)
+      : "priorDays" in candidateRule ? shiftDate(eventDate, -candidateRule.priorDays) : undefined;
     const to = "withinDays" in candidateRule ? shiftDate(eventDate, candidateRule.withinDays) : eventDate;
     Promise.all(candidateRule.eventTypes.map((type) => queryEventsInRange(masterId, type, from, to)))
       .then((groups) => { if (active) setLoaded({ key: candidateKey, events: groups.flat().filter((candidate) => candidate.uid !== initial?.uid) }); })
@@ -349,7 +351,9 @@ export default function EventForm({
             {candidates === null && <p className="text-sm text-rose-300">Unable to load related events.</p>}
             {candidates && candidates.length === 0 && (
               <p className="text-sm text-gray-400">
-                No {candidateRule.eventTypes.map(typeLabel).join(", ")} events {"withinDays" in candidateRule ? `within ${candidateRule.withinDays} days of this date` : "on or before this date"}.
+                No {candidateRule.eventTypes.map(typeLabel).join(", ")} events {"withinDays" in candidateRule
+                  ? `within ${candidateRule.withinDays} days of this date`
+                  : "priorDays" in candidateRule ? `on or up to ${candidateRule.priorDays} days before this date` : "on or before this date"}.
               </p>
             )}
             {candidates && candidates.length > 0 && (

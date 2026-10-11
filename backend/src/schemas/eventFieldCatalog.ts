@@ -41,6 +41,7 @@ export const eventFieldCatalog: Record<string, FieldDefinition> = {
       "Triggered_By",
       "Assessed_By",
       "Derived_From",
+      "Follow_up_to",
       "Related_To",
     ] },
   Event_Type: { name: "Event_Type", kind: "single", options: [

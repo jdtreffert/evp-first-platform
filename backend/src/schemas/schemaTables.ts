@@ -19,6 +19,7 @@ const LIST_SEPARATOR = ";";
 
 function dateRule(rule: (typeof relatedEventCandidates)[string]): string {
   if ("withinDays" in rule) return `Within ${rule.withinDays} days either side`;
+  if ("priorDays" in rule) return `On or up to ${rule.priorDays} days before the event date`;
   return "On or before the event date";
 }
 

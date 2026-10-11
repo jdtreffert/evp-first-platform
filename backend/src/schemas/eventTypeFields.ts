@@ -16,13 +16,17 @@ export const relatedEventCandidates: Record<
     | { withinDays: number }
     // No date range: every earlier or same-day event of the listed types is offered.
     | { allPrecedingEvents: true }
+    // Events on the event date or up to this many days before it.
+    | { priorDays: number }
   )
 > = {
   Imaging: {
     eventTypes: ["Symptom", "Pathology", "Decision", "Recurrence", "Progression", "Treatment_Response"],
-    withinDays: 90,
+    // Long enough to reach from staging to the first follow-up imaging.
+    priorDays: 180,
     relationship: "Related_To",
   },
+  Imaging_Response: { eventTypes: ["Imaging"], priorDays: 30, relationship: "Derived_From" },
   Cystoscopy: { eventTypes: ["Symptom", "Imaging"], withinDays: 90, relationship: "Related_To" },
   TURBT: { eventTypes: ["Cystoscopy"], withinDays: 30, relationship: "Related_To" },
   Pathology: { eventTypes: ["TURBT", "Cystoscopy_Biopsy"], withinDays: 30, relationship: "Derived_From" },

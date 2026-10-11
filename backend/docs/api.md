@@ -219,13 +219,21 @@ Any event may also carry one optional measurement: `Event_Measure_Type` (a schem
 They are stored as `eventMeasureType`, `eventMeasureValue` and `eventMeasureUnits`.
 
 Any event may also carry `Event_Related_UID` and `Event_Relationship` (`Produced_By`, `Triggered_By`,
-`Assessed_By`, `Derived_From`, `Related_To`) to link it to another event, for example a Pathology
+`Assessed_By`, `Derived_From`, `Follow_up_to`, `Related_To`) to link it to another event, for example a Pathology
 event derived from a TURBT. They are stored as `relatedEventUid` and `eventRelationship`.
 `Event_Related_UID` must refer to an existing event for the same patient, otherwise the event is
-rejected with `422`. The entry form offers events for the same patient within a window either side of the event's
-date (90 days for Imaging, Cystoscopy, Diagnosis, Decision and Treatment_Start; 30 days for TURBT and Pathology), by event type: Imaging offers Symptom, Pathology, Decision, Recurrence, Progression and
-Treatment_Response; Cystoscopy offers Symptom and Imaging; TURBT offers Cystoscopy; Pathology
-offers TURBT and Cystoscopy_Biopsy; Diagnosis offers Cystoscopy, Cystoscopy_Biopsy, Pathology and Imaging; Decision offers Diagnosis; Treatment_Start offers Decision and Diagnosis; Treatment_Delivery offers every Treatment_Start on or before its date, with no date window (the 100 most recent); ctDNA offers Diagnosis, Treatment_Start, Treatment_Delivery, Treatment_Response, Recurrence and Progression on or before its date; Procedure offers other Procedure events, TURBT, Symptom, Imaging, Diagnosis, Treatment_Start and Treatment_Change on or before its date, with no earlier limit (the 100 most recent of each type). The default relationship is `Derived_From` for Pathology and Diagnosis and `Related_To` for the rest.
+rejected with `422`. The entry form offers events for the same patient, by event type (the full table is in
+[schema-tables.md](schema-tables.md)). The date rule is either a number of days either side of the event's
+date, a number of days before it, or every event on or before it (the 100 most recent of each type):
+
+- Imaging offers Symptom, Pathology, Decision, Recurrence, Progression and Treatment_Response, on or up to 180 days before.
+- Imaging_Response offers Imaging, on or up to 30 days before.
+- Cystoscopy offers Symptom and Imaging, within 90 days.
+- TURBT offers Cystoscopy, and Pathology offers TURBT and Cystoscopy_Biopsy, within 30 days.
+- Diagnosis offers Cystoscopy, Cystoscopy_Biopsy, Pathology and Imaging; Decision offers Diagnosis; Treatment_Start offers Decision and Diagnosis; all within 90 days.
+- Treatment_Delivery offers Treatment_Start; ctDNA offers Diagnosis, Treatment_Start, Treatment_Delivery, Treatment_Response, Recurrence and Progression; Procedure offers Procedure, TURBT, Symptom, Imaging, Diagnosis, Treatment_Start and Treatment_Change; all on or before the event date.
+
+The default relationship is `Derived_From` for Pathology, Diagnosis and Imaging_Response and `Related_To` for the rest.
 Other event types offer no picker.
 
 ## Recorded-at provenance

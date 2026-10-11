@@ -144,3 +144,13 @@ describe("Imaging contrast and region options", () => {
     }
   });
 });
+
+describe("Follow_up_to relationship", () => {
+  test("is an accepted Event_Relationship", () => {
+    const event = ingestEvent({
+      id: "f1",
+      fields: { ...base, Event_Type: "Imaging", Event_UID: "f1", Imaging_Result: "x", Event_Related_UID: "earlier", Event_Relationship: "Follow_up_to" },
+    });
+    expect(event.eventRelationship).toBe("Follow_up_to");
+  });
+});

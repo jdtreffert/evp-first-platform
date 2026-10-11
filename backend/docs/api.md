@@ -231,7 +231,7 @@ date, a number of days before it, or every event on or before it (the 100 most r
 - Cystoscopy offers Symptom and Imaging, within 90 days.
 - TURBT offers Cystoscopy, and Pathology offers TURBT and Cystoscopy_Biopsy, within 30 days.
 - Diagnosis offers Cystoscopy, Cystoscopy_Biopsy, Pathology and Imaging; Decision offers Diagnosis; Treatment_Start offers Decision and Diagnosis; all within 90 days.
-- Treatment_Delivery offers Treatment_Start; ctDNA offers Diagnosis, Treatment_Start, Treatment_Delivery, Treatment_Response, Recurrence and Progression; Procedure offers Procedure, TURBT, Symptom, Imaging, Diagnosis, Treatment_Start and Treatment_Change; all on or before the event date.
+- Treatment_Delivery offers Treatment_Start; Symptom offers Diagnosis, Treatment_Start, Treatment_Change, Treatment_Delivery and Procedure; ctDNA offers Diagnosis, Treatment_Start, Treatment_Delivery, Treatment_Response, Recurrence and Progression; Procedure offers Procedure, TURBT, Symptom, Imaging, Diagnosis, Treatment_Start and Treatment_Change; all on or before the event date.
 
 The default relationship is `Derived_From` for Pathology, Diagnosis and Imaging_Response and `Related_To` for the rest.
 Other event types offer no picker.

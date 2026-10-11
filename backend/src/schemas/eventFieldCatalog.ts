@@ -24,6 +24,7 @@ export interface FieldDefinition {
 export const eventFieldCatalog: Record<string, FieldDefinition> = {
   Event_ID: { name: "Event_ID", kind: "system" },
   Event_UID: { name: "Event_UID", kind: "text" },
+  Master_ID: { name: "Master_ID", kind: "text" },
   Event_Date: { name: "Event_Date", kind: "date" },
   Event_Created_At: { name: "Event_Created_At", kind: "system" },
   Event_Source: { name: "Event_Source", kind: "single", options: [

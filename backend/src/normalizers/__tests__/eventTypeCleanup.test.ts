@@ -154,3 +154,13 @@ describe("Follow_up_to relationship", () => {
     expect(event.eventRelationship).toBe("Follow_up_to");
   });
 });
+
+describe("Document_Type options", () => {
+  test("accepts Visit Summary on a Treatment_Delivery event", () => {
+    const event = ingestEvent({
+      id: "v1",
+      fields: { ...base, Event_Type: "Treatment_Delivery", Event_UID: "v1", Treatment_Name: "Cisplatin", Document_Type: "Visit Summary" },
+    });
+    expect(event.documentType).toBe("Visit Summary");
+  });
+});

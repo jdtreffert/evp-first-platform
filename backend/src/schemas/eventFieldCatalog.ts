@@ -400,6 +400,7 @@ export const eventFieldCatalog: Record<string, FieldDefinition> = {
       "ImagingReport",
       "Consult Note",
       "Lab Report",
+      "Visit Summary",
       "Other",
     ] },
   Document_Redaction_Status: { name: "Document_Redaction_Status", kind: "single", options: [

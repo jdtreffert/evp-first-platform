@@ -149,6 +149,7 @@ export const unifiedEventSchema = z.strictObject({
   symptomDescription: text,
   symptomType: text,
   symptomSeverity: num,
+  symptomStatus: text,
   symptomDuration: num,
   symptomDurationUnits: text,
 

@@ -170,6 +170,7 @@ export interface UnifiedEvent {
   symptomDescription?: string | null;
   symptomType?: string | null;
   symptomSeverity?: number | null;
+  symptomStatus?: string | null;
   symptomDuration?: number | null;
   symptomDurationUnits?: string | null;
 

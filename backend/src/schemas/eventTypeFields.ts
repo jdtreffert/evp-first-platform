@@ -126,7 +126,8 @@ export const eventTypeFields: Record<string, readonly string[]> = {
   ],
   QoL: ["QoL_Physical", "Qol_Emotional", "QoL_Urinary", "QoL_Pain", "QoL_Fatigue", "Qol_Notes"],
   Symptom: [
-    "Symptom_Type", "Symptom_Description", "Symptom_Severity", "Symptom_Duration", "Symptom_Duration_Units",
+    "Symptom_Type", "Symptom_Description", "Symptom_Severity", "Symptom_Status", "Symptom_Duration",
+    "Symptom_Duration_Units",
   ],
   Procedure: ["Procedure_Type", "Procedure_Result", "Procedure_Notes"],
   Decision: [

@@ -27,7 +27,7 @@ event can be related to. Several values in one cell are separated by semicolons.
 | Recurrence | Recurrence_Location; Recurrence_Spread_Category; Recurrence_Modality; Recurrence_Confirmation; Recurrence_Notes |
 | Progression | Progression_Location; Progression_Stage_Spread; Progression_Modality; Progression_Stage_Change; Progression_Notes |
 | QoL | QoL_Physical; Qol_Emotional; QoL_Urinary; QoL_Pain; QoL_Fatigue; Qol_Notes |
-| Symptom | Symptom_Type; Symptom_Description; Symptom_Severity; Symptom_Duration; Symptom_Duration_Units |
+| Symptom | Symptom_Type; Symptom_Description; Symptom_Severity; Symptom_Status; Symptom_Duration; Symptom_Duration_Units |
 | Procedure | Procedure_Type; Procedure_Result; Procedure_Notes |
 | Decision | Decision_Type; Decision_Consensus; Decision_Physician_Recommendation; Decision_Patient_Preference; Decision_Notes |
 | Note | Event_Summary; Event_Details |

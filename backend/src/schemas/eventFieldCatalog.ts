@@ -440,6 +440,7 @@ export const eventFieldCatalog: Record<string, FieldDefinition> = {
   Symptom_Duration_Units: { name: "Symptom_Duration_Units", kind: "single", options: [
       "minutes",
       "hours",
+      "days",
       "weeks",
       "months",
       "years",

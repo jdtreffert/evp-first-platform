@@ -363,11 +363,19 @@ export default function EventForm({
                   <select
                     className={inputClass}
                     value={candidates.some((candidate) => candidate.uid === values.Event_Related_UID) ? String(values.Event_Related_UID) : ""}
-                    onChange={(event) => setValues((previous) => ({
-                      ...previous,
-                      Event_Related_UID: event.target.value,
-                      Event_Relationship: previous.Event_Relationship || candidateRule.relationship,
-                    }))}
+                    onChange={(event) => setValues((previous) => {
+                      const defaultFor = (uid: unknown) => {
+                        const type = candidates.find((candidate) => candidate.uid === uid)?.eventType;
+                        return (type && candidateRule.relationshipByType?.[type]) || candidateRule.relationship;
+                      };
+                      // Keep a relationship the user chose; replace one that was only the default.
+                      const keepsChoice = previous.Event_Relationship && previous.Event_Relationship !== defaultFor(previous.Event_Related_UID);
+                      return {
+                        ...previous,
+                        Event_Related_UID: event.target.value,
+                        Event_Relationship: keepsChoice ? previous.Event_Relationship : defaultFor(event.target.value),
+                      };
+                    })}
                   >
                     <option value="">None</option>
                     {candidates.map((candidate) => (

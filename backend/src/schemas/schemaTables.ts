@@ -48,7 +48,7 @@ export function buildSchemaTables(): SchemaTable[] {
         type,
         rule.eventTypes.join(LIST_SEPARATOR),
         dateRule(rule),
-        rule.relationship,
+        rule.relationship + Object.entries(rule.relationshipByType ?? {}).map(([type, value]) => ` (${type}: ${value})`).join(""),
       ]),
     },
   ];

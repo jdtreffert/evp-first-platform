@@ -12,7 +12,13 @@ export const relationshipFields = ["Event_Related_UID", "Event_Relationship"] as
  */
 export const relatedEventCandidates: Record<
   string,
-  { eventTypes: string[]; relationship: string } & (
+  {
+    eventTypes: string[];
+    /** Relationship recorded by default. */
+    relationship: string;
+    /** Overrides the default when the chosen event is of the given type. */
+    relationshipByType?: Record<string, string>;
+  } & (
     | { withinDays: number }
     // No date range: every earlier or same-day event of the listed types is offered.
     | { allPrecedingEvents: true }
@@ -21,10 +27,11 @@ export const relatedEventCandidates: Record<
   )
 > = {
   Imaging: {
-    eventTypes: ["Symptom", "Pathology", "Decision", "Recurrence", "Progression", "Treatment_Response"],
+    eventTypes: ["Imaging", "Symptom", "Pathology", "Decision", "Recurrence", "Progression", "Treatment_Response"],
     // Long enough to reach from staging to the first follow-up imaging.
     priorDays: 180,
     relationship: "Related_To",
+    relationshipByType: { Imaging: "Follow_up_to" },
   },
   Imaging_Response: { eventTypes: ["Imaging"], priorDays: 30, relationship: "Derived_From" },
   Cystoscopy: { eventTypes: ["Symptom", "Imaging"], withinDays: 90, relationship: "Related_To" },

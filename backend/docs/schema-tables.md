@@ -46,7 +46,7 @@ event can be related to. Several values in one cell are separated by semicolons.
 
 | Event_Type | Candidate_Event_Types | Date_Rule | Default_Relationship |
 | --- | --- | --- | --- |
-| Imaging | Symptom; Pathology; Decision; Recurrence; Progression; Treatment_Response | On or up to 180 days before the event date | Related_To |
+| Imaging | Imaging; Symptom; Pathology; Decision; Recurrence; Progression; Treatment_Response | On or up to 180 days before the event date | Related_To (Imaging: Follow_up_to) |
 | Imaging_Response | Imaging | On or up to 30 days before the event date | Derived_From |
 | Cystoscopy | Symptom; Imaging | Within 90 days either side | Related_To |
 | TURBT | Cystoscopy | Within 30 days either side | Related_To |

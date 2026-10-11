@@ -226,7 +226,7 @@ rejected with `422`. The entry form offers events for the same patient, by event
 [schema-tables.md](schema-tables.md)). The date rule is either a number of days either side of the event's
 date, a number of days before it, or every event on or before it (the 100 most recent of each type):
 
-- Imaging offers Symptom, Pathology, Decision, Recurrence, Progression and Treatment_Response, on or up to 180 days before.
+- Imaging offers Imaging (default relationship `Follow_up_to`), Symptom, Pathology, Decision, Recurrence, Progression and Treatment_Response, on or up to 180 days before.
 - Imaging_Response offers Imaging, on or up to 30 days before.
 - Cystoscopy offers Symptom and Imaging, within 90 days.
 - TURBT offers Cystoscopy, and Pathology offers TURBT and Cystoscopy_Biopsy, within 30 days.

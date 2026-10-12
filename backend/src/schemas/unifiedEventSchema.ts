@@ -129,8 +129,6 @@ export const unifiedEventSchema = z.strictObject({
 
   treatmentChangeType: text,
   treatmentChangeReason: text,
-  treatmentChangeNewRegimen: text,
-  treatmentChangeToxicityGrade: num,
 
   treatmentResponseCategory: text,
   treatmentResponseModality: text,

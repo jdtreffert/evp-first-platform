@@ -17,10 +17,7 @@ export function normalizeTreatment(rawEvent: RawEventRecord): UnifiedEvent {
     return normalizeTreatmentStart(rawEvent);
   }
 
-  if (
-    f.Treatment_Change_Type || f.Treatment_Change_Reason || f.Treatment_Change_New_Regimen ||
-    f.Treatment_Change_Toxicity_Grade !== undefined || f.Treatment_Change_Date
-  ) {
+  if (f.Treatment_Change_Type || f.Treatment_Change_Reason || f.Treatment_Change_Date) {
     return normalizeTreatmentChange(rawEvent);
   }
 

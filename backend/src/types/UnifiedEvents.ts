@@ -147,8 +147,6 @@ export interface UnifiedEvent {
 
   treatmentChangeType?: string | null;
   treatmentChangeReason?: string | null;
-  treatmentChangeNewRegimen?: string | null;
-  treatmentChangeToxicityGrade?: number | null;
 
   treatmentResponseCategory?: string | null;
   treatmentResponseModality?: string | null;

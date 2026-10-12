@@ -109,10 +109,7 @@ export const eventTypeFields: Record<string, readonly string[]> = {
     "Treatment_Name", "Treatment_Cycle", "Treatment_Route", "Treatment_Dose", "Treatment_Dose_Units",
     "Treatment_Delivery_Status", "Treatment_Delivery_Notes",
   ],
-  Treatment_Change: [
-    "Treatment_Name", "Treatment_Change_Type", "Treatment_Change_Reason", "Treatment_Regimen_Details",
-    "Treatment_Change_New_Regimen", "Treatment_Change_Toxicity_Grade",
-  ],
+  Treatment_Change: ["Treatment_Change_Type", "Treatment_Change_Reason", "Treatment_Regimen_Details"],
   Treatment_Response: [
     "Treatment_Name", "Treatment_Response_Category", "Treatment_Response_Modality", "Treatment_Response_Notes",
   ],

@@ -22,7 +22,7 @@ event can be related to. Several values in one cell are separated by semicolons.
 | utDNA | utDNA_Vendor; utDNA_Assay_Type; utDNA_Value; utDNA_Units; utDNA_Trend; utDNA_Notes |
 | Treatment_Start | Treatment_Name; Treatment_Intent; Treatment_Regimen_Details |
 | Treatment_Delivery | Treatment_Name; Treatment_Cycle; Treatment_Route; Treatment_Dose; Treatment_Dose_Units; Treatment_Delivery_Status; Treatment_Delivery_Notes |
-| Treatment_Change | Treatment_Name; Treatment_Change_Type; Treatment_Change_Reason; Treatment_Regimen_Details; Treatment_Change_New_Regimen; Treatment_Change_Toxicity_Grade |
+| Treatment_Change | Treatment_Change_Type; Treatment_Change_Reason; Treatment_Regimen_Details |
 | Treatment_Response | Treatment_Name; Treatment_Response_Category; Treatment_Response_Modality; Treatment_Response_Notes |
 | Recurrence | Recurrence_Location; Recurrence_Spread_Category; Recurrence_Modality; Recurrence_Confirmation; Recurrence_Notes |
 | Progression | Progression_Location; Progression_Stage_Spread; Progression_Modality; Progression_Stage_Change; Progression_Notes |

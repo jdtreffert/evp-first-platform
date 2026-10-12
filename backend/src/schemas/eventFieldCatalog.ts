@@ -329,8 +329,6 @@ export const eventFieldCatalog: Record<string, FieldDefinition> = {
       "Other",
     ] },
   Treatment_Change_Reason: { name: "Treatment_Change_Reason", kind: "longText" },
-  Treatment_Change_New_Regimen: { name: "Treatment_Change_New_Regimen", kind: "text" },
-  Treatment_Change_Toxicity_Grade: { name: "Treatment_Change_Toxicity_Grade", kind: "number" },
   Treatment_Response_Category: { name: "Treatment_Response_Category", kind: "single", options: [
       "CR",
       "PR",

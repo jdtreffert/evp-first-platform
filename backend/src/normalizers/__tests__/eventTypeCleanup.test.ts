@@ -164,3 +164,28 @@ describe("Document_Type options", () => {
     expect(event.documentType).toBe("Visit Summary");
   });
 });
+
+describe("Treatment_Change fields", () => {
+  const change = { ...base, Event_Type: "Treatment_Change", Event_UID: "c1" };
+
+  test("carries type, reason and regimen details only", () => {
+    const event = ingestEvent({
+      id: "c1",
+      fields: {
+        ...change, Treatment_Change_Type: "Treatment completed", Treatment_Change_Reason: "Course finished",
+        Treatment_Regimen_Details: "Final cycle given", Treatment_Name: "Cisplatin", Treatment_Change_Toxicity_Grade: 2,
+      },
+    });
+    expect(event).toMatchObject({
+      treatmentChangeType: "Treatment completed",
+      treatmentChangeReason: "Course finished",
+      treatmentRegimenDetails: "Final cycle given",
+    });
+    expect(event).not.toHaveProperty("treatmentName");
+    expect(event).not.toHaveProperty("treatmentChangeToxicityGrade");
+  });
+
+  test("Treatment_Change_Type must be a defined option", () => {
+    expect(() => ingestEvent({ id: "c1", fields: { ...change, Treatment_Change_Type: "Stopped" } })).toThrow();
+  });
+});

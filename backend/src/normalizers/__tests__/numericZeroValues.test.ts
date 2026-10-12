@@ -3,7 +3,6 @@ import { normalizeImagingResponse } from "../ImagingResponseNormalizer";
 import { normalizeQoL } from "../QoLNormalizer";
 import { normalizeSomatic } from "../SomaticNormalizer";
 import { normalizeSymptom } from "../SymptomNormalizer";
-import { normalizeTreatmentChange } from "../TreatmentChangeNormalizer";
 import { normalizeTreatmentStart } from "../TreatmentStartNormalizer";
 import { normalizeUtDNA } from "../utDNANormalizer";
 import { mockRecord } from "./testUtils";
@@ -28,8 +27,6 @@ describe("numeric zero values are preserved, not converted to null", () => {
     expect([s.symptomSeverity, s.symptomDuration]).toEqual([0, 0]);
     expect(normalizeSomatic(mockRecord({ Somatic_PDL1_CPS: 0 })).somaticPDL1CPS).toBe(0);
     expect(normalizeTreatmentStart(mockRecord({ Treatment_Cycle: 0 })).treatmentCycle).toBe(0);
-    expect(normalizeTreatmentChange(mockRecord({ Treatment_Change_Toxicity_Grade: 0 }))
-      .treatmentChangeToxicityGrade).toBe(0);
     expect(normalizeImagingResponse(mockRecord({ Imaging_Response_Target_Lesion_Change: 0 }))
       .imagingResponseTargetLesionChange).toBe(0);
   });

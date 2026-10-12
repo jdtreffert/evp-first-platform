@@ -12,20 +12,17 @@ testNormalizer(
     Event_Date: "2024-01-02",
     Treatment_Change_Type: "Dose reduction",
     Treatment_Change_Reason: "Toxicity",
-    Treatment_Change_New_Regimen: "Regimen B",
-    Treatment_Change_Toxicity_Grade: 2,
+    Treatment_Regimen_Details: "Reduce to 80%",
   },
   {
     eventSummary: "Treatment change: Dose reduction",
     treatmentChangeType: "Dose reduction",
     treatmentChangeReason: "Toxicity",
-    treatmentChangeNewRegimen: "Regimen B",
-    treatmentChangeToxicityGrade: 2,
+    treatmentRegimenDetails: "Reduce to 80%",
     eventDetails: {
       treatmentChangeType: "Dose reduction",
       treatmentChangeReason: "Toxicity",
-      treatmentChangeNewRegimen: "Regimen B",
-      treatmentChangeToxicityGrade: 2,
+      treatmentRegimenDetails: "Reduce to 80%",
     },
   },
 );

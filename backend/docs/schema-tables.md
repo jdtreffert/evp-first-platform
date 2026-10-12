@@ -54,7 +54,7 @@ event can be related to. Several values in one cell are separated by semicolons.
 | Diagnosis | Cystoscopy; Cystoscopy_Biopsy; Pathology; Imaging | Within 90 days either side | Derived_From |
 | Decision | Diagnosis | Within 90 days either side | Related_To |
 | Treatment_Start | Decision; Diagnosis | Within 90 days either side | Related_To |
-| Treatment_Delivery | Treatment_Start | On or before the event date | Related_To |
+| Treatment_Delivery | Treatment_Start; Treatment_Change | On or before the event date | Related_To |
 | ctDNA | Diagnosis; Treatment_Start; Treatment_Delivery; Treatment_Response; Recurrence; Progression | On or before the event date | Related_To |
 | Treatment_Change | Treatment_Start; Treatment_Change; Symptom; Treatment_Response | On or before the event date | Related_To |
 | Symptom | Diagnosis; Treatment_Start; Treatment_Change; Treatment_Delivery; Procedure | On or before the event date | Related_To |

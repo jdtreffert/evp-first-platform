@@ -45,7 +45,11 @@ export const relatedEventCandidates: Record<
   Decision: { eventTypes: ["Diagnosis"], withinDays: 90, relationship: "Related_To" },
   Treatment_Start: { eventTypes: ["Decision", "Diagnosis"], withinDays: 90, relationship: "Related_To" },
   // A delivery can follow its Treatment_Start by a year or more, so no date window is applied.
-  Treatment_Delivery: { eventTypes: ["Treatment_Start"], allPrecedingEvents: true, relationship: "Related_To" },
+  Treatment_Delivery: {
+    eventTypes: ["Treatment_Start", "Treatment_Change"],
+    allPrecedingEvents: true,
+    relationship: "Related_To",
+  },
   ctDNA: {
     eventTypes: ["Diagnosis", "Treatment_Start", "Treatment_Delivery", "Treatment_Response", "Recurrence", "Progression"],
     allPrecedingEvents: true,

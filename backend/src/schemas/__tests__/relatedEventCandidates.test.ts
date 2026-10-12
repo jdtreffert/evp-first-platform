@@ -25,7 +25,7 @@ describe("relatedEventCandidates", () => {
     expect(types("Diagnosis")).toEqual(["Cystoscopy", "Cystoscopy_Biopsy", "Imaging", "Pathology"]);
     expect(types("Decision")).toEqual(["Diagnosis"]);
     expect(types("Treatment_Start")).toEqual(["Decision", "Diagnosis"]);
-    expect(types("Treatment_Delivery")).toEqual(["Treatment_Start"]);
+    expect(types("Treatment_Delivery")).toEqual(["Treatment_Change", "Treatment_Start"]);
     expect(types("ctDNA")).toEqual(["Diagnosis", "Progression", "Recurrence", "Treatment_Delivery", "Treatment_Response", "Treatment_Start"]);
     expect(types("Treatment_Change")).toEqual(["Symptom", "Treatment_Change", "Treatment_Response", "Treatment_Start"]);
     expect(types("Symptom")).toEqual(["Diagnosis", "Procedure", "Treatment_Change", "Treatment_Delivery", "Treatment_Start"]);

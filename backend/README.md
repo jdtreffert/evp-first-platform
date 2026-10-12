@@ -109,6 +109,22 @@ on local disk under `EVP_DOCUMENT_DIR` (default `data/documents`, also git-ignor
 development storage only: real patient documents from other people need encrypted storage,
 backups, audit logging and malware scanning first.
 
+## Schema files
+
+The schema is maintained in Excel and exported as "Unicode Text". The files are kept in version control
+under [schema/](schema), so every change shows as a readable row-level diff in the history:
+
+- `schema/UnifiedEventsSchema.txt` is the Excel export, the source of truth for fields, types and options.
+  Replace it with each new export, then run `node scripts/generateFieldCatalog.mjs` to regenerate the
+  field catalog.
+- `schema/tables/` holds the generated tables (fields per event type, related-event rules, common
+  fields) for review in Excel. They come from the code; run `npm run schema:tables` after changing
+  [eventTypeFields.ts](src/schemas/eventTypeFields.ts). The same tables are written to
+  [docs/schema-tables.md](docs/schema-tables.md).
+
+Tests fail if the catalog drifts from the schema file or the generated tables are out of date. The
+files are UTF-16; `.gitattributes` stores them as text in the repository.
+
 ## Documentation
 
 - [Architecture](docs/architecture.md), including known limitations
@@ -116,6 +132,7 @@ backups, audit logging and malware scanning first.
 - [Normalizer registry](docs/normalizer-registry.md)
 - [API reference](docs/api.md)
 - [UnifiedEvent specification](src/schemas/UnifiedEventSpec.md)
+- [Schema tables](docs/schema-tables.md)
 
 ## Scripts
 

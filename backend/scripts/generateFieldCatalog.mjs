@@ -1,10 +1,11 @@
 // Regenerates src/schemas/eventFieldCatalog.ts from the UnifiedEventsSchema export
 // (Excel "Unicode Text", tab-delimited UTF-16 or UTF-8).
-// Usage: node scripts/generateFieldCatalog.mjs ~/Downloads/UnifiedEventsSchema.txt
+// Usage: node scripts/generateFieldCatalog.mjs [path to UnifiedEventsSchema.txt]
+// Without an argument it reads schema/UnifiedEventsSchema.txt, the version-controlled copy.
 import { readFileSync, writeFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 
-const input = process.argv[2];
-if (!input) throw new Error("Pass the path to UnifiedEventsSchema.txt");
+const input = process.argv[2] ?? fileURLToPath(new URL("../schema/UnifiedEventsSchema.txt", import.meta.url));
 
 const buffer = readFileSync(input);
 const text = buffer[0] === 0xff && buffer[1] === 0xfe ? buffer.toString("utf16le") : buffer.toString("utf8");

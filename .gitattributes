@@ -1,0 +1,2 @@
+# Schema exports are UTF-16 (Excel "Unicode Text"); store them as text so diffs show row changes.
+backend/schema/**/*.txt text working-tree-encoding=UTF-16LE-BOM eol=CRLF

@@ -1,0 +1,14 @@
+Event_Type	Candidate_Event_Types	Date_Rule	Default_Relationship
+Imaging	Imaging;Symptom;Pathology;Decision;Recurrence;Progression;Treatment_Response	On or up to 180 days before the event date	Related_To (Imaging: Follow_up_to)
+Imaging_Response	Imaging	On or up to 30 days before the event date	Derived_From
+Cystoscopy	Symptom;Imaging	Within 90 days either side	Related_To
+TURBT	Cystoscopy	Within 30 days either side	Related_To
+Pathology	TURBT;Cystoscopy_Biopsy	Within 30 days either side	Derived_From
+Diagnosis	Cystoscopy;Cystoscopy_Biopsy;Pathology;Imaging	Within 90 days either side	Derived_From
+Decision	Diagnosis	Within 90 days either side	Related_To
+Treatment_Start	Decision;Diagnosis	Within 90 days either side	Related_To
+Treatment_Delivery	Treatment_Start	On or before the event date	Related_To
+ctDNA	Diagnosis;Treatment_Start;Treatment_Delivery;Treatment_Response;Recurrence;Progression	On or before the event date	Related_To
+Treatment_Change	Treatment_Start;Treatment_Change;Symptom;Treatment_Response	On or before the event date	Related_To
+Symptom	Diagnosis;Treatment_Start;Treatment_Change;Treatment_Delivery;Procedure	On or before the event date	Related_To
+Procedure	Procedure;TURBT;Symptom;Imaging;Diagnosis;Treatment_Start;Treatment_Change	On or before the event date	Related_To

@@ -51,6 +51,11 @@ export const relatedEventCandidates: Record<
     allPrecedingEvents: true,
     relationship: "Related_To",
   },
+  Treatment_Change: {
+    eventTypes: ["Treatment_Start", "Treatment_Change", "Symptom", "Treatment_Response"],
+    allPrecedingEvents: true,
+    relationship: "Related_To",
+  },
   Symptom: {
     eventTypes: ["Diagnosis", "Treatment_Start", "Treatment_Change", "Treatment_Delivery", "Procedure"],
     allPrecedingEvents: true,

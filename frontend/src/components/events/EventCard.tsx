@@ -2,14 +2,19 @@ import { useState } from "react";
 import type { UnifiedEvent } from "../../../../backend/src/types/UnifiedEvents";
 import DocumentLink from "./DocumentLink";
 import EventHistory from "./EventHistory";
+import { encounterLabel } from "./encounterOptions";
+import type { Encounter } from "../../../../backend/src/types/Encounter";
 
 export default function EventCard({
   event,
   related,
+  encounter,
   onEdit,
 }: {
   event: UnifiedEvent;
   related?: UnifiedEvent;
+  /** The encounter this event links to, when it has been loaded. */
+  encounter?: Encounter;
   /** Present only when the signed-in user may edit this event. */
   onEdit?: () => void;
 }) {
@@ -55,6 +60,11 @@ export default function EventCard({
       {showHistory && <EventHistory event={event} />}
       {event.eventSource && <p className="mt-1 text-xs text-gray-400">Source: {event.eventSource}</p>}
 
+      {event.encounterUid && (
+        <p className="mt-1 text-xs text-gray-400">
+          Encounter: {encounter ? encounterLabel(encounter) : "unavailable"}
+        </p>
+      )}
       {related && (
         <p className="mt-1 text-xs text-gray-400">
           {(event.eventRelationship ?? "Related_To").replaceAll("_", " ")}: {related.eventType.replaceAll("_", " ")}

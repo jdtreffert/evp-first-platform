@@ -6,6 +6,15 @@ import type { FieldDefinition } from "../../../../backend/src/schemas/eventField
 import { ACCEPTED_DOCUMENT_TYPES, MAX_DOCUMENT_BYTES, uploadDocument } from "../../api/documents";
 import DocumentLink from "./DocumentLink";
 import { queryEventsInRange } from "../../api/events";
+import { listEncounters, saveEncounter } from "../../api/encounters";
+import type { Encounter } from "../../../../backend/src/types/Encounter";
+import {
+  NEW_ENCOUNTER,
+  buildEncounterRecord,
+  encounterLabel,
+  splitEncountersByDate,
+} from "./encounterOptions";
+import type { EncounterDraft } from "./encounterOptions";
 import { documentFields, eventTypeFields, measureFields, relatedEventCandidates, relationshipFields } from "../../../../backend/src/schemas/eventTypeFields";
 
 const eventTypeLabels: Record<string, string> = {
@@ -23,6 +32,9 @@ const fieldLabels: Record<string, string> = {
   Pathology_LVI: "Lymphovascular invasion (LVI)",
   TURBT_Surgeon_Notes: "Surgeon notes",
   Event_Related_UID: "Related event ID",
+  Encounter_Type: "Encounter type",
+  Encounter_Date: "Encounter date",
+  Encounter_Summary: "Encounter summary (optional)",
   Event_Relationship: "Relationship",
   Imaging_ComparisonToPrior: "Comparison to prior",
   Imaging_Response_Critera: "Response criteria",
@@ -173,6 +185,16 @@ export default function EventForm({
   const [values, setValues] = useState<Record<string, string | string[]>>(() => (initial ? valuesFromEvent(initial) : {}));
   const [file, setFile] = useState<File | null>(null);
   const uploaded = useRef<{ file: File; id: string } | null>(null);
+
+  // undefined while loading, null when the lookup failed (the event can still be saved without an encounter).
+  const [encounters, setEncounters] = useState<Encounter[] | null | undefined>(undefined);
+  // "" is no encounter, NEW_ENCOUNTER creates one with the event, anything else is an existing Encounter_UID.
+  const [encounterChoice, setEncounterChoice] = useState(initial?.encounterUid ?? "");
+  const [draft, setDraft] = useState<EncounterDraft>({ type: "", date: "", summary: "" });
+  const [eventDateEdited, setEventDateEdited] = useState(false);
+  const [draftUid] = useState(() => `enc-${crypto.randomUUID()}`);
+  // The draft last posted, so retrying after a failed event save does not store the encounter again.
+  const postedDraft = useRef<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fieldNames = eventTypeFields[eventType];
@@ -197,6 +219,26 @@ export default function EventForm({
     return () => { active = false; };
   }, [candidateKey, candidateRule, eventDate, masterId, initial?.uid]);
 
+  useEffect(() => {
+    let active = true;
+    listEncounters(masterId)
+      .then((result) => { if (active) setEncounters(result); })
+      .catch(() => { if (active) setEncounters(null); });
+    return () => { active = false; };
+  }, [masterId]);
+
+  const chooseEncounter = (choice: string) => {
+    setEncounterChoice(choice);
+    if (choice === NEW_ENCOUNTER) {
+      setDraft((previous) => ({ ...previous, date: previous.date || eventDate }));
+      return;
+    }
+    // A new event starts on its encounter's date unless the date was already changed; it is only a
+    // convenience, the two dates stay independent and an edit never changes the event date.
+    const chosen = encounters?.find((encounter) => encounter.uid === choice);
+    if (chosen && !initial && !eventDateEdited) setEventDate(chosen.encounterDate.slice(0, 10));
+  };
+
   const changeType = (type: string) => {
     setEventType(type);
     setValues({});
@@ -214,6 +256,10 @@ export default function EventForm({
     }
     if (!fieldNames.some((name) => isFilled(values[name]))) {
       setError("Enter at least one event detail before saving.");
+      return;
+    }
+    if (encounterChoice === NEW_ENCOUNTER && draft.date === "") {
+      setError("Enter the encounter date, or choose None for the encounter.");
       return;
     }
 
@@ -241,6 +287,27 @@ export default function EventForm({
 
     setSaving(true);
     try {
+      // The encounter is created only now, so cancelling the form never leaves an unused encounter behind.
+      let encounterUid = encounterChoice === NEW_ENCOUNTER ? draftUid : encounterChoice;
+      if (encounterChoice === NEW_ENCOUNTER) {
+        const record = buildEncounterRecord(draftUid, masterId, draft);
+        const key = JSON.stringify(record);
+        if (postedDraft.current !== key) {
+          try {
+            await saveEncounter(record);
+          } catch (encounterError) {
+            throw new Error(`The encounter could not be saved: ${
+              encounterError instanceof Error ? encounterError.message : "unknown error"
+            }`, { cause: encounterError });
+          }
+          postedDraft.current = key;
+        }
+        encounterUid = draftUid;
+      }
+      // Removed first so that choosing None on an edit clears an existing link.
+      delete fields.Encounter_UID;
+      if (encounterUid) fields.Encounter_UID = encounterUid;
+
       if (file) {
         // Reuse the upload when the user retries after a failed save, so the file is not stored twice.
         if (uploaded.current?.file !== file) {
@@ -255,6 +322,15 @@ export default function EventForm({
       setSaving(false);
     }
   };
+
+  const pickerGroups = splitEncountersByDate(encounters ?? [], eventDate);
+  const draftDateMatches = splitEncountersByDate(encounters ?? [], draft.date).sameDate;
+  // An existing link stays selectable even when its encounter was not loaded.
+  const linkedUid = initial?.encounterUid ?? "";
+  const linkedMissing = linkedUid !== "" && !(encounters ?? []).some((encounter) => encounter.uid === linkedUid);
+  const encounterOption = (encounter: Encounter) => (
+    <option key={encounter.uid} value={encounter.uid}>{encounterLabel(encounter)}</option>
+  );
 
   return (
     <form onSubmit={(event) => void handleSubmit(event)} className="space-y-5 rounded-lg border border-gray-700 bg-gray-900 p-5">
@@ -272,7 +348,7 @@ export default function EventForm({
 
       <label className="block text-sm">
         Event date
-        <input type="date" required className={inputClass} value={eventDate} onChange={(event) => setEventDate(event.target.value)} />
+        <input type="date" required className={inputClass} value={eventDate} onChange={(event) => { setEventDate(event.target.value); setEventDateEdited(true); }} />
       </label>
 
       <label className="block text-sm">
@@ -294,6 +370,62 @@ export default function EventForm({
           onChange={(value) => setValues((previous) => ({ ...previous, [name]: value }))}
         />
       ))}
+
+      <details className="rounded border border-gray-700 p-3" open={linkedUid !== ""}>
+        <summary className="cursor-pointer text-sm text-gray-300">Encounter (optional)</summary>
+        <div className="mt-3 space-y-5">
+          {encounters === undefined && <p className="text-sm text-gray-400">Looking for encounters…</p>}
+          {encounters === null && (
+            <p className="text-sm text-rose-300">Unable to load encounters. You can still save the event without one.</p>
+          )}
+          <label className="block text-sm">
+            Healthcare encounter this event is part of
+            <select className={inputClass} value={encounterChoice} onChange={(event) => chooseEncounter(event.target.value)}>
+              <option value="">None</option>
+              {linkedMissing && <option value={linkedUid}>Linked encounter</option>}
+              {pickerGroups.sameDate.length > 0 ? (
+                <>
+                  <optgroup label="On this event's date">{pickerGroups.sameDate.map(encounterOption)}</optgroup>
+                  {pickerGroups.other.length > 0 && (
+                    <optgroup label="Other encounters">{pickerGroups.other.map(encounterOption)}</optgroup>
+                  )}
+                </>
+              ) : (
+                pickerGroups.other.map(encounterOption)
+              )}
+              <option value={NEW_ENCOUNTER}>New encounter…</option>
+            </select>
+          </label>
+          {encounterChoice === NEW_ENCOUNTER && (
+            <div className="space-y-5 rounded border border-gray-700 p-3">
+              <FieldInput
+                field={eventFieldCatalog.Encounter_Type}
+                value={draft.type}
+                onChange={(value) => setDraft((previous) => ({ ...previous, type: String(value) }))}
+              />
+              <FieldInput
+                field={eventFieldCatalog.Encounter_Date}
+                value={draft.date}
+                onChange={(value) => setDraft((previous) => ({ ...previous, date: String(value) }))}
+              />
+              <FieldInput
+                field={eventFieldCatalog.Encounter_Summary}
+                value={draft.summary}
+                onChange={(value) => setDraft((previous) => ({ ...previous, summary: String(value) }))}
+              />
+              {draftDateMatches.length > 0 && (
+                <p className="text-sm text-amber-200">
+                  {draftDateMatches.length === 1 ? "An encounter already exists" : "Encounters already exist"} on this
+                  date ({draftDateMatches.map(encounterLabel).join("; ")}). Choose it above unless this is a separate visit.
+                </p>
+              )}
+              <p className="text-xs text-gray-400">
+                The encounter is saved together with this event. Its date is independent of the event date.
+              </p>
+            </div>
+          )}
+        </div>
+      </details>
 
       <details className="rounded border border-gray-700 p-3">
         <summary className="cursor-pointer text-sm text-gray-300">Linked document (optional)</summary>

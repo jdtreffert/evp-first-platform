@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import type { UnifiedEvent } from "../../../../backend/src/types/UnifiedEvents";
+import type { Encounter } from "../../../../backend/src/types/Encounter";
+import { listEncounters } from "../../api/encounters";
 import { ingestEvent, queryEvents } from "../../api/events";
 import { useAuth } from "../../auth/useAuth";
 import EventCard from "../../components/events/EventCard";
@@ -14,6 +16,7 @@ export default function JourneyTimeline() {
   const [activeMasterId, setActiveMasterId] = useState(isPatient ? user?.masterId ?? "" : "");
   const [queryVersion, setQueryVersion] = useState(0);
   const [events, setEvents] = useState<UnifiedEvent[]>([]);
+  const [encounters, setEncounters] = useState<Encounter[]>([]);
   const [totalEvents, setTotalEvents] = useState(0);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -27,10 +30,15 @@ export default function JourneyTimeline() {
       setLoading(true);
       setError(null);
       try {
-        const result = await queryEvents(activeMasterId);
+        // A failure to load encounters must not hide the timeline; their cards simply say "unavailable".
+        const [result, patientEncounters] = await Promise.all([
+          queryEvents(activeMasterId),
+          listEncounters(activeMasterId).catch(() => [] as Encounter[]),
+        ]);
         if (active) {
           setEvents(result.events);
           setTotalEvents(result.total);
+          setEncounters(patientEncounters);
         }
       } catch (loadError) {
         if (active) setError(loadError instanceof Error ? loadError.message : "Unable to load events.");
@@ -48,6 +56,7 @@ export default function JourneyTimeline() {
     event.preventDefault();
     setError(null);
     setEvents([]);
+    setEncounters([]);
     setTotalEvents(0);
     setLoading(true);
     setActiveMasterId(searchMasterId.trim());
@@ -76,9 +85,13 @@ export default function JourneyTimeline() {
     setShowForm(false);
     setEditing(null);
     try {
-      const result = await queryEvents(activeMasterId);
+      const [result, patientEncounters] = await Promise.all([
+        queryEvents(activeMasterId),
+        listEncounters(activeMasterId).catch(() => encounters),
+      ]);
       setEvents(result.events);
       setTotalEvents(result.total);
+      setEncounters(patientEncounters);
       setError(null);
     } catch (refreshError) {
       setError(`Event saved, but the timeline could not refresh: ${
@@ -165,6 +178,7 @@ export default function JourneyTimeline() {
                 key={event.uid}
                 event={event}
                 onEdit={canWrite ? () => setEditing(event) : undefined}
+                encounter={event.encounterUid ? encounters.find((candidate) => candidate.uid === event.encounterUid) : undefined}
                 related={event.relatedEventUid ? events.find((other) => other.uid === event.relatedEventUid) : undefined}
               />
             ))}

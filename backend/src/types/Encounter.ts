@@ -1,4 +1,4 @@
-import { RawEventRecord } from "./UnifiedEvents";
+import type { RawEventRecord } from "./UnifiedEvents";
 
 /**
  * A healthcare interaction that one or more UnifiedEvents arose from or were recorded in. It is a grouping

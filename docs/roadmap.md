@@ -16,10 +16,11 @@ Design intent is in [journey-design.md](journey-design.md).
 
 ## Encounters
 
-Backend entity and the optional event link are done. Remaining increments, in order:
+Backend entity, the optional event link, and the event form's Encounter section (pick an encounter, or create
+one together with the event, with same-date hints) are done. Remaining increments, in order:
 
-1. Event form: an optional Encounter section (pick or create), add an event from inside an encounter, and
-   same-date suggestions that are shown but never stored.
+1. Editing an encounter (type, date, summary) from the timeline, and grouping existing events into an
+   encounter, with same-date events suggested but never linked automatically.
 2. Documents on encounters, including an "attach an existing document" picker so a visit summary is attached
    once to the encounter and the documents already attached to events can be reused.
 3. Journey grouping by encounter in the view model and renderer.

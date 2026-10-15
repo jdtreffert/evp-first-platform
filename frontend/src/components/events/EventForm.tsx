@@ -15,6 +15,7 @@ import {
   splitEncountersByDate,
 } from "./encounterOptions";
 import type { EncounterDraft } from "./encounterOptions";
+import { getLocalDate, shiftDate } from "./dates";
 import { documentFields, eventTypeFields, measureFields, relatedEventCandidates, relationshipFields } from "../../../../backend/src/schemas/eventTypeFields";
 
 const eventTypeLabels: Record<string, string> = {
@@ -68,19 +69,6 @@ function labelFor(name: string): string {
 
 function typeLabel(type: string): string {
   return eventTypeLabels[type] ?? type.replaceAll("_", " ");
-}
-
-function getLocalDate(): string {
-  const today = new Date();
-  const month = String(today.getMonth() + 1).padStart(2, "0");
-  const day = String(today.getDate()).padStart(2, "0");
-  return `${today.getFullYear()}-${month}-${day}`;
-}
-
-function shiftDate(date: string, days: number): string {
-  const shifted = new Date(`${date}T00:00:00Z`);
-  shifted.setUTCDate(shifted.getUTCDate() + days);
-  return shifted.toISOString().slice(0, 10);
 }
 
 /** Form values for a stored event, read from the raw record it was created from. */

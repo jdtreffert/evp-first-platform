@@ -7,6 +7,8 @@ import { ingestEvent, queryEvents } from "../../api/events";
 import { useAuth } from "../../auth/useAuth";
 import EventCard from "../../components/events/EventCard";
 import EventForm from "../../components/events/EventForm";
+import EncounterForm from "../../components/events/EncounterForm";
+import { encounterLabel } from "../../components/events/encounterOptions";
 
 export default function JourneyTimeline() {
   const { user } = useAuth();
@@ -79,11 +81,11 @@ export default function JourneyTimeline() {
   };
 
   const [editing, setEditing] = useState<UnifiedEvent | null>(null);
+  // null when closed; an empty object when creating a new encounter, or the encounter being edited.
+  const [encounterEditor, setEncounterEditor] = useState<{ encounter?: Encounter } | null>(null);
+  const noFormOpen = !showForm && !editing && !encounterEditor;
 
-  const handleSave = async (record: Parameters<typeof ingestEvent>[0]) => {
-    await ingestEvent(record);
-    setShowForm(false);
-    setEditing(null);
+  const refresh = async (saved: string) => {
     try {
       const [result, patientEncounters] = await Promise.all([
         queryEvents(activeMasterId),
@@ -94,10 +96,17 @@ export default function JourneyTimeline() {
       setEncounters(patientEncounters);
       setError(null);
     } catch (refreshError) {
-      setError(`Event saved, but the timeline could not refresh: ${
+      setError(`${saved} saved, but the timeline could not refresh: ${
         refreshError instanceof Error ? refreshError.message : "unknown error"
       }`);
     }
+  };
+
+  const handleSave = async (record: Parameters<typeof ingestEvent>[0]) => {
+    await ingestEvent(record);
+    setShowForm(false);
+    setEditing(null);
+    await refresh("Event");
   };
 
   return (
@@ -109,14 +118,23 @@ export default function JourneyTimeline() {
             Events are stored as validated UnifiedEvents and scoped to one patient record.
           </p>
         </div>
-        {canWrite && activeMasterId && !showForm && !editing && (
-          <button
-            type="button"
-            className="rounded bg-blue-600 px-4 py-2 font-medium hover:bg-blue-500"
-            onClick={() => setShowForm(true)}
-          >
-            Add event
-          </button>
+        {canWrite && activeMasterId && noFormOpen && (
+          <div className="flex gap-3">
+            <button
+              type="button"
+              className="rounded bg-blue-600 px-4 py-2 font-medium hover:bg-blue-500"
+              onClick={() => setShowForm(true)}
+            >
+              Add event
+            </button>
+            <button
+              type="button"
+              className="rounded border border-gray-600 px-4 py-2 font-medium text-gray-100 hover:bg-gray-800"
+              onClick={() => setEncounterEditor({})}
+            >
+              New encounter
+            </button>
+          </div>
         )}
       </div>
 
@@ -164,7 +182,35 @@ export default function JourneyTimeline() {
         />
       )}
 
-      {activeMasterId && !showForm && !editing && (
+      {encounterEditor && activeMasterId && (
+        <EncounterForm
+          key={encounterEditor.encounter?.uid ?? "new"}
+          masterId={activeMasterId}
+          initial={encounterEditor.encounter}
+          onChanged={() => refresh("Encounter")}
+          onClose={() => setEncounterEditor(null)}
+        />
+      )}
+
+      {activeMasterId && noFormOpen && encounters.length > 0 && (
+        <details className="rounded border border-gray-700 bg-gray-800 p-3">
+          <summary className="cursor-pointer text-sm text-gray-300">Encounters ({encounters.length})</summary>
+          <ul className="mt-3 space-y-2 text-sm text-gray-200">
+            {encounters.map((encounter) => (
+              <li key={encounter.uid} className="flex flex-wrap items-center justify-between gap-3">
+                <span>{encounterLabel(encounter)}</span>
+                {canWrite && (
+                  <button type="button" className="text-blue-300 underline" onClick={() => setEncounterEditor({ encounter })}>
+                    Edit
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+
+      {activeMasterId && noFormOpen && (
         loading ? (
           <p aria-live="polite" className="text-gray-300">Loading timeline…</p>
         ) : events.length === 0 ? (
@@ -178,6 +224,10 @@ export default function JourneyTimeline() {
                 key={event.uid}
                 event={event}
                 onEdit={canWrite ? () => setEditing(event) : undefined}
+                onEditEncounter={canWrite ? () => {
+                  const linked = encounters.find((candidate) => candidate.uid === event.encounterUid);
+                  if (linked) setEncounterEditor({ encounter: linked });
+                } : undefined}
                 encounter={event.encounterUid ? encounters.find((candidate) => candidate.uid === event.encounterUid) : undefined}
                 related={event.relatedEventUid ? events.find((other) => other.uid === event.relatedEventUid) : undefined}
               />

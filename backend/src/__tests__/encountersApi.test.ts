@@ -184,6 +184,38 @@ describe("encounters API (HTTP)", () => {
       expect(res.total).toBe(2);
     });
 
+    test("re-saving an event from its stored record only adds or removes the link", async () => {
+      await saveEncounter(admin, { Encounter_UID: "E1", Master_ID: "M1" });
+      await saveEvent(patient1, { Event_UID: "L1" });
+      await post(patient1, "/events/ingest", {
+        id: "I1",
+        fields: {
+          Event_Type: "Imaging", Event_UID: "I1", Master_ID: "M1", Event_Date: "2026-03-01", Imaging_Modality: "CT",
+          Imaging_Region: "Whole Body", Imaging_Result: "Stable", Event_Measure_Type: "Tumor size", Numeric_Value: 12,
+          Numeric_Units: "mm", Event_Related_UID: "L1", Event_Relationship: "Related_To",
+        },
+      });
+      const original = await (await get(patient1, "/events/I1")).json();
+
+      // The same steps the grouping editor takes: start from the stored record, set Encounter_UID.
+      const link = { id: original.uid, fields: { ...original.payload.fields, Encounter_UID: "E1" } };
+      expect((await post(patient1, "/events/ingest", link)).status).toBe(200);
+      const linked = await (await get(patient1, "/events/I1")).json();
+      expect(linked.encounterUid).toBe("E1");
+
+      const unlink = { id: linked.uid, fields: { ...linked.payload.fields } };
+      delete unlink.fields.Encounter_UID;
+      expect((await post(patient1, "/events/ingest", unlink)).status).toBe(200);
+      const unlinked = await (await get(patient1, "/events/I1")).json();
+
+      const strip = ({ encounterUid: _e, lastModifiedAt: _a, lastModifiedByRole: _r, payload: _p, ...rest }: Record<string, unknown>) => rest;
+      expect(strip(linked)).toEqual(strip(original));
+      expect(strip(unlinked)).toEqual(strip(original));
+      expect(unlinked.encounterUid).toBeNull();
+      expect(unlinked.recordedAt).toBe(original.recordedAt);
+      expect((await (await get(patient1, "/events/I1/history")).json()).versions).toHaveLength(2);
+    });
+
     test("the encounter date and an event's own date stay independent", async () => {
       await saveEncounter(admin, { Encounter_UID: "E1", Master_ID: "M1", Encounter_Date: "2026-03-04" });
       const event = await (await saveEvent(patient1, { Event_UID: "N1", Event_Date: "2026-03-01", Encounter_UID: "E1" })).json();

@@ -9,12 +9,15 @@ export default function EventCard({
   event,
   related,
   encounter,
+  onEditEncounter,
   onEdit,
 }: {
   event: UnifiedEvent;
   related?: UnifiedEvent;
   /** The encounter this event links to, when it has been loaded. */
   encounter?: Encounter;
+  /** Present only when the signed-in user may edit encounters. */
+  onEditEncounter?: () => void;
   /** Present only when the signed-in user may edit this event. */
   onEdit?: () => void;
 }) {
@@ -62,7 +65,12 @@ export default function EventCard({
 
       {event.encounterUid && (
         <p className="mt-1 text-xs text-gray-400">
-          Encounter: {encounter ? encounterLabel(encounter) : "unavailable"}
+          Encounter: {encounter ? encounterLabel(encounter) : "unavailable"}{" "}
+          {encounter && onEditEncounter && (
+            <button type="button" className="text-blue-300 underline" onClick={onEditEncounter}>
+              Edit encounter
+            </button>
+          )}
         </p>
       )}
       {related && (

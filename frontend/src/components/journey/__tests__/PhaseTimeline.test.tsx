@@ -19,7 +19,7 @@ const events = [
   event("symptom", "Symptom", "2026-02-01"),
   event("scan", "Imaging", "2026-04-05", "clinic"),
   event("diagnosis", "Diagnosis", "2026-04-10", "clinic"),
-  event("recurrence", "Recurrence", "2026-04-01"),
+  event("unknown", "Some_New_Type", "2026-04-01"),
 ];
 
 function render(selection: PhaseSelection = null): string {

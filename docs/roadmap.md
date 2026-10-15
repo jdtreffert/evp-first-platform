@@ -11,7 +11,8 @@ Design intent is in [journey-design.md](journey-design.md).
 4. Implement the interactive Diagnosis timeline. (First version done as the Diagnosis tab: view model, layout
    and renderer; to be refined against the reference journey.)
 5. Refine the design against the reference patient journey.
-6. Extend the proven architecture to Treatment.
+6. Extend the proven architecture to Treatment. (First version done as the Treatment tab; to be refined
+   against the reference journey.)
 7. Extend it to Surveillance.
 8. Build the comprehensive Summary view.
 

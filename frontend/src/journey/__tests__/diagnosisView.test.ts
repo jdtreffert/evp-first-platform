@@ -75,10 +75,17 @@ describe("buildDiagnosisView", () => {
   });
 
   it("draws events with no assigned lane in the Other lane, last", () => {
-    const view = buildDiagnosisView([...journey, event("recurrence", "Recurrence", "2026-04-01")], [])!;
+    const view = buildDiagnosisView([...journey, event("unknown", "Some_New_Type", "2026-04-01")], [])!;
 
     expect(view.lanes[view.lanes.length - 1].lane.id).toBe("other");
-    expect(laneShape(view).Other).toEqual(["recurrence"]);
+    expect(laneShape(view).Other).toEqual(["unknown"]);
+  });
+
+  it("draws a Recurrence or Progression before the Diagnosis in the Response & Disease Status lane", () => {
+    const view = buildDiagnosisView([...journey, event("recurrence", "Recurrence", "2026-04-01")], [])!;
+
+    expect(laneShape(view)["Response & Disease Status"]).toEqual(["recurrence"]);
+    expect(view.lanes.some((lane) => lane.lane.id === "other")).toBe(false);
   });
 
   it("keeps undated events out of the lanes and reports them", () => {

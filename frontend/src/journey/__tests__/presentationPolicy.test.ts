@@ -14,6 +14,8 @@ const registeredTypes = Object.keys(eventTypeFields);
 
 describe("lane assignment", () => {
   const expected: Record<string, string[]> = {
+    Treatment: ["Treatment_Start", "Treatment_Delivery", "Treatment_Change"],
+    "Response & Disease Status": ["Treatment_Response", "Recurrence", "Progression"],
     "Symptoms & Experience": ["Symptom", "QoL"],
     Investigations: ["Lab", "Imaging", "Imaging_Response", "Cytology", "Cystoscopy", "ctDNA", "utDNA"],
     Procedures: ["TURBT", "Cystoscopy_Biopsy", "Procedure"],
@@ -44,12 +46,17 @@ describe("lane assignment", () => {
     expect(unassigned.filter((type) => !registeredTypes.includes(type))).toEqual([]);
   });
 
-  it("leaves the treatment, recurrence and progression types unassigned", () => {
-    expect([...UNASSIGNED_EVENT_TYPES].sort()).toEqual(
-      ["Progression", "Recurrence", "Treatment_Change", "Treatment_Delivery", "Treatment_Response", "Treatment_Start"],
-    );
-    for (const type of UNASSIGNED_EVENT_TYPES) {
-      expect(presentationFor(type)).toMatchObject({ lane: OTHER_LANE, assigned: false });
+  it("gives every registered event type a lane, so the unassigned list is empty", () => {
+    expect([...UNASSIGNED_EVENT_TYPES]).toEqual([]);
+    for (const type of registeredTypes) expect(presentationFor(type).assigned).toBe(true);
+  });
+
+  it("places the treatment types in the Treatment lane and the response and disease status types together", () => {
+    for (const type of ["Treatment_Start", "Treatment_Delivery", "Treatment_Change"]) {
+      expect(presentationFor(type).lane.id).toBe("treatment");
+    }
+    for (const type of ["Treatment_Response", "Recurrence", "Progression"]) {
+      expect(presentationFor(type).lane.id).toBe("response-disease-status");
     }
   });
 
@@ -76,8 +83,16 @@ describe("unknown event types", () => {
 });
 
 describe("milestones", () => {
-  it("marks the Diagnosis event type as a milestone and no other", () => {
-    expect(registeredTypes.filter((type) => presentationFor(type).milestone)).toEqual(["Diagnosis"]);
+  it("marks the event types where evidence becomes a conclusion or decision, and no other", () => {
+    expect(registeredTypes.filter((type) => presentationFor(type).milestone).sort()).toEqual(
+      ["Diagnosis", "Progression", "Recurrence", "Treatment_Change", "Treatment_Response", "Treatment_Start"],
+    );
+  });
+
+  it("does not mark routine events such as deliveries, imaging or labs", () => {
+    for (const type of ["Treatment_Delivery", "Imaging", "Lab", "Symptom", "Note", "Decision"]) {
+      expect(presentationFor(type).milestone).toBe(false);
+    }
   });
 });
 
@@ -110,7 +125,7 @@ describe("lanesFor", () => {
   });
 
   it("adds the Other lane last, only when something needs it", () => {
-    expect(lanesFor(["Treatment_Start", "Symptom"]).map((lane) => lane.id)).toEqual(["symptoms-experience", "other"]);
+    expect(lanesFor(["Some_New_Type", "Symptom"]).map((lane) => lane.id)).toEqual(["symptoms-experience", "other"]);
     expect(lanesFor(["Symptom"]).map((lane) => lane.id)).toEqual(["symptoms-experience"]);
   });
 

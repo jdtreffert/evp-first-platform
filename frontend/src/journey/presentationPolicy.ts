@@ -17,6 +17,8 @@ export interface Lane {
 
 /** The thematic lanes, in the order they are drawn. */
 export const LANES = [
+  { id: "treatment", label: "Treatment", color: "#f87171" },
+  { id: "response-disease-status", label: "Response & Disease Status", color: "#a3e635" },
   { id: "symptoms-experience", label: "Symptoms & Experience", color: "#fbbf24" },
   { id: "investigations", label: "Investigations", color: "#38bdf8" },
   { id: "procedures", label: "Procedures", color: "#a78bfa" },
@@ -37,6 +39,12 @@ export const ENCOUNTER_COLOR = "#e5e7eb";
 export const OTHER_LANE: Lane = { id: "other", label: "Other", color: "#9ca3af" };
 
 const laneIdByEventType: Record<string, LaneId> = {
+  Treatment_Start: "treatment",
+  Treatment_Delivery: "treatment",
+  Treatment_Change: "treatment",
+  Treatment_Response: "response-disease-status",
+  Recurrence: "response-disease-status",
+  Progression: "response-disease-status",
   Symptom: "symptoms-experience",
   QoL: "symptoms-experience",
   Lab: "investigations",
@@ -58,20 +66,24 @@ const laneIdByEventType: Record<string, LaneId> = {
 };
 
 /**
- * Event types deliberately left without a lane for now, to be placed once the Treatment and Surveillance
- * views show where they belong. They are drawn in the Other lane until then.
+ * Event types deliberately left without a lane for now, until a view shows where they belong. They are drawn
+ * in the Other lane meanwhile. It is empty today: every registered event type has a lane.
  */
-export const UNASSIGNED_EVENT_TYPES = [
+export const UNASSIGNED_EVENT_TYPES: readonly string[] = [];
+
+/**
+ * Event types drawn as a distinctive milestone rather than an ordinary event: the points where evidence from
+ * other events is turned into a conclusion or a decision. Keyed by event type, so every Treatment_Change is a
+ * milestone, including the one that records that treatment is completed.
+ */
+const milestoneEventTypes = new Set<string>([
+  "Diagnosis",
   "Treatment_Start",
-  "Treatment_Delivery",
   "Treatment_Change",
   "Treatment_Response",
   "Recurrence",
   "Progression",
-] as const;
-
-/** Event types drawn as a distinctive milestone rather than an ordinary event. */
-const milestoneEventTypes = new Set<string>(["Diagnosis"]);
+]);
 
 const eventTypeLabels: Record<string, string> = {
   QoL: "Quality of life",

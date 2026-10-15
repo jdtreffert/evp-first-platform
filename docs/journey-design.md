@@ -81,19 +81,44 @@ given a lane or listed as unassigned). Lanes are drawn in this order, and only t
 
 | Lane | Event types |
 |------|-------------|
+| Treatment | Treatment_Start, Treatment_Delivery, Treatment_Change |
+| Response & Disease Status | Treatment_Response, Recurrence, Progression |
 | Symptoms & Experience | Symptom, QoL |
-| Investigations | Lab, Imaging, Imaging_Response, Cytology, Cystoscopy, ctDNA, utDNA |
+| Investigations | Lab, Imaging, Imaging_Response, Cystoscopy, Cytology, ctDNA, utDNA |
 | Procedures | TURBT, Cystoscopy_Biopsy, Procedure |
 | Pathology & Molecular | Pathology, Somatic, Germline |
 | Context & Self-Management | Note |
 | Decisions & Milestones | Diagnosis, Decision |
 
-Treatment_Start, Treatment_Delivery, Treatment_Change, Treatment_Response, Recurrence and Progression are
-deliberately unassigned for now. Unassigned and unknown event types are drawn in an "Other" lane, after the
-assigned lanes and only when it has events, so nothing silently disappears. A lane is chosen by event type,
-never by attribute values. The Diagnosis event type is drawn as a milestone. The policy also owns the display
-name of each event type (for example "Lab work"). Icons, colors and sizes are not defined yet; they come with
-the renderer.
+Every registered event type now has a lane. Unknown or newly added types are drawn in an "Other" lane, after
+the assigned lanes and only when it has events, so nothing silently disappears. A lane is chosen by event
+type, never by attribute values.
+
+**Milestones** are drawn as diamonds: Diagnosis, Treatment_Start, Treatment_Change, Treatment_Response,
+Recurrence and Progression. They are the points where evidence from other events becomes a decision or a
+conclusion. Because the choice is by event type, every Treatment_Change is a milestone, including the one that
+records that treatment is completed. Deliveries, imaging, labs and the like are ordinary markers. The policy
+also owns the display name of each event type (for example "Lab work") and the lane colors.
+
+## Treatment phase selection and view
+
+Implemented in `frontend/src/journey/treatmentPhase.ts` (`selectTreatmentPhase`) and
+`frontend/src/journey/treatmentView.ts` (`buildTreatmentView`), both tested, with a Treatment tab in My Journey.
+The scope is one treatment course per journey: a later course after progression would be a new journey.
+
+- **Membership:** every `Treatment_` event, whatever its date (the Diagnosis phase leaves them out), plus every
+  other event dated after the Diagnosis date, up to the end of treatment. The Diagnosis is the one the
+  Diagnosis view uses. With no Diagnosis recorded, the phase starts at the first treatment event.
+- **End:** recorded, never inferred. Treatment ends when the latest Treatment_Change of type "Treatment
+  completed" is not followed by a start, delivery or other change dated after it. Without that, treatment is
+  ongoing and the phase is open-ended. A delivery on the same day as the completion does not re-open it.
+- **Response belongs to the course:** Treatment_Response events stay in the Treatment phase, even when dated
+  after the completion. Other events after the completion belong to Surveillance, which is not built yet.
+- **Partition:** the Diagnosis and Treatment phases never share an event, and between them hold every dated
+  event up to the end of treatment (a test checks this). Undated events are reported, never placed.
+- **View:** `buildTreatmentView` reports the Diagnosis it follows, the completion that ends it (or ongoing), the
+  lanes and the encounter connectors, using the same composition, layout and timeline as the Diagnosis view.
+  An infusion visit shows as a line joining its delivery, lab and ctDNA across lanes.
 
 ## Diagnosis view model
 
@@ -176,11 +201,19 @@ model; the "count of members outside the phase" belongs there and is not built y
 
 ## Open decisions
 
-- Where Treatment_Start, Treatment_Delivery, Treatment_Change, Treatment_Response, Recurrence and Progression
-  belong, to be settled with the Treatment and Surveillance views (see "Diagnosis phase selection" for how the
-  Diagnosis view treats them).
 - Whether Imaging_Response, ctDNA and utDNA stay in Investigations (ctDNA and utDNA could move to Pathology &
   Molecular), and whether the lane names fit every phase. To be settled by looking at real journeys in the
   rendered views; the choice matters most for the Surveillance view, where serial ctDNA is common.
+- Dense repeated events, such as daily radiation fractions, would stack into many rows. If real data needs it,
+  collapse them into one expandable marker (for example "Treatment Delivery ×30"); not built.
+- Linking the evidence behind a milestone (the scans and tests behind a response, a change or a progression) to
+  the milestone with `Event_Related_UID` and `Assessed_By`, so the renderer can draw them. Deferred until after
+  user testing and advisor input, as before. Without links nothing is drawn or inferred.
+- Analytics will want duration of response and progression-free survival. Duration of response needs the
+  response onset date from Treatment_Response. Progression-free survival needs an endpoint for patients without
+  progression, such as a last assessment date or death, and the schema has no event for either. To be decided
+  when analytics is designed; analytics must also follow the cohort and suppression rules.
+- How a second treatment course is represented as a new journey, since a journey is currently one patient
+  record (`Master_ID`). Out of scope for now.
 - Whether the Journey views replace or sit beside the existing onboarding flow in
   `frontend/src/pages/journey/onboarding/`, which keeps its own page state and does not write events.

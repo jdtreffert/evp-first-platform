@@ -11,25 +11,30 @@
 export interface Lane {
   readonly id: string;
   readonly label: string;
+  /** The lane's display color (a hex value suited to a dark background). */
+  readonly color: string;
 }
 
 /** The thematic lanes, in the order they are drawn. */
 export const LANES = [
-  { id: "symptoms-experience", label: "Symptoms & Experience" },
-  { id: "investigations", label: "Investigations" },
-  { id: "procedures", label: "Procedures" },
-  { id: "pathology-molecular", label: "Pathology & Molecular" },
-  { id: "context-self-management", label: "Context & Self-Management" },
-  { id: "decisions-milestones", label: "Decisions & Milestones" },
+  { id: "symptoms-experience", label: "Symptoms & Experience", color: "#fbbf24" },
+  { id: "investigations", label: "Investigations", color: "#38bdf8" },
+  { id: "procedures", label: "Procedures", color: "#a78bfa" },
+  { id: "pathology-molecular", label: "Pathology & Molecular", color: "#34d399" },
+  { id: "context-self-management", label: "Context & Self-Management", color: "#94a3b8" },
+  { id: "decisions-milestones", label: "Decisions & Milestones", color: "#f472b6" },
 ] as const;
 
 export type LaneId = (typeof LANES)[number]["id"];
+
+/** The color of the line joining the events of one encounter. It is not a lane color. */
+export const ENCOUNTER_COLOR = "#e5e7eb";
 
 /**
  * Where events with no assigned lane are drawn, so that nothing silently disappears. It is drawn after the
  * assigned lanes and only when it has events.
  */
-export const OTHER_LANE: Lane = { id: "other", label: "Other" };
+export const OTHER_LANE: Lane = { id: "other", label: "Other", color: "#9ca3af" };
 
 const laneIdByEventType: Record<string, LaneId> = {
   Symptom: "symptoms-experience",

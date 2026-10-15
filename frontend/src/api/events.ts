@@ -20,6 +20,20 @@ export async function queryEventsInRange(masterId: string, eventType: string, fr
   return (await requestJson<EventQueryResult>(`/events/query?${query.toString()}`)).events;
 }
 
+/** Every event of a patient, oldest first, read a page at a time. */
+export async function queryAllEvents(masterId: string): Promise<UnifiedEvent[]> {
+  const pageSize = 500;
+  const all: UnifiedEvent[] = [];
+  // The bound only guards against a server that never reports the end.
+  for (let offset = 0; offset < 100 * pageSize; offset += pageSize) {
+    const query = new URLSearchParams({ masterId, order: "asc", limit: String(pageSize), offset: String(offset) });
+    const page = await requestJson<EventQueryResult>(`/events/query?${query.toString()}`);
+    all.push(...page.events);
+    if (page.events.length === 0 || all.length >= page.total) break;
+  }
+  return all;
+}
+
 /** A patient's events between two dates, inclusive, oldest first (at most 500). Undated events never match. */
 export async function queryEventsByDates(masterId: string, from: string, to: string): Promise<UnifiedEvent[]> {
   const query = new URLSearchParams({ masterId, from, to, order: "asc", limit: "500" });

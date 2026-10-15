@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { eventTypeFields } from "../../../../backend/src/schemas/eventTypeFields";
 import {
+  ENCOUNTER_COLOR,
   LANES,
   OTHER_LANE,
   UNASSIGNED_EVENT_TYPES,
@@ -77,6 +78,14 @@ describe("unknown event types", () => {
 describe("milestones", () => {
   it("marks the Diagnosis event type as a milestone and no other", () => {
     expect(registeredTypes.filter((type) => presentationFor(type).milestone)).toEqual(["Diagnosis"]);
+  });
+});
+
+describe("colors", () => {
+  it("gives every lane its own color, none matching the encounter line", () => {
+    const colors = [...LANES.map((lane) => lane.color), OTHER_LANE.color, ENCOUNTER_COLOR];
+    expect(new Set(colors).size).toBe(colors.length);
+    for (const color of colors) expect(color).toMatch(/^#[0-9a-f]{6}$/);
   });
 });
 

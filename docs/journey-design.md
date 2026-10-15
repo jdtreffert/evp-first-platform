@@ -114,6 +114,27 @@ from the recorded `Encounter_UID`, never from shared dates; an event whose encou
 normally; nothing it is given is changed. A renderer draws a line at the connector's date joining members in
 different lanes, with a short tick to any member dated differently.
 
+## Diagnosis timeline (first rendering)
+
+The My Journey page has a Diagnosis tab (`pages/journey/JourneyDiagnosis.tsx`). It loads all of a patient's
+events and encounters, builds the view model, lays it out (`frontend/src/journey/diagnosisLayout.ts`, tested
+geometry with no React) and draws it with `components/journey/DiagnosisTimeline.tsx`:
+
+- A row per lane (only lanes with events), a month axis, and a marker per event colored by its lane. The
+  Diagnosis is a larger diamond. Events are placed by their own date in proportion to the days between them;
+  events of one lane that would overlap move to separate rows.
+- Each encounter with two or more events in the phase gets a vertical line at its date across the lanes of its
+  members, with a short dashed tick to any member dated differently.
+- Selecting an event shows its normal card below (details, provenance, documents, history, its encounter).
+  Selecting an encounter line shows the encounter, its documents and its in-phase events, and how many of its
+  events fall after the Diagnosis. Every marker and line is a keyboard-focusable button.
+- When a patient has several Diagnosis events, a selector chooses which one the view is built around.
+- Read-only. Events without a date are listed as not placed, never guessed at.
+
+Known limits of this first version: no zoom or pan beyond horizontal scrolling, no fixed lane labels while
+scrolling a very long phase, lane labels and marker labels are not yet configurable, and the view is only for
+the Diagnosis phase.
+
 ## Summary and derived information
 
 Summary information is derived from events, not entered separately. Examples: first recorded event, the

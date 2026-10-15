@@ -50,6 +50,24 @@ duplicating them.
 The frontend runs unit tests with Vitest (`npm test` in `frontend/`). Phase selection and presentation policy
 are plain functions and should have tests beside them in `frontend/src/journey/__tests__/`.
 
+## Diagnosis phase selection
+
+Implemented in `frontend/src/journey/diagnosisPhase.ts` (`selectDiagnosisPhase`), with tests. The rules:
+
+- **Anchor:** the earliest dated Diagnosis event by default (ties broken by uid). When a patient has several,
+  the caller can choose another with `diagnosisUid`, and `diagnosisCandidates` lists them for a switch. An
+  unknown or non-Diagnosis uid falls back to the earliest. With no dated Diagnosis event there is no phase.
+- **Membership:** every event dated on or before the Diagnosis date, except treatment events (event types
+  starting `Treatment_`), earliest first, including the Diagnosis event itself. Dates compare as calendar
+  dates; the time of day is ignored.
+- **Undated events** are returned separately in `undated` and never placed in the phase, since an unknown date
+  is unknown, not "before".
+- **Relationships are not used.** Selection depends on event type and date only; links may later enrich it.
+
+Consequences to be aware of: for a later Diagnosis event the phase also contains the earlier Diagnosis event
+and everything before it, which is the literal rule; only `Treatment_` types are excluded, so Decision,
+Imaging_Response, Recurrence, Progression and QoL dated on or before the Diagnosis date are included.
+
 ## Diagnosis view
 
 Built automatically from the existing events and an authoritative Diagnosis event: a horizontal timeline with

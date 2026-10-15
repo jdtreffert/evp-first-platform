@@ -2,10 +2,10 @@ import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import type { Encounter } from "../../../../../backend/src/types/Encounter";
 import type { UnifiedEvent } from "../../../../../backend/src/types/UnifiedEvents";
-import { layoutDiagnosisView } from "../../../journey/diagnosisLayout";
+import { layoutPhaseView } from "../../../journey/phaseLayout";
 import { buildDiagnosisView } from "../../../journey/diagnosisView";
-import DiagnosisTimeline from "../DiagnosisTimeline";
-import type { DiagnosisSelection } from "../DiagnosisTimeline";
+import PhaseTimeline from "../PhaseTimeline";
+import type { PhaseSelection } from "../PhaseTimeline";
 
 function event(uid: string, eventType: string, eventDate: string, encounterUid?: string): UnifiedEvent {
   return { uid, masterId: "M1", eventType, eventDate, encounterUid, payload: { id: uid, fields: {} } };
@@ -22,14 +22,14 @@ const events = [
   event("recurrence", "Recurrence", "2026-04-01"),
 ];
 
-function render(selection: DiagnosisSelection = null): string {
-  const layout = layoutDiagnosisView(buildDiagnosisView(events, [clinic])!);
+function render(selection: PhaseSelection = null): string {
+  const layout = layoutPhaseView(buildDiagnosisView(events, [clinic])!);
   return renderToString(
-    <DiagnosisTimeline layout={layout} selection={selection} onSelectEvent={() => undefined} onSelectEncounter={() => undefined} />,
+    <PhaseTimeline layout={layout} label="Diagnosis timeline" selection={selection} onSelectEvent={() => undefined} onSelectEncounter={() => undefined} />,
   );
 }
 
-describe("DiagnosisTimeline", () => {
+describe("PhaseTimeline", () => {
   it("shows a label for each lane that has events, including Other, and no other lanes", () => {
     const html = render();
 

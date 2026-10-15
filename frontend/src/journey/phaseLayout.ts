@@ -1,6 +1,6 @@
-import type { DiagnosisView, EncounterConnector, ViewEvent, ViewLane } from "./diagnosisView";
+import type { EncounterConnector, PhaseLanes, ViewEvent, ViewLane } from "./phaseView";
 
-/** Geometry of the Diagnosis view, in pixels. It lays out what the view model already decided. */
+/** Geometry of a phase view, in pixels. It lays out what the view model already decided. */
 export const GEOMETRY = {
   /** Height of the date axis above the first lane. */
   axisHeight: 44,
@@ -50,7 +50,7 @@ export interface AxisTick {
   label: string;
 }
 
-export interface DiagnosisLayout {
+export interface PhaseLayout {
   width: number;
   height: number;
   axisHeight: number;
@@ -80,13 +80,13 @@ function monthStarts(startDay: string, endDay: string): { day: string; label: st
 }
 
 /**
- * Turns a Diagnosis view into positions: dates become x positions in proportion to the days between them,
+ * Turns a phase view into positions: dates become x positions in proportion to the days between them,
  * lanes stack top to bottom, events that would overlap in a lane move to separate rows, and each
  * encounter gets the line that joins its members. Events are placed by their own date; an encounter's line
  * sits at the encounter's date, with a tick to any member dated differently. It only measures; it changes
  * nothing in the view.
  */
-export function layoutDiagnosisView(view: DiagnosisView): DiagnosisLayout {
+export function layoutPhaseView(view: PhaseLanes): PhaseLayout {
   const { axisHeight, paddingLeft, paddingRight, rowHeight, lanePaddingY, minMarkerGap, pxPerDay, minPlotWidth, maxPlotWidth } = GEOMETRY;
 
   const startNumber = dayNumber(view.range.start);

@@ -7,10 +7,10 @@ import { queryAllEvents } from "../../api/events";
 import { useAuth } from "../../auth/useAuth";
 import EventCard from "../../components/events/EventCard";
 import { encounterLabel } from "../../components/events/encounterOptions";
-import DiagnosisTimeline from "../../components/journey/DiagnosisTimeline";
-import type { DiagnosisSelection } from "../../components/journey/DiagnosisTimeline";
+import PhaseTimeline from "../../components/journey/PhaseTimeline";
+import type { PhaseSelection } from "../../components/journey/PhaseTimeline";
 import EncounterGroupCard from "../../components/journey/EncounterGroupCard";
-import { layoutDiagnosisView } from "../../journey/diagnosisLayout";
+import { layoutPhaseView } from "../../journey/phaseLayout";
 import { buildDiagnosisView } from "../../journey/diagnosisView";
 
 interface PatientData {
@@ -26,7 +26,7 @@ export default function JourneyDiagnosis() {
   const [activeMasterId, setActiveMasterId] = useState(isPatient ? user?.masterId ?? "" : "");
   const [loaded, setLoaded] = useState<{ masterId: string; data: PatientData | null; error: string | null } | null>(null);
   const [diagnosisUid, setDiagnosisUid] = useState<string | undefined>(undefined);
-  const [selection, setSelection] = useState<DiagnosisSelection>(null);
+  const [selection, setSelection] = useState<PhaseSelection>(null);
 
   useEffect(() => {
     if (!activeMasterId) return;
@@ -50,7 +50,7 @@ export default function JourneyDiagnosis() {
     () => (current?.data ? buildDiagnosisView(current.data.events, current.data.encounters, { diagnosisUid }) : null),
     [current, diagnosisUid],
   );
-  const layout = useMemo(() => (view ? layoutDiagnosisView(view) : null), [view]);
+  const layout = useMemo(() => (view ? layoutPhaseView(view) : null), [view]);
 
   const handleSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -128,8 +128,9 @@ export default function JourneyDiagnosis() {
             )}
           </div>
 
-          <DiagnosisTimeline
+          <PhaseTimeline
             layout={layout}
+            label="Diagnosis timeline"
             selection={selection}
             onSelectEvent={(uid) => setSelection({ kind: "event", uid })}
             onSelectEncounter={(uid) => setSelection({ kind: "encounter", uid })}

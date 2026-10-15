@@ -1,9 +1,9 @@
 import type { KeyboardEvent } from "react";
 import { ENCOUNTER_COLOR } from "../../journey/presentationPolicy";
-import type { DiagnosisLayout, PlacedEvent } from "../../journey/diagnosisLayout";
+import type { PhaseLayout, PlacedEvent } from "../../journey/phaseLayout";
 
 /** What is selected in the timeline, by uid. */
-export type DiagnosisSelection = { kind: "event" | "encounter"; uid: string } | null;
+export type PhaseSelection = { kind: "event" | "encounter"; uid: string } | null;
 
 const MARKER = 7;
 const MILESTONE = 12;
@@ -24,18 +24,21 @@ function describe(item: PlacedEvent): string {
 }
 
 /**
- * Draws a Diagnosis view laid out by `layoutDiagnosisView`: one band per lane, a date axis, a marker for every
+ * Draws a phase view laid out by `layoutPhaseView`: one band per lane, a date axis, a marker for every
  * event, and a line joining the events of each encounter. It decides nothing about the data; positions, lanes
  * and colors all come from the layout and the presentation policy.
  */
-export default function DiagnosisTimeline({
+export default function PhaseTimeline({
   layout,
+  label,
   selection,
   onSelectEvent,
   onSelectEncounter,
 }: {
-  layout: DiagnosisLayout;
-  selection: DiagnosisSelection;
+  layout: PhaseLayout;
+  /** The accessible name of the timeline, for example "Diagnosis timeline". */
+  label: string;
+  selection: PhaseSelection;
   onSelectEvent: (uid: string) => void;
   onSelectEncounter: (uid: string) => void;
 }) {
@@ -67,7 +70,7 @@ export default function DiagnosisTimeline({
           width={layout.width}
           height={layout.height}
           role="group"
-          aria-label="Diagnosis timeline"
+          aria-label={label}
           className="block text-gray-200"
         >
           {layout.lanes.map(({ lane, top, height }, index) => (

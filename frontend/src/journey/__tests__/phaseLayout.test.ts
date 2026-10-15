@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { Encounter } from "../../../../backend/src/types/Encounter";
 import type { UnifiedEvent } from "../../../../backend/src/types/UnifiedEvents";
 import { buildDiagnosisView } from "../diagnosisView";
-import { GEOMETRY, layoutDiagnosisView } from "../diagnosisLayout";
+import { GEOMETRY, layoutPhaseView } from "../phaseLayout";
 
 function event(uid: string, eventType: string, eventDate: string, encounterUid?: string): UnifiedEvent {
   return { uid, masterId: "M1", eventType, eventDate, encounterUid, payload: { id: uid, fields: {} } };
@@ -13,13 +13,13 @@ function encounter(uid: string, encounterDate: string): Encounter {
 }
 
 function layoutOf(events: UnifiedEvent[], encounters: Encounter[] = []) {
-  return layoutDiagnosisView(buildDiagnosisView(events, encounters)!);
+  return layoutPhaseView(buildDiagnosisView(events, encounters)!);
 }
 
 const placed = (layout: ReturnType<typeof layoutOf>, uid: string) =>
   layout.lanes.flatMap((lane) => lane.events).find((item) => item.view.event.uid === uid)!;
 
-describe("layoutDiagnosisView: positions", () => {
+describe("layoutPhaseView: positions", () => {
   const events = [
     event("symptom", "Symptom", "2026-02-01"),
     event("scan", "Imaging", "2026-03-03"),
@@ -73,7 +73,7 @@ describe("layoutDiagnosisView: positions", () => {
   });
 });
 
-describe("layoutDiagnosisView: overlapping events", () => {
+describe("layoutPhaseView: overlapping events", () => {
   it("moves events of one lane that are too close onto separate rows, and lets distant ones share a row", () => {
     const layout = layoutOf([
       event("scan-a", "Imaging", "2026-03-01"),
@@ -108,7 +108,7 @@ describe("layoutDiagnosisView: overlapping events", () => {
   });
 });
 
-describe("layoutDiagnosisView: encounter connectors", () => {
+describe("layoutPhaseView: encounter connectors", () => {
   const clinic = encounter("clinic", "2026-04-02");
 
   it("draws one line at the encounter's date spanning its members across lanes", () => {
@@ -161,7 +161,7 @@ describe("layoutDiagnosisView: encounter connectors", () => {
   });
 });
 
-describe("layoutDiagnosisView: axis", () => {
+describe("layoutPhaseView: axis", () => {
   it("labels the first of each month inside the range, at the matching position", () => {
     const layout = layoutOf([event("symptom", "Symptom", "2026-02-10"), event("diagnosis", "Diagnosis", "2026-05-20")]);
 
@@ -183,7 +183,7 @@ describe("layoutDiagnosisView: axis", () => {
   });
 });
 
-describe("layoutDiagnosisView: purity", () => {
+describe("layoutPhaseView: purity", () => {
   it("gives the same layout for the same view and does not change it", () => {
     const view = buildDiagnosisView(
       [event("scan", "Imaging", "2026-03-01", "clinic"), event("diagnosis", "Diagnosis", "2026-04-02", "clinic")],
@@ -191,7 +191,7 @@ describe("layoutDiagnosisView: purity", () => {
     )!;
     const before = JSON.stringify(view);
 
-    expect(layoutDiagnosisView(view)).toEqual(layoutDiagnosisView(view));
+    expect(layoutPhaseView(view)).toEqual(layoutPhaseView(view));
     expect(JSON.stringify(view)).toBe(before);
   });
 });

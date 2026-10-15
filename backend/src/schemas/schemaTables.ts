@@ -1,10 +1,13 @@
 import {
   commonEventFields,
+  encounterFields,
+  encounterLinkFields,
   documentFields,
   eventTypeFields,
   measureFields,
   relatedEventCandidates,
   relationshipFields,
+  requiredEncounterFields,
 } from "./eventTypeFields";
 
 export interface SchemaTable {
@@ -38,8 +41,14 @@ export function buildSchemaTables(): SchemaTable[] {
         ["Common", commonEventFields.join(LIST_SEPARATOR), "Every event type"],
         ["Document", documentFields.join(LIST_SEPARATOR), "Every event type (optional)"],
         ["Measurement", measureFields.join(LIST_SEPARATOR), "Every event type (optional)"],
+        ["Encounter link", encounterLinkFields.join(LIST_SEPARATOR), "Every event type (optional)"],
         ["Related event", relationshipFields.join(LIST_SEPARATOR), "Event types listed in RelatedEventRules (optional)"],
       ],
+    },
+    {
+      name: "EncounterFields",
+      columns: ["Entity", "Fields", "Required_Fields"],
+      rows: [["Encounter", encounterFields.join(LIST_SEPARATOR), requiredEncounterFields.join(LIST_SEPARATOR)]],
     },
     {
       name: "RelatedEventRules",

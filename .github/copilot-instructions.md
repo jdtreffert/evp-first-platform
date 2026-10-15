@@ -15,7 +15,9 @@ extensibility.
 
 ## Canonical data
 
-`UnifiedEvent` is the canonical representation of an event in a patient's journey.
+`UnifiedEvent` is the canonical representation of an event in a patient's journey. An `Encounter` is a separate
+lightweight grouping entity (a healthcare interaction that events arose from or were recorded in); it is never
+an event type and never replaces or duplicates events.
 
 - The schema export `backend/schema/UnifiedEventsSchema.txt` (Excel "Unicode Text", UTF-16) is the source of
   truth for fields, types, and options. Never hand-edit `backend/src/schemas/eventFieldCatalog.ts`; it is
@@ -30,13 +32,18 @@ extensibility.
   are transformed for display. Views use the current version of each event.
 - Storage stays flat and raw. Derived values must stay traceable to the events they come from.
 - Event relationships (`Event_Related_UID`) are optional and may be sparse. Never require them.
+- Encounter association (`Encounter_UID`) is optional, single-valued, and means "arose from or was recorded in"
+  that encounter. A missing value means unknown, not "no encounter". Never infer membership from matching
+  dates; same-date events may only be suggested to the user. `Encounter_Date` and `Event_Date` are independent.
+  Provenance (documents, `Event_Source`) stays separate from encounter membership.
 
 ## Schema change workflow
 
-1. The user edits the Excel schema and exports it. Do not edit the export yourself; if it is out of date, say
-   so and ask for a new export.
-2. Copy it to `backend/schema/UnifiedEventsSchema.txt`, then in `backend/` run
-   `node scripts/generateFieldCatalog.mjs`.
+1. The schema file `backend/schema/UnifiedEventsSchema.txt` is authoritative and version-controlled; its history
+   in git is the record of every change. Either the user (saving an Excel "Unicode Text" export over it) or
+   the assistant (editing it directly, keeping UTF-16 with CRLF) may change it. Say what changed so it can be
+   reviewed, and never leave a separate copy that can drift (for example in Downloads).
+2. In `backend/` run `node scripts/generateFieldCatalog.mjs`.
 3. A new event type or field also needs entries in `eventTypeFields.ts`, a normalizer, the `UnifiedEvent` type
    (`types/UnifiedEvents.ts`), and the strict zod schema (`schemas/unifiedEventSchema.ts`).
 4. Run `npm run schema:tables` to regenerate `backend/schema/tables/` and `backend/docs/schema-tables.md`.
@@ -55,7 +62,7 @@ See `backend/README.md` and `backend/docs/` for the pipeline, API, and registry.
 
 - Roles: `administrator` has full access, `clinical` is read-only, `patient` reads and writes only their own
   record. No role can delete events or documents.
-- The JSON event store and the document folder are development-only. Do not treat them as suitable for other
+- The JSON event and encounter stores and the document folder are development-only. Do not treat them as suitable for other
   people's patient data; production needs a database, encryption, backups, and audit logging.
 - Never commit secrets, print them, or log one-time sign-in codes. Keep `.env`, stored events, documents, and
   account files out of anything shared outside the repository.

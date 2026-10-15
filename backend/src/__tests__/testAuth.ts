@@ -5,6 +5,7 @@ import { EmailProvider } from "../auth/emailProvider";
 import { InMemoryAuthRepository } from "../auth/__tests__/inMemoryAuthRepository";
 import { UserRole } from "../auth/authTypes";
 import { DocumentStore } from "../documents/documentStore";
+import { EncounterRepository } from "../encounters/encounterRepository";
 import { EventRepository } from "../persistence/eventRepository";
 
 const SESSION_SECRET = "test-only-auth-session-secret-with-32-characters";
@@ -19,6 +20,7 @@ export async function createAuthenticatedTestApp(
   role: UserRole = "administrator",
   masterId: string | null = null,
   documents?: DocumentStore,
+  encounters?: EncounterRepository,
 ) {
   const authRepository = new InMemoryAuthRepository();
   const user = {
@@ -47,7 +49,7 @@ export async function createAuthenticatedTestApp(
   });
 
   return {
-    app: createApp({ repository, auth, documents }),
+    app: createApp({ repository, auth, documents, encounters }),
     auth,
     authRepository,
     user,

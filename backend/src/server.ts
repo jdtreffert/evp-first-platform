@@ -8,12 +8,14 @@ import { SmtpEmailProvider } from "./auth/smtpEmailProvider";
 import { UnconfiguredEmailProvider } from "./auth/emailProvider";
 import { readSmtpConfiguration } from "./auth/smtpConfig";
 import { FileDocumentStore } from "./documents/fileDocumentStore";
+import { FileEncounterRepository } from "./encounters/fileEncounterRepository";
 
 dotenv.config();
 
 const PORT = process.env.PORT || 3000;
 const dataFile = path.resolve(process.env.EVP_DATA_FILE || "data/events.json");
 const documentDirectory = path.resolve(process.env.EVP_DOCUMENT_DIR || "data/documents");
+const encounterFile = path.resolve(process.env.EVP_ENCOUNTER_FILE || "data/encounters.json");
 const authFile = path.resolve(process.env.EVP_AUTH_FILE || "data/auth.json");
 const sessionSecret = process.env.AUTH_SESSION_SECRET;
 if (!sessionSecret) {
@@ -33,6 +35,8 @@ const auth = new AuthService({
   secureCookies: process.env.NODE_ENV === "production",
 });
 
-createApp({ repository: new FileEventRepository(dataFile), auth, documents: new FileDocumentStore(documentDirectory), frontendOrigin }).listen(PORT, () => {
+createApp({ repository: new FileEventRepository(dataFile), auth, documents: new FileDocumentStore(documentDirectory),
+  encounters: new FileEncounterRepository(encounterFile),
+  frontendOrigin }).listen(PORT, () => {
   console.log(`Server running EVP Backend on port ${PORT} (event store: ${dataFile})`);
 });

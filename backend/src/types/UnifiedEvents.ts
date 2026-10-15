@@ -36,6 +36,9 @@ export interface UnifiedEvent {
   relatedEventUid?: string | null;
   eventRelationship?: string | null;
 
+  // Optional link to the Encounter this event arose from or was recorded in. Absent means unknown.
+  encounterUid?: string | null;
+
   // Document block (shared across many event types)
   documentAttachment?: any[];
   documentType?: string | null;

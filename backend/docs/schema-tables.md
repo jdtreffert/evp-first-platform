@@ -40,7 +40,14 @@ event can be related to. Several values in one cell are separated by semicolons.
 | Common | Event_Date; Event_Source | Every event type |
 | Document | Document_Attachment; Document_Type; Document_Redaction_Status | Every event type (optional) |
 | Measurement | Event_Measure_Type; Numeric_Value; Numeric_Units | Every event type (optional) |
+| Encounter link | Encounter_UID | Every event type (optional) |
 | Related event | Event_Related_UID; Event_Relationship | Event types listed in RelatedEventRules (optional) |
+
+## EncounterFields
+
+| Entity | Fields | Required_Fields |
+| --- | --- | --- |
+| Encounter | Encounter_UID; Master_ID; Encounter_Date; Encounter_Type; Encounter_Summary | Encounter_UID; Master_ID; Encounter_Date |
 
 ## RelatedEventRules
 

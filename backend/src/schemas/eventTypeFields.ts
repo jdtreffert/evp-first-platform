@@ -1,6 +1,15 @@
 import { eventFieldCatalog } from "./eventFieldCatalog";
 
 /** Fields every event type accepts. */
+/** Optional link from any event to the Encounter it arose from or was recorded in. */
+export const encounterLinkFields = ["Encounter_UID"] as const;
+
+/** The fields of an Encounter, a separate lightweight entity that is not an event type. */
+export const encounterFields = [
+  "Encounter_UID", "Master_ID", "Encounter_Date", "Encounter_Type", "Encounter_Summary",
+] as const;
+export const requiredEncounterFields = ["Encounter_UID", "Master_ID", "Encounter_Date"] as const;
+
 /** Optional attributes that relate an event to another event by its UID. */
 export const relationshipFields = ["Event_Related_UID", "Event_Relationship"] as const;
 

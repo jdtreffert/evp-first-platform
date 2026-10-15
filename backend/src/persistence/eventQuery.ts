@@ -3,6 +3,8 @@ import { UnifiedEvent } from "../types/UnifiedEvents";
 export interface EventQuery {
   masterId?: string;
   eventType?: string;
+  /** Only events linked to this encounter. */
+  encounterUid?: string;
   /** Inclusive lower bound, YYYY-MM-DD. */
   from?: string;
   /** Inclusive upper bound, YYYY-MM-DD. */
@@ -34,6 +36,7 @@ function sortKey(event: UnifiedEvent): number | null {
 function matches(event: UnifiedEvent, query: EventQuery): boolean {
   if (query.masterId !== undefined && event.masterId !== query.masterId) return false;
   if (query.eventType !== undefined && event.eventType !== query.eventType) return false;
+  if (query.encounterUid !== undefined && event.encounterUid !== query.encounterUid) return false;
 
   if (query.from !== undefined || query.to !== undefined) {
     const date = calendarDate(event);

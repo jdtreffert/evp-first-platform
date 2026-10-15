@@ -1,11 +1,14 @@
 import { EventRepository, SaveOptions, SaveResult } from "../persistence/eventRepository";
 import { DocumentStore } from "../documents/documentStore";
+import { EncounterRepository } from "../encounters/encounterRepository";
 import { UnifiedEvent } from "../types/UnifiedEvents";
 import { HttpError } from "../utils/httpError";
 
 export interface PersistOptions extends SaveOptions {
   /** When given, every attached document must exist and belong to the event's patient. */
   documents?: DocumentStore;
+  /** When given, Encounter_UID must refer to an existing encounter for the event's patient. */
+  encounters?: EncounterRepository;
 }
 
 export async function persistEvent(
@@ -13,7 +16,7 @@ export async function persistEvent(
   event: UnifiedEvent,
   options: PersistOptions = {},
 ): Promise<SaveResult> {
-  const { documents, ...saveOptions } = options;
+  const { documents, encounters, ...saveOptions } = options;
   if (documents) {
     for (const id of event.documentAttachment ?? []) {
       const record = await documents.getRecord(String(id));
@@ -34,6 +37,12 @@ export async function persistEvent(
     const related = await repository.getByUid(event.relatedEventUid);
     if (!related || related.masterId !== event.masterId) {
       throw new HttpError(422, "Event_Related_UID must refer to an existing event for the same patient");
+    }
+  }
+  if (event.encounterUid && encounters) {
+    const encounter = await encounters.getByUid(event.encounterUid);
+    if (!encounter || encounter.masterId !== event.masterId) {
+      throw new HttpError(422, "Encounter_UID must refer to an existing encounter for the same patient");
     }
   }
   return repository.save(event, saveOptions);

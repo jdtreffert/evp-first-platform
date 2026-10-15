@@ -1,0 +1,2 @@
+Entity	Fields	Required_Fields
+Encounter	Encounter_UID;Master_ID;Encounter_Date;Encounter_Type;Encounter_Summary	Encounter_UID;Master_ID;Encounter_Date

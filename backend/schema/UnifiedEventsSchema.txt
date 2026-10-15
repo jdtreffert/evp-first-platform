@@ -7,6 +7,10 @@ Event_Created_At	Date/time (ISO)
 Event_Source	Single select	Patient;Clinician;Document;Imaging Center;Lab;Other
 Event_Related_UID	Single line text	
 Event_Relationship	Single select	Produced_By;Triggered_By;Assessed_By;Derived_From;Follow_up_to;Related_To
+Encounter_UID	Single line text	
+Encounter_Date	Date(Iso)	
+Encounter_Type	Single select	Clinic visit;Infusion visit;Imaging visit;Lab visit;Procedure or surgery;Hospital stay;Telehealth visit;Other;Unknown
+Encounter_Summary	Single line text	
 Event_Type	Single select	Diagnosis;TURBT;Pathology;Cytology;Lab;Imaging;Imaging_Response;Cystoscopy;Cystoscopy_Biopsy;Somatic;Germline;ctDNA;utDNA;Treatment_Start;Treatment_Delivery;Treatment_Change;Treatment_Response;Recurrence;Progression;QoL;Symptom;Decision;Procedure;Note
 Event_Summary	Single line text	
 Event_Details	Long text	
@@ -124,11 +128,3 @@ Progression_Notes	Long text
 Procedure_Type	Single select	Ureteral stent placement;Ureteral stent removal;Ureteral stent exchange;Port placement;Port removal;Nephrostomy placement;Nephrostomy exchange;Nephrostomy removal;Biopsy;Endoscopy;Other
 Procedure_Result	Long text	
 Procedure_Notes	Long text	
-		
-		
-		
-		
-		
-		
-		
-		

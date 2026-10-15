@@ -14,6 +14,16 @@ Design intent is in [journey-design.md](journey-design.md).
 7. Extend it to Surveillance.
 8. Build the comprehensive Summary view.
 
+## Encounters
+
+Backend entity and the optional event link are done. Remaining increments, in order:
+
+1. Event form: an optional Encounter section (pick or create), add an event from inside an encounter, and
+   same-date suggestions that are shown but never stored.
+2. Documents on encounters, including an "attach an existing document" picker so a visit summary is attached
+   once to the encounter and the documents already attached to events can be reused.
+3. Journey grouping by encounter in the view model and renderer.
+
 ## Deferred
 
 - Evidence-to-synthesis linking UI (after user testing and advisor input).

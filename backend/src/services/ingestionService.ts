@@ -60,6 +60,7 @@ export function ingestEvent(input: unknown, options: { masterId?: string } = {})
 
   event.relatedEventUid = raw.fields.Event_Related_UID || null;
   event.eventRelationship = raw.fields.Event_Relationship || null;
+  event.encounterUid = raw.fields.Encounter_UID || null;
 
   const validation = validateEvent(event);
   if (!validation.valid) {

@@ -103,6 +103,11 @@ Configure the location with `EVP_DATA_FILE` (default `data/events.json`, relativ
 working directory). The store contains patient data: `backend/data/` is git-ignored and
 should not be committed.
 
+Encounters are stored through the `EncounterRepository` interface
+([src/encounters/encounterRepository.ts](src/encounters/encounterRepository.ts)); `FileEncounterRepository`
+keeps a JSON file at `EVP_ENCOUNTER_FILE` (default `data/encounters.json`, git-ignored), with the same
+development-only caveats as the event store.
+
 Uploaded documents are stored through the `DocumentStore` interface
 ([src/documents/documentStore.ts](src/documents/documentStore.ts)). `FileDocumentStore` keeps them
 on local disk under `EVP_DOCUMENT_DIR` (default `data/documents`, also git-ignored). This is

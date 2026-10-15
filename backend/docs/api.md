@@ -103,7 +103,7 @@ Lists stored events. All parameters are optional; unknown or invalid ones return
 
 | Parameter | Meaning |
 |-----------|---------|
-| `masterId`, `eventType` | Exact match |
+| `masterId`, `eventType`, `encounterUid` | Exact match |
 | `from`, `to` | Inclusive `YYYY-MM-DD` range on the event's recorded calendar date; `from` must not be after `to`. Undated events never match a range |
 | `order` | `asc` (default) or `desc` by event date. Undated events are always last; ties are broken by `uid` |
 | `limit` | 1 to 500, default 50 |
@@ -195,6 +195,38 @@ their own documents; other ids respond `404`. The server records the SHA-256 has
 uploader's role and the upload time with each document. Saving an event whose
 `Document_Attachment` lists a document that does not exist for the same patient is rejected
 with `422`. Files are kept under `EVP_DOCUMENT_DIR` (default `data/documents`).
+
+## Encounters
+
+An Encounter is a healthcare interaction that events arose from or were recorded in. It is a separate
+lightweight entity, not an event type: it is never stored as an event and never replaces or duplicates
+one. Its `Encounter_Date` is independent of the `Event_Date` of any event linked to it. Encounters follow
+the same role rules as events (administrator and patient write, clinical read-only, patients confined to
+their own record) and are never deleted.
+
+| Endpoint | Roles | Description |
+|----------|-------|-------------|
+| `POST /api/encounters` | administrator, patient | Body `{ "id": string, "fields": {...} }`. `201` when created, `200` when an existing `Encounter_UID` is replaced. Responds with the stored encounter |
+| `GET /api/encounters/query` | all | Optional `masterId`, `order` (`asc` or `desc`, default `desc` by date), `limit` (1 to 500, default 100) and `offset`. Responds `{ "encounters": [...], "total", "limit", "offset" }`. Patients are always limited to their own record |
+| `GET /api/encounters/:uid` | all | One encounter; `404` for an unknown uid or another patient's encounter |
+| `GET /api/encounters/:uid/history` | all | Earlier versions, oldest first, in the same shape as event history |
+
+Fields: `Encounter_UID` (defaults to the record `id`), `Master_ID` and `Encounter_Date` (a real
+`YYYY-MM-DD` or an ISO 8601 date-time) are required; `Encounter_Type` (a defined option) and
+`Encounter_Summary` are optional. Any other field is dropped. A patient's `Master_ID` is set by the
+server. The encounter is stored as `{ uid, masterId, encounterDate, encounterType, encounterSummary,
+payload }` with the same server-set `recordedAt`, `recordedByRole`, `lastModifiedAt` and
+`lastModifiedByRole` as events. Editing is a repeat post with the same `Encounter_UID`: the earlier
+version is kept, `recordedAt` is preserved, and the encounter cannot be moved to another patient (`422`).
+
+### Linking an event to an encounter
+
+Any event may carry an optional `Encounter_UID`, stored as `encounterUid`. It means the event was
+performed, collected, assessed or recorded as part of that encounter. It must refer to an existing
+encounter for the same patient, otherwise the event is rejected with `422`. An event has at most one
+encounter, and a missing `Encounter_UID` means unknown, not "no encounter occurred". Membership is never
+inferred from matching dates. `GET /api/events/query?encounterUid=...` lists an encounter's events.
+Encounters are stored in `EVP_ENCOUNTER_FILE` (default `data/encounters.json`).
 
 ## Example session
 

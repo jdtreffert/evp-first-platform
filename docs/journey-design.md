@@ -80,7 +80,6 @@ Candidate lanes and the event types they would draw from today:
 | Lane | Event types |
 |------|-------------|
 | Presentation | Symptom |
-| Clinical Encounters | None yet: there is no visit or encounter event type. Decision and Note are the closest. To be decided. |
 | Investigations | Imaging, Imaging_Response, Cystoscopy, Cytology, Lab |
 | Procedures | Procedure, TURBT, Cystoscopy_Biopsy |
 | Pathology & Molecular | Pathology, Somatic, Germline, ctDNA, utDNA |
@@ -107,8 +106,18 @@ Design so these can be added without restructuring the canonical model, but do n
 richer relationships, more phases, alternative visualizations, derived summaries, patient-entered context,
 cross-event queries, consented population analysis, and LLM-assisted navigation.
 
+## Encounters as a grouping dimension
+
+An Encounter (see [backend/docs/api.md](../backend/docs/api.md#encounters)) is not a thematic lane and is not
+an event type. Events keep their own lane and their own `Event_Date` position on the timeline; an encounter
+is a grouping drawn at its `Encounter_Date` with connectors to the events that link to it, since members can
+have different dates. Grouping uses only the recorded `Encounter_UID`, never date equality. Phase selection
+is unaffected. In a phase, show only the members inside it, with a count of members outside. Selecting an
+encounter shows its summary, date, type, documents and member events. The view model that groups events by
+encounter belongs in `frontend/src/journey/`, separate from rendering.
+
 ## Open decisions
 
-- What the Clinical Encounters lane draws from (see the lane table).
+- Which lane Decision and Note belong in, now that there is no Clinical Encounters lane.
 - Whether the Journey views replace or sit beside the existing onboarding flow in
   `frontend/src/pages/journey/onboarding/`, which keeps its own page state and does not write events.

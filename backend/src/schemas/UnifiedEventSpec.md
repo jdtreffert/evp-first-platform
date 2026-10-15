@@ -16,6 +16,7 @@ fails if a normalizer emits a field the schema does not know.
 | `eventDate` | string \| null | Real calendar date `YYYY-MM-DD`, or ISO 8601 date-time with offset (`Z` or `+hh:mm`); `2024-02-30` is rejected |
 | `payload` | `{ id, fields }` | The raw record the event was normalized from |
 | `eventSummary`, `eventSource` | string \| null, optional | |
+| `encounterUid` | string \| null, optional | Link to the [Encounter](../../docs/api.md#encounters) the event arose from or was recorded in; must exist for the same patient. Absent means unknown |
 | `eventDetails` | object, optional | Free-form details mirror |
 
 ## Field blocks

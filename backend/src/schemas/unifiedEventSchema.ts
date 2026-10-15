@@ -34,6 +34,7 @@ export const unifiedEventSchema = z.strictObject({
   lastModifiedByRole: z.string().optional(),
   relatedEventUid: text,
   eventRelationship: text,
+  encounterUid: text,
 
   documentAttachment: z.array(z.any()).optional(),
   documentType: text,

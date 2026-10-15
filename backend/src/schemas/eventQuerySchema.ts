@@ -13,6 +13,7 @@ export const eventQuerySchema = z
   .strictObject({
     masterId: nonEmpty.optional(),
     eventType: nonEmpty.optional(),
+    encounterUid: nonEmpty.optional(),
     from: dateOnly.optional(),
     to: dateOnly.optional(),
     order: z.enum(["asc", "desc"]).default("asc"),

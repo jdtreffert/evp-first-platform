@@ -75,15 +75,25 @@ vertically separated thematic lanes, with the Diagnosis event as a distinctive m
 presentation groupings, never new clinical event types, and will evolve as they are tested against real
 journeys.
 
-Candidate lanes and the event types they would draw from today:
+Lanes and the event types in them, from the presentation policy in
+`frontend/src/journey/presentationPolicy.ts` (tested; a new event type in the schema fails a test until it is
+given a lane or listed as unassigned). Lanes are drawn in this order, and only those that have events:
 
 | Lane | Event types |
 |------|-------------|
-| Presentation | Symptom |
-| Investigations | Imaging, Imaging_Response, Cystoscopy, Cytology, Lab |
-| Procedures | Procedure, TURBT, Cystoscopy_Biopsy |
-| Pathology & Molecular | Pathology, Somatic, Germline, ctDNA, utDNA |
-| Diagnosis | Diagnosis |
+| Presentation | Symptom, QoL |
+| Investigations | Lab, Imaging, Imaging_Response, Cytology, Cystoscopy, ctDNA, utDNA |
+| Procedures | TURBT, Cystoscopy_Biopsy, Procedure |
+| Pathology & Molecular | Pathology, Somatic, Germline |
+| Context & Self-Management | Note |
+| Decisions & Milestones | Diagnosis, Decision |
+
+Treatment_Start, Treatment_Delivery, Treatment_Change, Treatment_Response, Recurrence and Progression are
+deliberately unassigned for now. Unassigned and unknown event types are drawn in an "Other" lane, after the
+assigned lanes and only when it has events, so nothing silently disappears. A lane is chosen by event type,
+never by attribute values. The Diagnosis event type is drawn as a milestone. The policy also owns the display
+name of each event type (for example "Lab work"). Icons, colors and sizes are not defined yet; they come with
+the renderer.
 
 ## Summary and derived information
 
@@ -126,6 +136,10 @@ model; the "count of members outside the phase" belongs there and is not built y
 
 ## Open decisions
 
-- Which lane Decision and Note belong in, now that there is no Clinical Encounters lane.
+- Where Treatment_Start, Treatment_Delivery, Treatment_Change, Treatment_Response, Recurrence and Progression
+  belong, to be settled with the Treatment and Surveillance views (see "Diagnosis phase selection" for how the
+  Diagnosis view treats them).
+- Whether Imaging_Response, ctDNA and utDNA stay in Investigations, and whether the lane names fit every
+  phase (for example "Presentation" also holds QoL).
 - Whether the Journey views replace or sit beside the existing onboarding flow in
   `frontend/src/pages/journey/onboarding/`, which keeps its own page state and does not write events.

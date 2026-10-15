@@ -16,14 +16,8 @@ import {
 } from "./encounterOptions";
 import type { EncounterDraft } from "./encounterOptions";
 import { getLocalDate, shiftDate } from "./dates";
+import { eventTypeLabel } from "../../journey/presentationPolicy";
 import { documentFields, eventTypeFields, measureFields, relatedEventCandidates, relationshipFields } from "../../../../backend/src/schemas/eventTypeFields";
-
-const eventTypeLabels: Record<string, string> = {
-  QoL: "Quality of life",
-  Lab: "Lab work",
-  Imaging_Response: "Imaging response",
-  Cystoscopy_Biopsy: "Cystoscopy biopsy",
-};
 
 const fieldLabels: Record<string, string> = {
   T: "T (tumor)",
@@ -68,7 +62,7 @@ function labelFor(name: string): string {
 }
 
 function typeLabel(type: string): string {
-  return eventTypeLabels[type] ?? type.replaceAll("_", " ");
+  return eventTypeLabel(type);
 }
 
 /** Form values for a stored event, read from the raw record it was created from. */

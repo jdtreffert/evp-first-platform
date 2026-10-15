@@ -1,6 +1,8 @@
 import type { Encounter } from "../../../backend/src/types/Encounter";
 import type { UnifiedEvent } from "../../../backend/src/types/UnifiedEvents";
 import type { DiagnosisPhaseOptions } from "./diagnosisPhase";
+import { legendFor } from "./presentationPolicy";
+import type { LegendEntry } from "./presentationPolicy";
 import { composePhase } from "./phaseView";
 import type { PhaseLanes, ViewEvent } from "./phaseView";
 import { selectTreatmentPhase } from "./treatmentPhase";
@@ -11,6 +13,8 @@ export interface TreatmentView extends PhaseLanes {
   /** The recorded "Treatment completed" that ends the phase, or null while treatment is ongoing. */
   completion: ViewEvent | null;
   ongoing: boolean;
+  /** The abbreviations used on the markers, with their full names. */
+  legend: LegendEntry[];
   /** Events whose date is unknown. They are never placed on the timeline. */
   undated: UnifiedEvent[];
 }
@@ -38,6 +42,7 @@ export function buildTreatmentView(
     lanes,
     encounters: connectors,
     range,
+    legend: legendFor(phase.events),
     undated: phase.undated,
   };
 }

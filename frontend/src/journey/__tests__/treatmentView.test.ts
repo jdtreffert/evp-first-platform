@@ -127,3 +127,47 @@ describe("buildTreatmentView", () => {
     expect(JSON.stringify({ journey, encounters })).toBe(before);
   });
 });
+
+describe("buildTreatmentView: compact labels", () => {
+  const events = [
+    event("diagnosis", "Diagnosis", "2026-04-10"),
+    event("start", "Treatment_Start", "2026-05-01"),
+    event("d1", "Treatment_Delivery", "2026-05-01", { treatmentName: "EV", treatmentCycle: 1 }),
+    event("d2", "Treatment_Delivery", "2026-05-08", { treatmentName: "Pembrolizumab", treatmentCycle: 1 }),
+    event("d3", "Treatment_Delivery", "2026-05-15", { treatmentName: "EV", treatmentCycle: 1, treatmentDeliveryStatus: "Held" }),
+    event("rt", "Treatment_Delivery", "2026-06-01", { treatmentName: "IMRT", treatmentDose: 2, treatmentDoseUnits: "Gy" }),
+  ];
+
+  it("gives each event a short label and keeps the full type name separately", () => {
+    const view = buildTreatmentView(events, [])!;
+    const byUid = Object.fromEntries(view.lanes.flatMap((lane) => lane.events).map((e) => [e.event.uid, e]));
+
+    expect(byUid.d1.label).toBe("EV C1");
+    expect(byUid.d2.label).toBe("pembro C1");
+    expect(byUid.rt.label).toBe("2 Gy");
+    expect(byUid.start.label).toBe("Treatment Start");
+    expect(byUid.d1.presentation.label).toBe("Treatment Delivery");
+  });
+
+  it("marks only the dose recorded as not fully given as hollow", () => {
+    const view = buildTreatmentView(events, [])!;
+    const hollow = view.lanes.flatMap((lane) => lane.events).filter((e) => e.hollow).map((e) => e.event.uid);
+
+    expect(hollow).toEqual(["d3"]);
+  });
+
+  it("lists the abbreviations its labels use", () => {
+    expect(buildTreatmentView(events, [])!.legend).toEqual([
+      { short: "EV", full: "Enfortumab vedotin" },
+      { short: "pembro", full: "Pembrolizumab" },
+    ]);
+  });
+
+  it("packs the short delivery labels tighter than the generic label would allow", () => {
+    const layout = layoutPhaseView(buildTreatmentView(events, [])!);
+    const treatment = layout.lanes.find((lane) => lane.lane.id === "treatment")!;
+
+    // Weekly deliveries labelled "EV C1" and "pembro C1" need fewer rows than four "Treatment Delivery" labels would.
+    expect(Math.max(...treatment.events.map((item) => item.row))).toBeLessThanOrEqual(1);
+  });
+});

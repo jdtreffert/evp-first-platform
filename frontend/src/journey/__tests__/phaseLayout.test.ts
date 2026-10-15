@@ -3,9 +3,16 @@ import type { Encounter } from "../../../../backend/src/types/Encounter";
 import type { UnifiedEvent } from "../../../../backend/src/types/UnifiedEvents";
 import { buildDiagnosisView } from "../diagnosisView";
 import { GEOMETRY, layoutPhaseView } from "../phaseLayout";
+import { buildTreatmentView } from "../treatmentView";
 
-function event(uid: string, eventType: string, eventDate: string, encounterUid?: string): UnifiedEvent {
-  return { uid, masterId: "M1", eventType, eventDate, encounterUid, payload: { id: uid, fields: {} } };
+function event(
+  uid: string,
+  eventType: string,
+  eventDate: string,
+  encounterUid?: string,
+  extra: Partial<UnifiedEvent> = {},
+): UnifiedEvent {
+  return { uid, masterId: "M1", eventType, eventDate, encounterUid, payload: { id: uid, fields: {} }, ...extra };
 }
 
 function encounter(uid: string, encounterDate: string): Encounter {
@@ -14,6 +21,10 @@ function encounter(uid: string, encounterDate: string): Encounter {
 
 function layoutOf(events: UnifiedEvent[], encounters: Encounter[] = []) {
   return layoutPhaseView(buildDiagnosisView(events, encounters)!);
+}
+
+function layoutTreatment(events: UnifiedEvent[]) {
+  return layoutPhaseView(buildTreatmentView(events, [])!);
 }
 
 const placed = (layout: ReturnType<typeof layoutOf>, uid: string) =>
@@ -94,17 +105,39 @@ describe("layoutPhaseView: overlapping events", () => {
     expect(new Set(ys).size).toBe(3);
   });
 
-  it("never places two events of a lane closer than the minimum gap on the same row", () => {
+  it("never lets the label of one event overlap the next event on the same row", () => {
     const events = Array.from({ length: 12 }, (_, index) => event(`scan-${index}`, "Imaging", `2026-03-${String(index + 1).padStart(2, "0")}`));
     const layout = layoutOf([...events, event("diagnosis", "Diagnosis", "2026-04-02")]);
     const lane = layout.lanes.find((l) => l.lane.id === "investigations")!;
 
     for (const row of new Set(lane.events.map((item) => item.row))) {
-      const xs = lane.events.filter((item) => item.row === row).map((item) => item.x).sort((a, b) => a - b);
-      for (let index = 1; index < xs.length; index += 1) {
-        expect(xs[index] - xs[index - 1]).toBeGreaterThanOrEqual(GEOMETRY.minMarkerGap);
+      const inRow = lane.events.filter((item) => item.row === row).sort((a, b) => a.x - b.x);
+      for (let index = 1; index < inRow.length; index += 1) {
+        expect(inRow[index].x - GEOMETRY.markerRadius).toBeGreaterThanOrEqual(inRow[index - 1].right + GEOMETRY.labelGap);
       }
     }
+  });
+
+  it("packs events with short labels closer than events with long labels", () => {
+    // A distant third event fixes the scale at 6 pixels a day, so 14 days apart is 84 pixels: enough for a
+    // short label such as "EV", not for "Treatment Response".
+    const delivery = (uid: string, date: string) => event(uid, "Treatment_Delivery", date, undefined, { treatmentName: "EV" });
+    const shortLabels = layoutTreatment([delivery("d1", "2026-05-01"), delivery("d2", "2026-05-15"), delivery("d3", "2026-12-01")]);
+    const longLabels = layoutTreatment([
+      event("r1", "Treatment_Response", "2026-05-01"),
+      event("r2", "Treatment_Response", "2026-05-15"),
+      event("r3", "Treatment_Response", "2026-12-01"),
+    ]);
+
+    expect(shortLabels.lanes[0].events.map((item) => item.row)).toEqual([0, 0, 0]);
+    expect(longLabels.lanes[0].events.map((item) => item.row)).toEqual([0, 1, 0]);
+  });
+
+  it("gives a milestone the extra room its larger marker and bold label need", () => {
+    const layout = layoutOf([event("scan", "Imaging", "2026-03-01"), event("diagnosis", "Diagnosis", "2026-04-02")]);
+    const diagnosis = placed(layout, "diagnosis");
+
+    expect(diagnosis.right - diagnosis.x).toBeGreaterThan(GEOMETRY.milestoneRadius + GEOMETRY.labelOffset);
   });
 });
 

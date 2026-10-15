@@ -1,12 +1,14 @@
 import type { KeyboardEvent } from "react";
 import { ENCOUNTER_COLOR } from "../../journey/presentationPolicy";
+import { GEOMETRY } from "../../journey/phaseLayout";
 import type { PhaseLayout, PlacedEvent } from "../../journey/phaseLayout";
 
 /** What is selected in the timeline, by uid. */
 export type PhaseSelection = { kind: "event" | "encounter"; uid: string } | null;
 
-const MARKER = 7;
-const MILESTONE = 12;
+// The same sizes the layout uses to keep labels from overlapping.
+const MARKER = GEOMETRY.markerRadius;
+const MILESTONE = GEOMETRY.milestoneRadius;
 const LABEL_WIDTH = 168;
 
 function activate(action: () => void) {
@@ -19,8 +21,10 @@ function activate(action: () => void) {
 }
 
 function describe(item: PlacedEvent): string {
-  const { event, presentation, day } = item.view;
-  return [presentation.label, day, event.eventSummary].filter(Boolean).join(" · ");
+  const { event, presentation, day, label } = item.view;
+  return [presentation.label, label !== presentation.label ? label : null, day, event.eventSummary, event.treatmentDeliveryStatus]
+    .filter(Boolean)
+    .join(" · ");
 }
 
 /**
@@ -139,11 +143,16 @@ export default function PhaseTimeline({
                       strokeWidth={2}
                     />
                   ) : (
-                    <circle r={MARKER} fill={lane.color} stroke="#111827" strokeWidth={2} />
+                    <circle
+                      r={MARKER}
+                      fill={item.view.hollow ? "#111827" : lane.color}
+                      stroke={item.view.hollow ? lane.color : "#111827"}
+                      strokeWidth={item.view.hollow ? 3 : 2}
+                    />
                   )}
                   {/* The dark outline keeps the label readable where an encounter line or grid line passes behind it. */}
                   <text
-                    x={(milestone ? MILESTONE : MARKER) + 6}
+                    x={(milestone ? MILESTONE : MARKER) + GEOMETRY.labelOffset}
                     y={4}
                     fontSize={12}
                     fontWeight={milestone ? 700 : 400}
@@ -153,7 +162,7 @@ export default function PhaseTimeline({
                     paintOrder="stroke"
                     strokeLinejoin="round"
                   >
-                    {presentation.label}
+                    {item.view.label}
                   </text>
                 </g>
               );

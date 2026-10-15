@@ -1,13 +1,17 @@
 import type { Encounter } from "../../../backend/src/types/Encounter";
 import type { UnifiedEvent } from "../../../backend/src/types/UnifiedEvents";
 import { calendarDay } from "./calendarDay";
-import { LANES, lanesFor, presentationFor } from "./presentationPolicy";
+import { LANES, compactLabel, isIncompleteDelivery, lanesFor, presentationFor } from "./presentationPolicy";
 import type { EventPresentation, Lane } from "./presentationPolicy";
 
 /** An event in a phase view, with how it is presented and the encounter it links to. */
 export interface ViewEvent {
   event: UnifiedEvent;
   presentation: EventPresentation;
+  /** The short text drawn beside the marker; the full name of the type is in `presentation.label`. */
+  label: string;
+  /** Drawn hollow: a treatment delivery recorded as held, interrupted, partial or not completed. */
+  hollow: boolean;
   /** The event's own calendar date; events are placed by this, never by their encounter's date. */
   day: string;
   /** The encounter it links to, or null when it has none or that encounter is not among those given. */
@@ -67,6 +71,8 @@ export function composePhase(
   const toViewEvent = (event: UnifiedEvent): ViewEvent => ({
     event,
     presentation: presentationFor(event.eventType),
+    label: compactLabel(event),
+    hollow: isIncompleteDelivery(event),
     day: calendarDay(event.eventDate),
     encounter: (event.encounterUid ? encountersByUid.get(event.encounterUid) : undefined) ?? null,
   });

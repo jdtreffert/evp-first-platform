@@ -86,6 +86,17 @@ export default function JourneyTreatment() {
             onSelectEncounter={(uid) => setSelection({ kind: "encounter", uid })}
           />
 
+          {view.legend.length > 0 && (
+            <p className="text-sm text-gray-400">
+              Abbreviations: {view.legend.map((entry) => `${entry.short} = ${entry.full}`).join(" · ")}
+            </p>
+          )}
+          {viewEvents.some((item) => item.hollow) && (
+            <p className="text-sm text-gray-400">
+              A hollow dot is a dose recorded as held, interrupted, partly delivered or not completed.
+            </p>
+          )}
+
           {view.undated.length > 0 && (
             <p className="text-sm text-amber-200">
               {view.undated.length} event{view.undated.length === 1 ? " has" : "s have"} no date and cannot be placed on

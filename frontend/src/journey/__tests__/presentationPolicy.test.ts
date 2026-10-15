@@ -1,12 +1,16 @@
 import { describe, expect, it } from "vitest";
+import type { UnifiedEvent } from "../../../../backend/src/types/UnifiedEvents";
 import { eventTypeFields } from "../../../../backend/src/schemas/eventTypeFields";
 import {
   ENCOUNTER_COLOR,
   LANES,
   OTHER_LANE,
   UNASSIGNED_EVENT_TYPES,
+  compactLabel,
   eventTypeLabel,
+  isIncompleteDelivery,
   lanesFor,
+  legendFor,
   presentationFor,
 } from "../presentationPolicy";
 
@@ -131,5 +135,82 @@ describe("lanesFor", () => {
 
   it("returns no lanes for no events", () => {
     expect(lanesFor([])).toEqual([]);
+  });
+});
+
+function delivery(extra: Partial<UnifiedEvent> = {}, uid = "d1"): UnifiedEvent {
+  return { uid, masterId: "M1", eventType: "Treatment_Delivery", eventDate: "2026-05-01", payload: { id: uid, fields: {} }, ...extra };
+}
+
+describe("compactLabel", () => {
+  it("labels a delivery by its treatment's short name, with the cycle when recorded", () => {
+    expect(compactLabel(delivery({ treatmentName: "EV" }))).toBe("EV");
+    expect(compactLabel(delivery({ treatmentName: "EV", treatmentCycle: 2 }))).toBe("EV C2");
+    expect(compactLabel(delivery({ treatmentName: "Pembrolizumab", treatmentCycle: 3 }))).toBe("pembro C3");
+    expect(compactLabel(delivery({ treatmentName: "Gem/Cis" }))).toBe("Gem/Cis");
+  });
+
+  it("labels a radiation dose by the dose and units", () => {
+    expect(compactLabel(delivery({ treatmentName: "IMRT", treatmentDose: 1, treatmentDoseUnits: "Gy" }))).toBe("1 Gy");
+    expect(compactLabel(delivery({ treatmentDose: 1.8, treatmentDoseUnits: "Gy" }))).toBe("1.8 Gy");
+    expect(compactLabel(delivery({ treatmentDose: 180, treatmentDoseUnits: "cGy" }))).toBe("180 cGy");
+    expect(compactLabel(delivery({ treatmentDose: 0, treatmentDoseUnits: "Gy" }))).toBe("0 Gy");
+  });
+
+  it("does not put a drug dose on the marker, and falls back to the name when radiation has no dose", () => {
+    expect(compactLabel(delivery({ treatmentName: "EV", treatmentDose: 125, treatmentDoseUnits: "mg" }))).toBe("EV");
+    expect(compactLabel(delivery({ treatmentName: "IMRT", treatmentDoseUnits: "Gy" }))).toBe("IMRT");
+  });
+
+  it("says Delivery when no treatment is named, never guessing one", () => {
+    expect(compactLabel(delivery())).toBe("Delivery");
+    expect(compactLabel(delivery({ treatmentCycle: 4 }))).toBe("Delivery C4");
+  });
+
+  it("uses the name of the type for every other event", () => {
+    const other = (eventType: string): UnifiedEvent => ({ uid: "x", masterId: "M1", eventType, eventDate: "2026-05-01", payload: { id: "x", fields: {} } });
+    expect(compactLabel(other("Lab"))).toBe("Lab work");
+    expect(compactLabel(other("Treatment_Start"))).toBe("Treatment Start");
+    expect(compactLabel(other("Imaging"))).toBe("Imaging");
+  });
+});
+
+describe("isIncompleteDelivery", () => {
+  it("is true only for a delivery recorded as held, interrupted, partial or not completed", () => {
+    for (const status of ["Held", "Interrupted", "Partially Delivered", "Not Completed"]) {
+      expect(isIncompleteDelivery(delivery({ treatmentDeliveryStatus: status }))).toBe(true);
+    }
+  });
+
+  it("is false for other statuses, and for a missing status, which is unknown rather than incomplete", () => {
+    for (const status of ["Delivered as Planned", "Dose Reduced", "Dose Increased", "Delayed", "Unknown"]) {
+      expect(isIncompleteDelivery(delivery({ treatmentDeliveryStatus: status }))).toBe(false);
+    }
+    expect(isIncompleteDelivery(delivery())).toBe(false);
+    expect(isIncompleteDelivery(delivery({ treatmentDeliveryStatus: null }))).toBe(false);
+  });
+
+  it("is false for events that are not deliveries", () => {
+    expect(isIncompleteDelivery({ ...delivery({ treatmentDeliveryStatus: "Held" }), eventType: "Lab" })).toBe(false);
+  });
+});
+
+describe("legendFor", () => {
+  it("explains each abbreviation used once, in order of appearance", () => {
+    const events = [
+      delivery({ treatmentName: "Pembrolizumab" }, "a"),
+      delivery({ treatmentName: "EV" }, "b"),
+      delivery({ treatmentName: "Pembrolizumab", treatmentCycle: 2 }, "c"),
+    ];
+    expect(legendFor(events)).toEqual([
+      { short: "pembro", full: "Pembrolizumab" },
+      { short: "EV", full: "Enfortumab vedotin" },
+    ]);
+  });
+
+  it("leaves out names with nothing to explain, radiation doses and non-deliveries", () => {
+    expect(legendFor([delivery({ treatmentName: "Proton therapy" }), delivery({ treatmentName: "IMRT", treatmentDose: 2, treatmentDoseUnits: "Gy" })])).toEqual([]);
+    expect(legendFor([{ ...delivery({ treatmentName: "EV" }), eventType: "Treatment_Start" }])).toEqual([]);
+    expect(legendFor([])).toEqual([]);
   });
 });

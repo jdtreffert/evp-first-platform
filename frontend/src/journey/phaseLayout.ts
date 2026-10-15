@@ -10,8 +10,14 @@ export const GEOMETRY = {
   paddingRight: 150,
   rowHeight: 40,
   lanePaddingY: 12,
-  /** Events in one lane closer than this go on separate rows so their labels do not overlap. */
-  minMarkerGap: 120,
+  /** Marker radii and the gap between a marker and its label; these match what the timeline draws. */
+  markerRadius: 7,
+  milestoneRadius: 12,
+  labelOffset: 6,
+  /** The estimated width of one label character at the label's font size, and the space kept after a label. */
+  charWidth: 6.8,
+  boldFactor: 1.08,
+  labelGap: 12,
   pxPerDay: 6,
   minPlotWidth: 640,
   maxPlotWidth: 6000,
@@ -21,6 +27,8 @@ export interface PlacedEvent {
   view: ViewEvent;
   x: number;
   y: number;
+  /** Where the marker's label is expected to end. Events on one row never overlap before this point. */
+  right: number;
   /** Which row of its lane the event sits on, 0 being the top. */
   row: number;
 }
@@ -79,15 +87,23 @@ function monthStarts(startDay: string, endDay: string): { day: string; label: st
   return starts;
 }
 
+/** The estimated horizontal extent of a marker and its label, to the right of the marker's centre. */
+function extentRight(view: ViewEvent): number {
+  const { markerRadius, milestoneRadius, labelOffset, charWidth, boldFactor } = GEOMETRY;
+  const milestone = view.presentation.milestone;
+  const radius = milestone ? milestoneRadius : markerRadius;
+  return radius + labelOffset + view.label.length * charWidth * (milestone ? boldFactor : 1);
+}
+
 /**
  * Turns a phase view into positions: dates become x positions in proportion to the days between them,
- * lanes stack top to bottom, events that would overlap in a lane move to separate rows, and each
- * encounter gets the line that joins its members. Events are placed by their own date; an encounter's line
- * sits at the encounter's date, with a tick to any member dated differently. It only measures; it changes
- * nothing in the view.
+ * lanes stack top to bottom, events whose labels would overlap in a lane move to separate rows (so short
+ * labels pack closer than long ones), and each encounter gets the line that joins its members. Events are
+ * placed by their own date; an encounter's line sits at the encounter's date, with a tick to any member dated
+ * differently. It only measures; it changes nothing in the view.
  */
 export function layoutPhaseView(view: PhaseLanes): PhaseLayout {
-  const { axisHeight, paddingLeft, paddingRight, rowHeight, lanePaddingY, minMarkerGap, pxPerDay, minPlotWidth, maxPlotWidth } = GEOMETRY;
+  const { axisHeight, paddingLeft, paddingRight, rowHeight, lanePaddingY, labelGap, markerRadius, milestoneRadius, pxPerDay, minPlotWidth, maxPlotWidth } = GEOMETRY;
 
   const startNumber = dayNumber(view.range.start);
   const span = Math.max(0, dayNumber(view.range.end) - startNumber);
@@ -99,16 +115,19 @@ export function layoutPhaseView(view: PhaseLanes): PhaseLayout {
   const lanes: PlacedLane[] = [];
   let top = axisHeight;
   for (const { lane, events } of view.lanes) {
-    const lastX: number[] = [];
+    // For each row, where the previous event's label ends; a new event fits when its marker starts after that.
+    const rowEnds: number[] = [];
     const placed: PlacedEvent[] = [];
     for (const viewEvent of events) {
       const x = xFor(viewEvent.day);
-      let row = lastX.findIndex((last) => x - last >= minMarkerGap);
-      if (row === -1) row = lastX.length;
-      lastX[row] = x;
-      placed.push({ view: viewEvent, x, y: top + lanePaddingY + row * rowHeight + rowHeight / 2, row });
+      const radius = viewEvent.presentation.milestone ? milestoneRadius : markerRadius;
+      let row = rowEnds.findIndex((end) => x - radius >= end + labelGap);
+      if (row === -1) row = rowEnds.length;
+      const right = x + extentRight(viewEvent);
+      rowEnds[row] = right;
+      placed.push({ view: viewEvent, x, y: top + lanePaddingY + row * rowHeight + rowHeight / 2, right, row });
     }
-    const height = Math.max(1, lastX.length) * rowHeight + 2 * lanePaddingY;
+    const height = Math.max(1, rowEnds.length) * rowHeight + 2 * lanePaddingY;
     for (const item of placed) placedByUid.set(item.view.event.uid, item);
     lanes.push({ lane, top, height, events: placed });
     top += height;

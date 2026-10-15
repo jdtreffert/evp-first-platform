@@ -157,8 +157,32 @@ geometry with no React) and draws it with `components/journey/DiagnosisTimeline.
 - Read-only. Events without a date are listed as not placed, never guessed at.
 
 Known limits of this first version: no zoom or pan beyond horizontal scrolling, no fixed lane labels while
-scrolling a very long phase, lane labels and marker labels are not yet configurable, and the view is only for
-the Diagnosis phase.
+scrolling a very long phase, and the Diagnosis tab covers only the Diagnosis phase.
+
+## Marker labels, status and abbreviations
+
+To keep timelines compact, each marker carries a short label (`compactLabel` in the presentation policy)
+instead of the full type name; the full name, date, summary and any recorded status stay in the hover text and
+the detail panel. Events use the name of their type, except treatment deliveries, which are labelled from their
+data: a radiation dose by dose and units ("2 Gy", "180 cGy"); anything else by the treatment's short name with
+the cycle when recorded ("EV C2", "pembro C3"); and "Delivery" when no treatment is named. A drug dose is not
+put on the marker.
+
+- **Abbreviations** live in `frontend/src/journey/treatmentLabels.ts`, one entry per Treatment_Name option, each
+  with an optional short name and full name. A test fails when an option is added to the schema without an
+  entry, so a new treatment needs a labelling decision. The wording for "Gemcitabine intravesical" and
+  "Docetaxel intravesical" is not decided, and they keep their full text for now.
+- **Legend:** the Treatment view lists the abbreviations its markers use, with full names, for readers who
+  do not know them ("EV = Enfortumab vedotin").
+- **Status:** a delivery recorded as Held, Interrupted, Partially Delivered or Not Completed is drawn as a
+  hollow marker. A missing or unknown status is never drawn as incomplete.
+- **Packing:** events in a lane go on separate rows only when their labels would overlap, using each label's
+  estimated width, so short labels pack much closer than long ones. Marker sizes are shared between the layout
+  and the renderer so the two cannot drift apart.
+
+Possible later steps, not built: collapsing a dense run of identical events into one expandable marker, and
+icons (for example a bag for an infusion, a scanner for imaging, a vial for a lab) with color for the agent.
+Color must not be the only carrier of meaning, so the abbreviation stays beside any icon.
 
 ## Summary and derived information
 
@@ -204,8 +228,13 @@ model; the "count of members outside the phase" belongs there and is not built y
 - Whether Imaging_Response, ctDNA and utDNA stay in Investigations (ctDNA and utDNA could move to Pathology &
   Molecular), and whether the lane names fit every phase. To be settled by looking at real journeys in the
   rendered views; the choice matters most for the Surveillance view, where serial ctDNA is common.
-- Dense repeated events, such as daily radiation fractions, would stack into many rows. If real data needs it,
-  collapse them into one expandable marker (for example "Treatment Delivery ×30"); not built.
+- Dense repeated events, such as daily radiation fractions (about 6 pixels apart), cannot be fixed by shorter
+  labels and would still stack into many rows. If real data needs it, collapse a run of identical events into
+  one expandable marker (for example "2 Gy ×30"); not built.
+- Icons in place of text (treatment bags colored by agent, scanner graphics for imaging, blood vials for labs).
+  Needs a design pass; the treatment label entries are objects so a color or icon can be added without
+  restructuring.
+- Which delivery statuses should be drawn hollow. Today: Held, Interrupted, Partially Delivered, Not Completed.
 - Linking the evidence behind a milestone (the scans and tests behind a response, a change or a progression) to
   the milestone with `Event_Related_UID` and `Assessed_By`, so the renderer can draw them. Deferred until after
   user testing and advisor input, as before. Without links nothing is drawn or inferred.

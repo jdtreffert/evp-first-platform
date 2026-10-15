@@ -1,3 +1,6 @@
+import type { UnifiedEvent } from "../../../backend/src/types/UnifiedEvents";
+import { treatmentFullName, treatmentShortName } from "./treatmentLabels";
+
 /**
  * Presentation policy: how an event type is shown, kept apart from the clinical data. Everything here is
  * display-only. It never changes an event, and the lane an event type sits in carries no clinical meaning.
@@ -131,4 +134,60 @@ export function lanesFor(eventTypes: Iterable<string>): Lane[] {
   const lanes: Lane[] = LANES.filter((lane) => used.has(lane.id));
   if (used.has(OTHER_LANE.id)) lanes.push(OTHER_LANE);
   return lanes;
+}
+
+function formatDose(dose: number): string {
+  return String(Number.isInteger(dose) ? dose : Number(dose.toFixed(2)));
+}
+
+/**
+ * The short text drawn beside a marker, to keep timelines compact. A treatment delivery is labelled from its
+ * data: a radiation dose by the dose and units ("2 Gy"), anything else by the treatment's short name, with the
+ * cycle when recorded ("EV C2"), and plainly "Delivery" when no treatment is named. Every other event uses the
+ * name of its type. The full details stay in the hover text and the detail panel.
+ */
+export function compactLabel(event: UnifiedEvent): string {
+  if (event.eventType !== "Treatment_Delivery") return eventTypeLabel(event.eventType);
+
+  const units = event.treatmentDoseUnits;
+  if (typeof event.treatmentDose === "number" && (units === "Gy" || units === "cGy")) {
+    return `${formatDose(event.treatmentDose)} ${units}`;
+  }
+  const cycle = typeof event.treatmentCycle === "number" ? ` C${event.treatmentCycle}` : "";
+  return `${treatmentShortName(event.treatmentName) ?? "Delivery"}${cycle}`;
+}
+
+/** Delivery statuses that mean the dose was not fully given as planned. */
+const INCOMPLETE_DELIVERY_STATUSES = new Set(["Held", "Interrupted", "Partially Delivered", "Not Completed"]);
+
+/**
+ * Whether a treatment delivery is recorded as not fully given, so it is drawn hollow. A missing or unknown
+ * status is never treated as incomplete: missing data is unknown, not negative.
+ */
+export function isIncompleteDelivery(event: UnifiedEvent): boolean {
+  return (
+    event.eventType === "Treatment_Delivery" &&
+    event.treatmentDeliveryStatus !== null &&
+    event.treatmentDeliveryStatus !== undefined &&
+    INCOMPLETE_DELIVERY_STATUSES.has(event.treatmentDeliveryStatus)
+  );
+}
+
+export interface LegendEntry {
+  short: string;
+  full: string;
+}
+
+/** The abbreviations used by the given events' labels, with their full names, once each in order of appearance. */
+export function legendFor(events: Iterable<UnifiedEvent>): LegendEntry[] {
+  const entries = new Map<string, LegendEntry>();
+  for (const event of events) {
+    if (event.eventType !== "Treatment_Delivery") continue;
+    const label = compactLabel(event);
+    const full = treatmentFullName(event.treatmentName);
+    const short = treatmentShortName(event.treatmentName);
+    // Only a delivery labelled by its treatment name has an abbreviation to explain.
+    if (full && short && label.startsWith(short) && !entries.has(short)) entries.set(short, { short, full });
+  }
+  return [...entries.values()];
 }

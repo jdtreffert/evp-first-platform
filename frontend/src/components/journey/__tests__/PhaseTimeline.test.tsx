@@ -4,6 +4,7 @@ import type { Encounter } from "../../../../../backend/src/types/Encounter";
 import type { UnifiedEvent } from "../../../../../backend/src/types/UnifiedEvents";
 import { layoutPhaseView } from "../../../journey/phaseLayout";
 import { buildDiagnosisView } from "../../../journey/diagnosisView";
+import { buildTreatmentView } from "../../../journey/treatmentView";
 import PhaseTimeline from "../PhaseTimeline";
 import type { PhaseSelection } from "../PhaseTimeline";
 
@@ -62,5 +63,42 @@ describe("PhaseTimeline", () => {
 
   it("labels the date axis", () => {
     expect(render()).toContain("Mar 2026");
+  });
+});
+
+describe("PhaseTimeline: treatment deliveries", () => {
+  const deliveries = [
+    event("diagnosis", "Diagnosis", "2026-04-10"),
+    { ...event("held", "Treatment_Delivery", "2026-05-08"), treatmentName: "Pembrolizumab", treatmentCycle: 2, treatmentDeliveryStatus: "Held" },
+    { ...event("given", "Treatment_Delivery", "2026-05-15"), treatmentName: "EV", treatmentCycle: 2 },
+  ];
+
+  function renderTreatment(): string {
+    const layout = layoutPhaseView(buildTreatmentView(deliveries, [])!);
+    return renderToString(
+      <PhaseTimeline layout={layout} label="Treatment timeline" selection={null} onSelectEvent={() => undefined} onSelectEncounter={() => undefined} />,
+    ).replaceAll("<!-- -->", "");
+  }
+
+  it("draws the short label beside each marker", () => {
+    const html = renderTreatment();
+
+    expect(html).toContain(">pembro C2</text>");
+    expect(html).toContain(">EV C2</text>");
+    expect(html).not.toContain(">Treatment Delivery</text>");
+  });
+
+  it("keeps the full detail in the hover text, including a recorded status", () => {
+    const html = renderTreatment();
+
+    expect(html).toContain('aria-label="Treatment Delivery · pembro C2 · 2026-05-08 · Held"');
+    expect(html).toContain('aria-label="Treatment Delivery · EV C2 · 2026-05-15"');
+  });
+
+  it("draws only the dose recorded as not fully given as a hollow marker", () => {
+    const html = renderTreatment();
+    const hollow = html.match(/<circle r="7" fill="#111827" stroke="#[0-9a-f]{6}" stroke-width="3"/g);
+
+    expect(hollow).toHaveLength(1);
   });
 });

@@ -2,6 +2,10 @@
  * Presentation policy: how an event type is shown, kept apart from the clinical data. Everything here is
  * display-only. It never changes an event, and the lane an event type sits in carries no clinical meaning.
  * Lanes are keyed by event type, never by attribute values, so the same type always appears in the same lane.
+ *
+ * Lanes are never stored: not in events, the schema, the backend or any saved setting. Renaming a lane or
+ * moving an event type is a change to this file and its test only. If lane ids are ever persisted (for
+ * example a saved view), keep the ids stable and change only the labels.
  */
 
 export interface Lane {
@@ -11,7 +15,7 @@ export interface Lane {
 
 /** The thematic lanes, in the order they are drawn. */
 export const LANES = [
-  { id: "presentation", label: "Presentation" },
+  { id: "symptoms-experience", label: "Symptoms & Experience" },
   { id: "investigations", label: "Investigations" },
   { id: "procedures", label: "Procedures" },
   { id: "pathology-molecular", label: "Pathology & Molecular" },
@@ -28,8 +32,8 @@ export type LaneId = (typeof LANES)[number]["id"];
 export const OTHER_LANE: Lane = { id: "other", label: "Other" };
 
 const laneIdByEventType: Record<string, LaneId> = {
-  Symptom: "presentation",
-  QoL: "presentation",
+  Symptom: "symptoms-experience",
+  QoL: "symptoms-experience",
   Lab: "investigations",
   Imaging: "investigations",
   Imaging_Response: "investigations",

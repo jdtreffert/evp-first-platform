@@ -81,7 +81,7 @@ given a lane or listed as unassigned). Lanes are drawn in this order, and only t
 
 | Lane | Event types |
 |------|-------------|
-| Presentation | Symptom, QoL |
+| Symptoms & Experience | Symptom, QoL |
 | Investigations | Lab, Imaging, Imaging_Response, Cytology, Cystoscopy, ctDNA, utDNA |
 | Procedures | TURBT, Cystoscopy_Biopsy, Procedure |
 | Pathology & Molecular | Pathology, Somatic, Germline |
@@ -139,7 +139,8 @@ model; the "count of members outside the phase" belongs there and is not built y
 - Where Treatment_Start, Treatment_Delivery, Treatment_Change, Treatment_Response, Recurrence and Progression
   belong, to be settled with the Treatment and Surveillance views (see "Diagnosis phase selection" for how the
   Diagnosis view treats them).
-- Whether Imaging_Response, ctDNA and utDNA stay in Investigations, and whether the lane names fit every
-  phase (for example "Presentation" also holds QoL).
+- Whether Imaging_Response, ctDNA and utDNA stay in Investigations (ctDNA and utDNA could move to Pathology &
+  Molecular), and whether the lane names fit every phase. To be settled by looking at real journeys in the
+  rendered views; the choice matters most for the Surveillance view, where serial ctDNA is common.
 - Whether the Journey views replace or sit beside the existing onboarding flow in
   `frontend/src/pages/journey/onboarding/`, which keeps its own page state and does not write events.

@@ -13,7 +13,7 @@ const registeredTypes = Object.keys(eventTypeFields);
 
 describe("lane assignment", () => {
   const expected: Record<string, string[]> = {
-    Presentation: ["Symptom", "QoL"],
+    "Symptoms & Experience": ["Symptom", "QoL"],
     Investigations: ["Lab", "Imaging", "Imaging_Response", "Cytology", "Cystoscopy", "ctDNA", "utDNA"],
     Procedures: ["TURBT", "Cystoscopy_Biopsy", "Procedure"],
     "Pathology & Molecular": ["Pathology", "Somatic", "Germline"],
@@ -94,15 +94,15 @@ describe("eventTypeLabel", () => {
 describe("lanesFor", () => {
   it("returns only the lanes that have events, in the agreed order", () => {
     expect(lanesFor(["Decision", "Symptom", "Imaging", "Lab"]).map((lane) => lane.label)).toEqual([
-      "Presentation",
+      "Symptoms & Experience",
       "Investigations",
       "Decisions & Milestones",
     ]);
   });
 
   it("adds the Other lane last, only when something needs it", () => {
-    expect(lanesFor(["Treatment_Start", "Symptom"]).map((lane) => lane.id)).toEqual(["presentation", "other"]);
-    expect(lanesFor(["Symptom"]).map((lane) => lane.id)).toEqual(["presentation"]);
+    expect(lanesFor(["Treatment_Start", "Symptom"]).map((lane) => lane.id)).toEqual(["symptoms-experience", "other"]);
+    expect(lanesFor(["Symptom"]).map((lane) => lane.id)).toEqual(["symptoms-experience"]);
   });
 
   it("returns no lanes for no events", () => {

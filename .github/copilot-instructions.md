@@ -47,7 +47,8 @@ See `backend/README.md` and `backend/docs/` for the pipeline, API, and registry.
 ## Build and test
 
 - Backend (`backend/`): `npx tsc --noEmit` and `npx jest`.
-- Frontend (`frontend/`): `npm run build` and `npm run lint`.
+- Frontend (`frontend/`): `npm run build`, `npm run lint` and `npm test` (Vitest, for plain logic such as
+  phase selection and presentation policy).
 - Add or update automated tests for meaningful behavior changes.
 
 ## Security and data handling

@@ -47,9 +47,8 @@ The existing `JourneyTimeline` and `components/events/` (event form, card, histo
 Journey rendering reuses `EventHistory` and `DocumentLink` for provenance and documents instead of
 duplicating them.
 
-The frontend has no test runner today (only `npm run build` and `npm run lint`). Phase selection and
-presentation policy are plain functions that deserve automated tests; adding a frontend test runner is a new
-dependency and needs a decision before that work starts.
+The frontend runs unit tests with Vitest (`npm test` in `frontend/`). Phase selection and presentation policy
+are plain functions and should have tests beside them in `frontend/src/journey/__tests__/`.
 
 ## Diagnosis view
 

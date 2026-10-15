@@ -7,6 +7,7 @@ export const encounterLinkFields = ["Encounter_UID"] as const;
 /** The fields of an Encounter, a separate lightweight entity that is not an event type. */
 export const encounterFields = [
   "Encounter_UID", "Master_ID", "Encounter_Date", "Encounter_Type", "Encounter_Summary",
+  "Document_Attachment", "Document_Type", "Document_Redaction_Status",
 ] as const;
 export const requiredEncounterFields = ["Encounter_UID", "Master_ID", "Encounter_Date"] as const;
 

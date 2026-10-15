@@ -186,6 +186,7 @@ delete one, and attaching a corrected file creates a new document.
 | Endpoint | Roles | Description |
 |----------|-------|-------------|
 | `POST /api/documents?masterId=...&filename=...` | administrator, patient | Body is the raw file with `Content-Type: application/octet-stream`. Patients always upload to their own record; the `masterId` query is required for administrators. Responds `201` with `{ id, originalName, contentType, size, uploadedAt }` |
+| `GET /api/documents?masterId=...` | all | Metadata of every document stored for a patient, newest upload first: `{ "documents": [{ id, originalName, contentType, size, uploadedAt }] }`. `masterId` is required except for patients, who always get their own. Used to attach an existing document |
 | `GET /api/documents/:id/meta` | all | The same metadata |
 | `GET /api/documents/:id` | all | The file, sent as an attachment with `nosniff` and a locked-down content security policy |
 
@@ -215,9 +216,18 @@ Fields: `Encounter_UID` (defaults to the record `id`), `Master_ID` and `Encounte
 `YYYY-MM-DD` or an ISO 8601 date-time) are required; `Encounter_Type` (a defined option) and
 `Encounter_Summary` are optional. Any other field is dropped. A patient's `Master_ID` is set by the
 server. The encounter is stored as `{ uid, masterId, encounterDate, encounterType, encounterSummary,
-payload }` with the same server-set `recordedAt`, `recordedByRole`, `lastModifiedAt` and
+documentAttachment, documentType, documentRedactionStatus, payload }` with the same server-set `recordedAt`,
+`recordedByRole`, `lastModifiedAt` and
 `lastModifiedByRole` as events. Editing is a repeat post with the same `Encounter_UID`: the earlier
 version is kept, `recordedAt` is preserved, and the encounter cannot be moved to another patient (`422`).
+
+**Encounter documents.** An encounter may carry `Document_Attachment` (a list of document ids, each listed
+once), `Document_Type` and `Document_Redaction_Status`, using the same options as events. Every id must name
+an existing document stored for the same patient, otherwise the encounter is rejected with `422`. These
+documents document the encounter itself, for example a visit summary, so one file is attached once instead of
+to every event. They are kept separate from the documents attached to individual events and are never copied
+onto them; a view shows both, labelled. Replacing the list is an ordinary edit with history, and the documents
+themselves are never changed or deleted.
 
 ### Linking an event to an encounter
 

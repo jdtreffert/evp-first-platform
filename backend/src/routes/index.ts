@@ -15,7 +15,7 @@ export function createApiRouter(repository: EventRepository, auth: AuthService, 
 
   router.use("/auth", createAuthRouter(auth));
   router.use("/events", createEventsRouter(repository, auth, documents, encounters));
-  router.use("/encounters", createEncountersRouter(encounters, auth));
+  router.use("/encounters", createEncountersRouter(encounters, auth, documents));
   router.use("/documents", createDocumentsRouter(documents, auth));
 
   return router;

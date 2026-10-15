@@ -11,6 +11,12 @@ export interface Encounter {
   encounterDate: string;
   encounterType?: string | null;
   encounterSummary?: string | null;
+
+  // Documents that document the encounter itself, such as a visit summary. They are separate from the
+  // documents attached to individual events; neither is copied onto the other.
+  documentAttachment?: string[];
+  documentType?: string | null;
+  documentRedactionStatus?: string | null;
   payload: RawEventRecord;
 
   // Set by the server when the encounter is stored; never taken from the client.

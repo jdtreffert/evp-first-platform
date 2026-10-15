@@ -73,6 +73,14 @@ export default function EventCard({
           )}
         </p>
       )}
+      {encounter && (encounter.documentAttachment ?? []).length > 0 && (
+        <div className="mt-1">
+          <p className="text-xs text-gray-400">
+            Encounter documents{encounter.documentType ? ` (${encounter.documentType})` : ""}:
+          </p>
+          {(encounter.documentAttachment ?? []).map((id) => <DocumentLink key={id} documentId={id} />)}
+        </div>
+      )}
       {related && (
         <p className="mt-1 text-xs text-gray-400">
           {(event.eventRelationship ?? "Related_To").replaceAll("_", " ")}: {related.eventType.replaceAll("_", " ")}

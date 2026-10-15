@@ -17,6 +17,24 @@ export class FileDocumentStore implements DocumentStore {
     await fs.writeFile(this.pathFor(record.id, "json"), JSON.stringify(record, null, 2), { flag: "wx", mode: 0o600 });
   }
 
+  async list(masterId: string): Promise<DocumentRecord[]> {
+    let names: string[];
+    try {
+      names = await fs.readdir(this.directory);
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code === "ENOENT") return [];
+      throw err;
+    }
+    const records: DocumentRecord[] = [];
+    for (const name of names) {
+      const id = name.endsWith(".json") ? name.slice(0, -".json".length) : null;
+      if (id === null || !isDocumentId(id)) continue;
+      const record = await this.getRecord(id);
+      if (record && record.masterId === masterId) records.push(record);
+    }
+    return records.sort((a, b) => (a.uploadedAt < b.uploadedAt ? 1 : a.uploadedAt > b.uploadedAt ? -1 : 0));
+  }
+
   async getRecord(id: string): Promise<DocumentRecord | null> {
     if (!isDocumentId(id)) return null;
     try {

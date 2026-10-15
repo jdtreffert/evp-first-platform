@@ -8,10 +8,13 @@ import { isValidUid } from "../validation/fieldValidators";
 import { validateFieldValues } from "../validation/fieldOptions";
 
 /** The only fields an encounter keeps; anything else a client sends is dropped. */
-const ENCOUNTER_FIELDS = ["Encounter_UID", "Master_ID", "Encounter_Date", "Encounter_Type", "Encounter_Summary"] as const;
+const ENCOUNTER_FIELDS = [
+  "Encounter_UID", "Master_ID", "Encounter_Date", "Encounter_Type", "Encounter_Summary",
+  "Document_Attachment", "Document_Type", "Document_Redaction_Status",
+] as const;
 
 function isBlank(value: unknown): boolean {
-  return value === undefined || value === null || value === "";
+  return value === undefined || value === null || value === "" || (Array.isArray(value) && value.length === 0);
 }
 
 /**
@@ -43,6 +46,10 @@ export function ingestEncounter(input: unknown, options: { masterId?: string } =
     encounterDate: fields.Encounter_Date,
     encounterType: fields.Encounter_Type ?? null,
     encounterSummary: fields.Encounter_Summary ?? null,
+    // The same document listed twice is kept once, in the order given.
+    documentAttachment: Array.isArray(fields.Document_Attachment) ? [...new Set(fields.Document_Attachment)] : [],
+    documentType: fields.Document_Type ?? null,
+    documentRedactionStatus: fields.Document_Redaction_Status ?? null,
     payload: { id: parsed.data.id, fields },
   });
   if (!result.success) {

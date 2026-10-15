@@ -4,8 +4,11 @@ import type { Encounter } from "../../../../backend/src/types/Encounter";
 import type { UnifiedEvent } from "../../../../backend/src/types/UnifiedEvents";
 import { eventFieldCatalog } from "../../../../backend/src/schemas/eventFieldCatalog";
 import { saveEncounter } from "../../api/encounters";
+import { ACCEPTED_DOCUMENT_TYPES, MAX_DOCUMENT_BYTES, listDocuments, uploadDocument } from "../../api/documents";
+import type { DocumentMeta } from "../../api/documents";
 import { ingestEvent, queryEventsByDates, queryEventsOfEncounter } from "../../api/events";
 import { getLocalDate } from "./dates";
+import DocumentLink from "./DocumentLink";
 import {
   NEARBY_DAYS,
   candidateWindow,
@@ -45,6 +48,9 @@ export default function EncounterForm({
     type: initial?.encounterType ?? "",
     date: initial ? initial.encounterDate.slice(0, 10) : getLocalDate(),
     summary: initial?.encounterSummary ?? "",
+    documentIds: initial?.documentAttachment ?? [],
+    documentType: initial?.documentType ?? "",
+    redactionStatus: initial?.documentRedactionStatus ?? "",
   }));
   const [uid] = useState(() => initial?.uid ?? `enc-${crypto.randomUUID()}`);
   // Whether the encounter exists on the server, so its members can be loaded.
@@ -58,6 +64,15 @@ export default function EncounterForm({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // A new file is uploaded only when the encounter is saved; its id is kept so a retry does not upload it again.
+  const [file, setFile] = useState<File | null>(null);
+  const [fileInputKey, setFileInputKey] = useState(0);
+  const uploaded = useRef<{ file: File; id: string } | null>(null);
+  // The patient's stored documents, for "attach an existing document". undefined while loading, null on failure.
+  const [existingDocuments, setExistingDocuments] = useState<DocumentMeta[] | null | undefined>(undefined);
+  const documentIds = draft.documentIds ?? [];
+  const attachableDocuments = (existingDocuments ?? []).filter((document) => !documentIds.includes(document.id));
+
   const membersKey = stored ? `${uid}|${reloadCount}` : null;
   const [loadedMembers, setLoadedMembers] = useState<Loaded>(null);
   // undefined while loading, null when the lookup failed.
@@ -69,6 +84,14 @@ export default function EncounterForm({
   const candidatesKey = rangeFrom && rangeTo ? [masterId, rangeFrom, rangeTo, reloadCount].join("|") : null;
   const [loadedCandidates, setLoadedCandidates] = useState<Loaded>(null);
   const candidates = candidatesKey === null ? [] : loadedCandidates?.key === candidatesKey ? loadedCandidates.events : undefined;
+
+  useEffect(() => {
+    let active = true;
+    listDocuments(masterId)
+      .then((documents) => { if (active) setExistingDocuments(documents); })
+      .catch(() => { if (active) setExistingDocuments(null); });
+    return () => { active = false; };
+  }, [masterId]);
 
   useEffect(() => {
     if (!membersKey) return;
@@ -120,10 +143,20 @@ export default function EncounterForm({
 
     setSaving(true);
     try {
-      const key = JSON.stringify(draft);
+      // Upload first, so the encounter is saved with the new document already attached.
+      let attachedIds = documentIds;
+      if (file) {
+        if (uploaded.current?.file !== file) {
+          uploaded.current = { file, id: (await uploadDocument(file, masterId)).id };
+        }
+        attachedIds = [...new Set([...documentIds, uploaded.current.id])];
+      }
+      const finalDraft: EncounterDraft = { ...draft, documentIds: attachedIds };
+
+      const key = JSON.stringify(finalDraft);
       if (lastSaved.current !== key) {
         try {
-          await saveEncounter(buildEncounterRecord(uid, masterId, draft));
+          await saveEncounter(buildEncounterRecord(uid, masterId, finalDraft));
         } catch (encounterError) {
           throw new Error(`The encounter could not be saved: ${
             encounterError instanceof Error ? encounterError.message : "unknown error"
@@ -131,6 +164,11 @@ export default function EncounterForm({
         }
         lastSaved.current = key;
         setStored(true);
+      }
+      if (file) {
+        setDraft(finalDraft);
+        setFile(null);
+        setFileInputKey((count) => count + 1);
       }
 
       const byUid = new Map(rows.map((event) => [event.uid, event]));
@@ -199,6 +237,92 @@ export default function EncounterForm({
           onChange={(event) => setDraft((previous) => ({ ...previous, summary: event.target.value }))}
         />
       </label>
+
+      <fieldset className="space-y-3">
+        <legend className="text-sm font-medium">Documents for this encounter (optional)</legend>
+        <p className="text-xs text-gray-400">
+          For example a visit summary. Attached once here, it can be opened from every event in this encounter.
+          Documents attached to individual events stay with those events.
+        </p>
+        {documentIds.map((id) => (
+          <div key={id} className="flex flex-wrap items-center justify-between gap-3">
+            <DocumentLink documentId={id} />
+            <button
+              type="button"
+              className="text-sm text-rose-300 underline"
+              onClick={() => setDraft((previous) => ({ ...previous, documentIds: (previous.documentIds ?? []).filter((item) => item !== id) }))}
+            >
+              Remove from encounter
+            </button>
+          </div>
+        ))}
+
+        <label className="block text-sm">
+          Attach an existing document
+          <select
+            className={inputClass}
+            value=""
+            onChange={(event) => {
+              const chosen = event.target.value;
+              if (chosen) setDraft((previous) => ({ ...previous, documentIds: [...(previous.documentIds ?? []), chosen] }));
+            }}
+          >
+            <option value="">
+              {existingDocuments === undefined ? "Loading documents…" : existingDocuments === null ? "Unable to load documents" : attachableDocuments.length === 0 ? "No other documents stored" : "Choose a document…"}
+            </option>
+            {attachableDocuments.map((document) => (
+              <option key={document.id} value={document.id}>
+                {document.originalName} · uploaded {document.uploadedAt.slice(0, 10)}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="block text-sm">
+          Attach a new file (PDF, PNG or JPEG, up to 25 MB)
+          <input
+            key={fileInputKey}
+            type="file"
+            accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg"
+            className={inputClass}
+            onChange={(event) => {
+              const chosen = event.target.files?.[0] ?? null;
+              if (chosen && (chosen.size > MAX_DOCUMENT_BYTES || (chosen.type && !ACCEPTED_DOCUMENT_TYPES.includes(chosen.type)))) {
+                setError("Choose a PDF, PNG or JPEG file no larger than 25 MB.");
+                event.target.value = "";
+                setFile(null);
+                return;
+              }
+              setError(null);
+              setFile(chosen);
+            }}
+          />
+        </label>
+
+        <label className="block text-sm">
+          Document type
+          <select
+            className={inputClass}
+            value={draft.documentType ?? ""}
+            onChange={(event) => setDraft((previous) => ({ ...previous, documentType: event.target.value }))}
+          >
+            <option value="">Not specified</option>
+            {eventFieldCatalog.Document_Type.options?.map((option) => <option key={option} value={option}>{option}</option>)}
+          </select>
+        </label>
+
+        <label className="block text-sm">
+          Redaction status
+          <select
+            className={inputClass}
+            value={draft.redactionStatus ?? ""}
+            onChange={(event) => setDraft((previous) => ({ ...previous, redactionStatus: event.target.value }))}
+          >
+            <option value="">Not specified</option>
+            {eventFieldCatalog.Document_Redaction_Status.options?.map((option) => <option key={option} value={option}>{option}</option>)}
+          </select>
+        </label>
+      </fieldset>
 
       <fieldset className="space-y-3">
         <legend className="text-sm font-medium">Events in this encounter</legend>

@@ -48,4 +48,22 @@ describe("EncounterForm (first render, before events load)", () => {
   it("says nothing is linked unless the user ticks it", () => {
     expect(render()).toContain("Nothing is linked unless you tick it");
   });
+
+  it("offers documents for the encounter: existing, new, type and redaction status", () => {
+    const html = render();
+
+    expect(html).toContain("Documents for this encounter (optional)");
+    expect(html).toContain("Attach an existing document");
+    expect(html).toContain("Attach a new file");
+    expect(html).toContain("Visit Summary");
+    expect(html).toContain("Contains PHI");
+    expect(html).toContain("Documents attached to individual events stay with those events.");
+  });
+
+  it("lists an encounter's attached documents with a way to remove them from the encounter", () => {
+    const html = render({ ...encounter, documentAttachment: ["doc-1"], documentType: "Visit Summary" });
+
+    expect(html).toContain("Remove from encounter");
+    expect(html).toMatch(/<option value="Visit Summary" selected/);
+  });
 });

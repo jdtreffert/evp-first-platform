@@ -63,6 +63,22 @@ describe("buildEncounterRecord", () => {
     const record = buildEncounterRecord("enc-1", "M1", { type: "Infusion visit", date: "2026-03-04", summary: " Cycle 2 " });
     expect(record.fields).toMatchObject({ Encounter_Type: "Infusion visit", Encounter_Summary: "Cycle 2" });
   });
+
+  it("includes the attached documents, their type and redaction status when given", () => {
+    const record = buildEncounterRecord("enc-1", "M1", {
+      type: "", date: "2026-03-04", summary: "", documentIds: ["doc-1", "doc-2"], documentType: "Visit Summary", redactionStatus: "Contains PHI",
+    });
+    expect(record.fields).toMatchObject({
+      Document_Attachment: ["doc-1", "doc-2"], Document_Type: "Visit Summary", Document_Redaction_Status: "Contains PHI",
+    });
+  });
+
+  it("leaves out empty document values, so removing every document clears them", () => {
+    const record = buildEncounterRecord("enc-1", "M1", {
+      type: "", date: "2026-03-04", summary: "", documentIds: [], documentType: "", redactionStatus: "",
+    });
+    expect(Object.keys(record.fields).sort()).toEqual(["Encounter_Date", "Encounter_UID", "Master_ID"]);
+  });
 });
 
 describe("NEW_ENCOUNTER", () => {

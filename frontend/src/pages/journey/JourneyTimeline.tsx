@@ -198,7 +198,14 @@ export default function JourneyTimeline() {
           <ul className="mt-3 space-y-2 text-sm text-gray-200">
             {encounters.map((encounter) => (
               <li key={encounter.uid} className="flex flex-wrap items-center justify-between gap-3">
-                <span>{encounterLabel(encounter)}</span>
+                <span>
+                  {encounterLabel(encounter)}
+                  {(encounter.documentAttachment ?? []).length > 0 && (
+                    <span className="ml-2 text-xs text-gray-400">
+                      ({(encounter.documentAttachment ?? []).length} document{(encounter.documentAttachment ?? []).length === 1 ? "" : "s"})
+                    </span>
+                  )}
+                </span>
                 {canWrite && (
                   <button type="button" className="text-blue-300 underline" onClick={() => setEncounterEditor({ encounter })}>
                     Edit

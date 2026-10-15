@@ -18,6 +18,8 @@ export interface DocumentRecord {
 export interface DocumentStore {
   save(record: DocumentRecord, bytes: Buffer): Promise<void>;
   getRecord(id: string): Promise<DocumentRecord | null>;
+  /** Every document belonging to a patient, most recently uploaded first. */
+  list(masterId: string): Promise<DocumentRecord[]>;
   read(id: string): Promise<Buffer | null>;
 }
 

@@ -47,7 +47,7 @@ event can be related to. Several values in one cell are separated by semicolons.
 
 | Entity | Fields | Required_Fields |
 | --- | --- | --- |
-| Encounter | Encounter_UID; Master_ID; Encounter_Date; Encounter_Type; Encounter_Summary | Encounter_UID; Master_ID; Encounter_Date |
+| Encounter | Encounter_UID; Master_ID; Encounter_Date; Encounter_Type; Encounter_Summary; Document_Attachment; Document_Type; Document_Redaction_Status | Encounter_UID; Master_ID; Encounter_Date |
 
 ## RelatedEventRules
 

@@ -3,6 +3,7 @@ import { Server } from "http";
 import { AddressInfo } from "net";
 import os from "os";
 import path from "path";
+import { FileDocumentStore } from "../documents/fileDocumentStore";
 import { FileEncounterRepository } from "../encounters/fileEncounterRepository";
 import { FileEventRepository } from "../persistence/fileEventRepository";
 import { UserRole } from "../auth/authTypes";
@@ -26,8 +27,9 @@ describe("encounters API (HTTP)", () => {
     masterId: string | null,
     events: FileEventRepository,
     encounters: FileEncounterRepository,
+    documents: FileDocumentStore,
   ): Promise<Client> {
-    const fixture = await createAuthenticatedTestApp(events, role, masterId, undefined, encounters);
+    const fixture = await createAuthenticatedTestApp(events, role, masterId, documents, encounters);
     const server = fixture.app.listen(0);
     await new Promise<void>((resolve) => server.once("listening", resolve));
     servers.push(server);
@@ -56,10 +58,11 @@ describe("encounters API (HTTP)", () => {
     servers = [];
     const events = new FileEventRepository(path.join(dir, "events.json"));
     const encounters = new FileEncounterRepository(path.join(dir, "encounters.json"));
-    admin = await start("administrator", null, events, encounters);
-    clinical = await start("clinical", null, events, encounters);
-    patient1 = await start("patient", "M1", events, encounters);
-    patient2 = await start("patient", "M2", events, encounters);
+    const documents = new FileDocumentStore(path.join(dir, "documents"));
+    admin = await start("administrator", null, events, encounters, documents);
+    clinical = await start("clinical", null, events, encounters, documents);
+    patient1 = await start("patient", "M1", events, encounters, documents);
+    patient2 = await start("patient", "M2", events, encounters, documents);
   });
 
   afterEach(async () => {
@@ -135,6 +138,69 @@ describe("encounters API (HTTP)", () => {
 
       expect((await saveEncounter(patient2, { Encounter_UID: "E1" })).status).toBe(403);
       expect((await saveEncounter(admin, { Encounter_UID: "E1", Master_ID: "M2" })).status).toBe(422);
+    });
+  });
+
+  describe("documents on encounters", () => {
+    const PDF = Buffer.from("%PDF-1.7\n%visit summary\n");
+    const upload = async (client: Client, name: string) => {
+      const res = await fetch(`${client.base}/documents?filename=${name}`, {
+        method: "POST",
+        headers: { "content-type": "application/octet-stream", cookie: client.cookie },
+        body: new Uint8Array(PDF),
+      });
+      return (await res.json()).id as string;
+    };
+
+    test("an encounter holds documents with their type and redaction status, listed once each", async () => {
+      const a = await upload(patient1, "summary-a.pdf");
+      const b = await upload(patient1, "summary-b.pdf");
+
+      const res = await saveEncounter(patient1, {
+        Encounter_UID: "E1", Document_Attachment: [a, b, a], Document_Type: "Visit Summary", Document_Redaction_Status: "Contains PHI",
+      });
+      expect(res.status).toBe(201);
+      expect(await res.json()).toMatchObject({
+        documentAttachment: [a, b], documentType: "Visit Summary", documentRedactionStatus: "Contains PHI",
+      });
+    });
+
+    test("an encounter without documents stays valid and has an empty list", async () => {
+      expect((await (await saveEncounter(patient1, { Encounter_UID: "E1" })).json()).documentAttachment).toEqual([]);
+    });
+
+    test("an encounter cannot hold a missing document or another patient's document", async () => {
+      const theirs = await upload(patient2, "theirs.pdf");
+
+      expect((await saveEncounter(patient1, { Encounter_UID: "E1", Document_Attachment: ["11111111-1111-4111-8111-111111111111"] })).status).toBe(422);
+      expect((await saveEncounter(patient1, { Encounter_UID: "E2", Document_Attachment: [theirs] })).status).toBe(422);
+      expect((await saveEncounter(admin, { Encounter_UID: "E3", Master_ID: "M1", Document_Attachment: [theirs] })).status).toBe(422);
+    });
+
+    test("rejects a malformed attachment list and unknown document options", async () => {
+      expect((await saveEncounter(patient1, { Encounter_UID: "E1", Document_Attachment: "oops" })).status).toBe(422);
+      expect((await saveEncounter(patient1, { Encounter_UID: "E2", Document_Type: "Postcard" })).status).toBe(422);
+      expect((await saveEncounter(patient1, { Encounter_UID: "E3", Document_Redaction_Status: "Maybe" })).status).toBe(422);
+    });
+
+    test("editing replaces the attachments, keeps the earlier version and leaves the documents themselves", async () => {
+      const a = await upload(patient1, "summary-a.pdf");
+      const b = await upload(patient1, "summary-b.pdf");
+      await saveEncounter(patient1, { Encounter_UID: "E1", Document_Attachment: [a] });
+      await saveEncounter(patient1, { Encounter_UID: "E1", Document_Attachment: [b] });
+
+      expect((await (await get(patient1, "/encounters/E1")).json()).documentAttachment).toEqual([b]);
+      const history = await (await get(patient1, "/encounters/E1/history")).json();
+      expect(history.versions[0].encounter.documentAttachment).toEqual([a]);
+      expect((await get(patient1, `/documents/${a}`)).status).toBe(200);
+    });
+
+    test("an encounter's documents are not copied onto its events", async () => {
+      const a = await upload(patient1, "summary-a.pdf");
+      await saveEncounter(patient1, { Encounter_UID: "E1", Document_Attachment: [a] });
+      const event = await (await saveEvent(patient1, { Event_UID: "N1", Encounter_UID: "E1" })).json();
+
+      expect(event.documentAttachment).toEqual([]);
     });
   });
 

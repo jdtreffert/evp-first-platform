@@ -10,6 +10,12 @@ export class InMemoryDocumentStore implements DocumentStore {
     this.contents.set(record.id, bytes);
   }
 
+  async list(masterId: string): Promise<DocumentRecord[]> {
+    return [...this.records.values()]
+      .filter((record) => record.masterId === masterId)
+      .sort((a, b) => (a.uploadedAt < b.uploadedAt ? 1 : a.uploadedAt > b.uploadedAt ? -1 : 0));
+  }
+
   async getRecord(id: string): Promise<DocumentRecord | null> {
     return this.records.get(id) ?? null;
   }

@@ -6,6 +6,10 @@ export interface EncounterDraft {
   type: string;
   date: string;
   summary: string;
+  /** Documents attached to the encounter itself; only the encounter editor sets these. */
+  documentIds?: string[];
+  documentType?: string;
+  redactionStatus?: string;
 }
 
 /** The calendar date of an encounter, ignoring any time of day. */
@@ -42,6 +46,9 @@ export function buildEncounterRecord(uid: string, masterId: string, draft: Encou
   };
   if (draft.type.trim() !== "") fields.Encounter_Type = draft.type;
   if (draft.summary.trim() !== "") fields.Encounter_Summary = draft.summary.trim();
+  if (draft.documentIds && draft.documentIds.length > 0) fields.Document_Attachment = draft.documentIds;
+  if (draft.documentType) fields.Document_Type = draft.documentType;
+  if (draft.redactionStatus) fields.Document_Redaction_Status = draft.redactionStatus;
   return { id: uid, fields };
 }
 

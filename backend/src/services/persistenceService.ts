@@ -1,5 +1,6 @@
 import { EventRepository, SaveOptions, SaveResult } from "../persistence/eventRepository";
 import { DocumentStore } from "../documents/documentStore";
+import { assertDocumentsBelongToPatient } from "../documents/documentLinks";
 import { EncounterRepository } from "../encounters/encounterRepository";
 import { UnifiedEvent } from "../types/UnifiedEvents";
 import { HttpError } from "../utils/httpError";
@@ -18,12 +19,7 @@ export async function persistEvent(
 ): Promise<SaveResult> {
   const { documents, encounters, ...saveOptions } = options;
   if (documents) {
-    for (const id of event.documentAttachment ?? []) {
-      const record = await documents.getRecord(String(id));
-      if (!record || record.masterId !== event.masterId) {
-        throw new HttpError(422, "Document_Attachment refers to a document that does not exist for this patient");
-      }
-    }
+    await assertDocumentsBelongToPatient(documents, event.documentAttachment ?? [], event.masterId);
   }
   const existing = await repository.getByUid(event.uid);
   // Patients replacing someone else's event are refused by the repository with a 403.

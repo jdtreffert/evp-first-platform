@@ -130,6 +130,32 @@ describe("documents API (HTTP)", () => {
     expect((await upload(clinical, PDF, "?masterId=M1")).status).toBe(403);
   });
 
+  test("lists a patient's documents newest first, and patients only see their own", async () => {
+    const first = await (await upload(admin, PDF, "?masterId=M1&filename=first.pdf")).json();
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    const second = await (await upload(admin, PNG, "?masterId=M1&filename=second.png")).json();
+    await upload(admin, PDF, "?masterId=M2&filename=other-patient.pdf");
+
+    const asAdmin = await (await fetch(`${admin.base}/documents?masterId=M1`, { headers: { cookie: admin.cookie } })).json();
+    expect(asAdmin.documents.map((d: { id: string }) => d.id)).toEqual([second.id, first.id]);
+    expect(asAdmin.documents[0]).toEqual({
+      id: second.id, originalName: "second.png", contentType: "image/png", size: PNG.length, uploadedAt: second.uploadedAt,
+    });
+    expect(asAdmin.documents[0]).not.toHaveProperty("sha256");
+
+    const asPatient = await (await fetch(`${patient2.base}/documents?masterId=M1`, { headers: { cookie: patient2.cookie } })).json();
+    expect(asPatient.documents.map((d: { originalName: string }) => d.originalName)).toEqual(["other-patient.pdf"]);
+
+    const asClinical = await fetch(`${clinical.base}/documents?masterId=M1`, { headers: { cookie: clinical.cookie } });
+    expect((await asClinical.json()).documents).toHaveLength(2);
+  });
+
+  test("listing requires a patient and authentication", async () => {
+    expect((await fetch(`${admin.base}/documents`, { headers: { cookie: admin.cookie } })).status).toBe(400);
+    expect((await fetch(`${admin.base}/documents?masterId=M1`)).status).toBe(401);
+    expect((await (await fetch(`${admin.base}/documents?masterId=NOBODY`, { headers: { cookie: admin.cookie } })).json()).documents).toEqual([]);
+  });
+
   test("requires authentication and rejects malformed ids", async () => {
     expect((await fetch(`${admin.base}/documents`, { method: "POST", body: PDF, headers: { "content-type": "application/octet-stream" } })).status).toBe(401);
     expect((await fetch(`${admin.base}/documents/not-an-id`, { headers: { cookie: admin.cookie } })).status).toBe(404);

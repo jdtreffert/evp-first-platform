@@ -74,6 +74,15 @@ export function createDocumentsRouter(store: DocumentStore, auth: AuthService): 
     },
   );
 
+  router.get("/", requireAuth, async (req: Request, res: Response) => {
+    const masterId = req.authUser?.role === "patient" ? req.authUser.masterId : req.query.masterId;
+    if (typeof masterId !== "string" || masterId.trim() === "" || masterId.length > 100) {
+      throw new HttpError(400, "masterId is required");
+    }
+    const records = await store.list(masterId.trim());
+    res.status(200).json({ documents: records.map(publicView) });
+  });
+
   router.get("/:id/meta", requireAuth, async (req: Request, res: Response) => {
     res.status(200).json(publicView(await loadVisibleRecord(req)));
   });

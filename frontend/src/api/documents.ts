@@ -35,6 +35,12 @@ export function getDocumentMeta(id: string): Promise<DocumentMeta> {
   return requestJson<DocumentMeta>(`/documents/${encodeURIComponent(id)}/meta`);
 }
 
+/** Every document stored for a patient, most recently uploaded first. */
+export async function listDocuments(masterId: string): Promise<DocumentMeta[]> {
+  const query = new URLSearchParams({ masterId });
+  return (await requestJson<{ documents: DocumentMeta[] }>(`/documents?${query.toString()}`)).documents;
+}
+
 /** Fetches the file with the session cookie and opens it in a new tab, or downloads it if the tab is blocked. */
 export async function openDocument(meta: DocumentMeta): Promise<void> {
   const tab = window.open("", "_blank");

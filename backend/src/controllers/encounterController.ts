@@ -1,9 +1,11 @@
 import { Request, Response } from "express";
+import { assertDocumentsBelongToPatient } from "../documents/documentLinks";
+import { DocumentStore } from "../documents/documentStore";
 import { EncounterRepository } from "../encounters/encounterRepository";
 import { getEncounterByUid, ingestEncounter, queryEncounters } from "../services/encounterService";
 import { HttpError } from "../utils/httpError";
 
-export function createEncounterController(repository: EncounterRepository) {
+export function createEncounterController(repository: EncounterRepository, documents?: DocumentStore) {
   /** The patient record a patient account is confined to; undefined for every other role. */
   const ownerOf = (req: Request): string | undefined =>
     req.authUser?.role === "patient" ? req.authUser.masterId ?? undefined : undefined;
@@ -21,6 +23,9 @@ export function createEncounterController(repository: EncounterRepository) {
     async saveEncounterController(req: Request, res: Response): Promise<void> {
       const ownerMasterId = ownerOf(req);
       const encounter = ingestEncounter(req.body, { masterId: ownerMasterId });
+      if (documents) {
+        await assertDocumentsBelongToPatient(documents, encounter.documentAttachment ?? [], encounter.masterId);
+      }
       const { created, encounter: stored } = await repository.save(encounter, {
         ownerMasterId,
         actorRole: req.authUser?.role,

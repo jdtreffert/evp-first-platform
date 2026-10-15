@@ -1,4 +1,5 @@
 import type { UnifiedEvent } from "../../../backend/src/types/UnifiedEvents";
+import { calendarDay } from "./calendarDay";
 
 /** The events that make up the Diagnosis phase of a journey, built around one Diagnosis event. */
 export interface DiagnosisPhase {
@@ -24,8 +25,7 @@ export function isTreatmentEvent(event: UnifiedEvent): boolean {
 
 /** The calendar date as recorded, ignoring any time or offset; null when absent or malformed. */
 function calendarDate(event: UnifiedEvent): string | null {
-  const date = event.eventDate?.slice(0, 10) ?? "";
-  return /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : null;
+  return calendarDay(event.eventDate) || null;
 }
 
 function byDateThenUid(a: UnifiedEvent, b: UnifiedEvent): number {

@@ -6,9 +6,9 @@ Design intent is in [journey-design.md](journey-design.md).
 ## Journey visualization
 
 1. Establish the Journey workspace and navigation.
-2. Implement and validate Diagnosis phase selection.
-3. Establish the presentation-policy architecture.
-4. Implement the interactive Diagnosis timeline.
+2. Implement and validate Diagnosis phase selection. (Done.)
+3. Establish the presentation-policy architecture. (Done: lanes, names, milestone.)
+4. Implement the interactive Diagnosis timeline. (The view model is done; the renderer is next.)
 5. Refine the design against the reference patient journey.
 6. Extend the proven architecture to Treatment.
 7. Extend it to Surveillance.

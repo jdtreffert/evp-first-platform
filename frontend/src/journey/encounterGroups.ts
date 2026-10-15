@@ -1,5 +1,6 @@
 import type { Encounter } from "../../../backend/src/types/Encounter";
 import type { UnifiedEvent } from "../../../backend/src/types/UnifiedEvents";
+import { calendarDay } from "./calendarDay";
 
 /** An encounter together with the events that link to it. */
 export interface EncounterGroup {
@@ -12,12 +13,6 @@ export interface EncounterGroup {
 export type TimelineEntry =
   | { kind: "encounter"; group: EncounterGroup }
   | { kind: "event"; event: UnifiedEvent };
-
-/** The calendar date, or an empty string when the value is absent or not a real date. */
-function calendarDay(date: string | null | undefined): string {
-  const day = date?.slice(0, 10) ?? "";
-  return /^\d{4}-\d{2}-\d{2}$/.test(day) ? day : "";
-}
 
 function entryDay(entry: TimelineEntry): string {
   return entry.kind === "encounter" ? calendarDay(entry.group.encounter.encounterDate) : calendarDay(entry.event.eventDate);

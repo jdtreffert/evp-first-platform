@@ -95,6 +95,25 @@ never by attribute values. The Diagnosis event type is drawn as a milestone. The
 name of each event type (for example "Lab work"). Icons, colors and sizes are not defined yet; they come with
 the renderer.
 
+## Diagnosis view model
+
+`buildDiagnosisView` in `frontend/src/journey/diagnosisView.ts` (tested, no React) combines the phase selection,
+the presentation policy and the patient's encounters. Given the current events and encounters it returns:
+
+- `lanes`: only the lanes that have events, in the agreed order with Other last; each lane's events earliest
+  first, each carrying its presentation (name, lane, milestone), its own calendar date and its encounter.
+- `milestone`: the Diagnosis event the view is built around, with `diagnosisCandidates` for switching.
+- `encounters`: one connector per encounter that has events in the phase, ordered by the encounter's date, with
+  its in-phase `members`, the `laneIds` they sit in, `crossLane` (a line across lanes is needed), and
+  `outsideCount` (members of the encounter outside the phase, among the events given).
+- `range`: the dates the axis must cover, which includes an encounter dated outside its members' dates.
+- `undated`: events with unknown dates, never placed.
+
+Rules it keeps: events are placed by their own date and never moved to their encounter's; membership comes only
+from the recorded `Encounter_UID`, never from shared dates; an event whose encounter is not loaded renders
+normally; nothing it is given is changed. A renderer draws a line at the connector's date joining members in
+different lanes, with a short tick to any member dated differently.
+
 ## Summary and derived information
 
 Summary information is derived from events, not entered separately. Examples: first recorded event, the

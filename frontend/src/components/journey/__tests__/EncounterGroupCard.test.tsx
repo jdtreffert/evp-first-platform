@@ -37,7 +37,7 @@ describe("EncounterGroupCard", () => {
   it("uses the singular for one event", () => {
     const html = renderToString(
       <EncounterGroupCard group={{ encounter, events: [member("a")] }}><span /></EncounterGroupCard>,
-    );
+    ).replaceAll("<!-- -->", "");
     expect(html).toContain("1 event<");
   });
 

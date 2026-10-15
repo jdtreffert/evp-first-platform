@@ -1,6 +1,6 @@
 ---
 description: "Use when building or changing Journey views, timeline rendering, phase selection, or presentation policy in the frontend."
-applyTo: "frontend/src/pages/journey/**,frontend/src/components/journey/**"
+applyTo: "frontend/src/pages/journey/**,frontend/src/components/journey/**,frontend/src/journey/**"
 ---
 # Journey views
 
@@ -18,3 +18,5 @@ Follow [docs/journey-design.md](../../docs/journey-design.md). In short:
 - Respect roles: patients see only their own record; clinical accounts are read-only.
 - Lanes are presentation groupings, not new event types. Do not change the canonical model to suit a view.
 - Check the existing timeline and onboarding code before adding a new path.
+- Layout: screens in `pages/journey/`, rendering components in `components/journey/`, and phase selection,
+  presentation policy and view model in `frontend/src/journey/` with no React or rendering imports.

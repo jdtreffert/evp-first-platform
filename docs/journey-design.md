@@ -30,6 +30,27 @@ Keep these responsibilities separate:
   meaning, and interaction gives detail. Not every event needs equal prominence; prefer a clear overview with
   details on selection over putting every attribute on the timeline.
 
+## Code layout
+
+The frontend already separates `pages/` (routed screens), `components/` (reusable UI, grouped by area, for
+example `components/events/`) and `api/`. Journey code extends that structure:
+
+| Location | Holds |
+|----------|-------|
+| `frontend/src/pages/MyJourney.tsx` | The existing tab container; Journey views are added as tabs here |
+| `frontend/src/pages/journey/` | One screen per view (for example the Diagnosis view), alongside the existing timeline and onboarding screens |
+| `frontend/src/components/journey/` | Rendering components: timeline, lanes, milestones, event detail |
+| `frontend/src/journey/` | Non-UI logic: phase selection, presentation policy, and the view model. No React and no rendering imports, so it stays independent of the visuals |
+| `frontend/src/api/` | Fetching events, as today; views do not call the API directly from rendering components |
+
+The existing `JourneyTimeline` and `components/events/` (event form, card, history) keep working as they do.
+Journey rendering reuses `EventHistory` and `DocumentLink` for provenance and documents instead of
+duplicating them.
+
+The frontend has no test runner today (only `npm run build` and `npm run lint`). Phase selection and
+presentation policy are plain functions that deserve automated tests; adding a frontend test runner is a new
+dependency and needs a decision before that work starts.
+
 ## Diagnosis view
 
 Built automatically from the existing events and an authoritative Diagnosis event: a horizontal timeline with

@@ -116,6 +116,14 @@ is unaffected. In a phase, show only the members inside it, with a count of memb
 encounter shows its summary, date, type, documents and member events. The view model that groups events by
 encounter belongs in `frontend/src/journey/`, separate from rendering.
 
+Implemented so far: `groupTimeline` in `frontend/src/journey/encounterGroups.ts` (tested) arranges a
+patient's events into entries that are either an encounter with its events or a single event. An event with
+no encounter, or whose encounter is not loaded, is shown on its own, since a missing link means unknown.
+Entries are ordered by the encounter's date or the event's own date, undated last. The timeline screen
+renders it through `components/journey/EncounterGroupCard` as an optional "Group events by encounter" view,
+showing the encounter and its documents once above its events. The lane renderer will reuse the same view
+model; the "count of members outside the phase" belongs there and is not built yet.
+
 ## Open decisions
 
 - Which lane Decision and Note belong in, now that there is no Clinical Encounters lane.

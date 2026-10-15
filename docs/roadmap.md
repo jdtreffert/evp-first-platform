@@ -18,10 +18,10 @@ Design intent is in [journey-design.md](journey-design.md).
 
 Backend entity, the optional event link, the event form's Encounter section, an encounter editor on the
 timeline (create, edit, and tick which unlinked events belong, with same-date events suggested but never
-linked automatically), and documents on encounters (attach a new file or an existing document once, shown
-from every event in the encounter) are done. Remaining increment:
-
-1. Journey grouping by encounter in the view model and renderer.
+linked automatically), documents on encounters (attach a new file or an existing document once, shown
+from every event in the encounter), and encounter grouping in the timeline (a tested view model and an
+optional "Group events by encounter" view) are done. Still to do: draw encounters in the lane renderer, which
+comes with the Diagnosis view.
 
 Smaller follow-ups: show encounter history on the screen, and an "attach an existing document" picker on the
 event form.

@@ -9,6 +9,7 @@ export default function EventCard({
   event,
   related,
   encounter,
+  hideEncounter = false,
   onEditEncounter,
   onEdit,
 }: {
@@ -16,6 +17,8 @@ export default function EventCard({
   related?: UnifiedEvent;
   /** The encounter this event links to, when it has been loaded. */
   encounter?: Encounter;
+  /** True when the card is shown under its encounter, which is then displayed once by the group instead. */
+  hideEncounter?: boolean;
   /** Present only when the signed-in user may edit encounters. */
   onEditEncounter?: () => void;
   /** Present only when the signed-in user may edit this event. */
@@ -63,7 +66,7 @@ export default function EventCard({
       {showHistory && <EventHistory event={event} />}
       {event.eventSource && <p className="mt-1 text-xs text-gray-400">Source: {event.eventSource}</p>}
 
-      {event.encounterUid && (
+      {!hideEncounter && event.encounterUid && (
         <p className="mt-1 text-xs text-gray-400">
           Encounter: {encounter ? encounterLabel(encounter) : "unavailable"}{" "}
           {encounter && onEditEncounter && (
@@ -73,7 +76,7 @@ export default function EventCard({
           )}
         </p>
       )}
-      {encounter && (encounter.documentAttachment ?? []).length > 0 && (
+      {!hideEncounter && encounter && (encounter.documentAttachment ?? []).length > 0 && (
         <div className="mt-1">
           <p className="text-xs text-gray-400">
             Encounter documents{encounter.documentType ? ` (${encounter.documentType})` : ""}:

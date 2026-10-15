@@ -9,6 +9,8 @@ import EventCard from "../../components/events/EventCard";
 import EventForm from "../../components/events/EventForm";
 import EncounterForm from "../../components/events/EncounterForm";
 import { encounterLabel } from "../../components/events/encounterOptions";
+import EncounterGroupCard from "../../components/journey/EncounterGroupCard";
+import { groupTimeline } from "../../journey/encounterGroups";
 
 export default function JourneyTimeline() {
   const { user } = useAuth();
@@ -23,6 +25,7 @@ export default function JourneyTimeline() {
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [groupByEncounter, setGroupByEncounter] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -108,6 +111,21 @@ export default function JourneyTimeline() {
     setEditing(null);
     await refresh("Event");
   };
+
+  const renderEventCard = (event: UnifiedEvent, hideEncounter = false) => (
+    <EventCard
+      key={event.uid}
+      event={event}
+      hideEncounter={hideEncounter}
+      onEdit={canWrite ? () => setEditing(event) : undefined}
+      onEditEncounter={canWrite ? () => {
+        const linked = encounters.find((candidate) => candidate.uid === event.encounterUid);
+        if (linked) setEncounterEditor({ encounter: linked });
+      } : undefined}
+      encounter={event.encounterUid ? encounters.find((candidate) => candidate.uid === event.encounterUid) : undefined}
+      related={event.relatedEventUid ? events.find((other) => other.uid === event.relatedEventUid) : undefined}
+    />
+  );
 
   return (
     <section className="space-y-5 text-white">
@@ -226,19 +244,28 @@ export default function JourneyTimeline() {
           </p>
         ) : (
           <div className="space-y-3">
-            {events.map((event) => (
-              <EventCard
-                key={event.uid}
-                event={event}
-                onEdit={canWrite ? () => setEditing(event) : undefined}
-                onEditEncounter={canWrite ? () => {
-                  const linked = encounters.find((candidate) => candidate.uid === event.encounterUid);
-                  if (linked) setEncounterEditor({ encounter: linked });
-                } : undefined}
-                encounter={event.encounterUid ? encounters.find((candidate) => candidate.uid === event.encounterUid) : undefined}
-                related={event.relatedEventUid ? events.find((other) => other.uid === event.relatedEventUid) : undefined}
-              />
-            ))}
+            <label className="flex items-center gap-2 text-sm text-gray-300">
+              <input type="checkbox" checked={groupByEncounter} onChange={(event) => setGroupByEncounter(event.target.checked)} />
+              Group events by encounter
+            </label>
+            {groupByEncounter && events.length < totalEvents && (
+              <p className="text-xs text-gray-400">
+                Older events are not loaded yet, so an encounter may show fewer events than it has.
+              </p>
+            )}
+            {groupByEncounter
+              ? groupTimeline(events, encounters, "desc").map((entry) =>
+                  entry.kind === "encounter" ? (
+                    <EncounterGroupCard
+                      key={`encounter-${entry.group.encounter.uid}`}
+                      group={entry.group}
+                      onEditEncounter={canWrite ? () => setEncounterEditor({ encounter: entry.group.encounter }) : undefined}
+                    >
+                      {entry.group.events.map((member) => renderEventCard(member, true))}
+                    </EncounterGroupCard>
+                  ) : renderEventCard(entry.event),
+                )
+              : events.map((event) => renderEventCard(event))}
             {events.length < totalEvents && (
               <button
                 type="button"

@@ -91,10 +91,10 @@ export default function PhaseTimeline({
           {layout.references.map((reference) => (
             <g key={`${reference.label}-${reference.day}`}>
               <title>{`${reference.label} · ${reference.day}`}</title>
-              <line x1={reference.x} x2={reference.x} y1={14} y2={layout.height} stroke="#f9fafb" strokeWidth={1.5} strokeDasharray="6 4" />
+              <line x1={reference.x} x2={reference.x} y1={14 + reference.row * GEOMETRY.referenceRowHeight} y2={layout.height} stroke="#f9fafb" strokeWidth={1.5} strokeDasharray="6 4" />
               <text
                 x={reference.x + 6}
-                y={14}
+                y={14 + reference.row * GEOMETRY.referenceRowHeight}
                 fontSize={12}
                 fontWeight={600}
                 fill="#f9fafb"

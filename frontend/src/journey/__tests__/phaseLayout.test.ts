@@ -236,6 +236,19 @@ describe("layoutPhaseView: references", () => {
     expect(layoutPhaseView(view).references).toEqual([]);
 
     const withReference = layoutPhaseView({ ...view, references: [{ day: "2026-03-01", label: "Started" }] });
-    expect(withReference.references).toEqual([{ x: GEOMETRY.paddingLeft, label: "Started", day: "2026-03-01" }]);
+    expect(withReference.references).toEqual([{ x: GEOMETRY.paddingLeft, label: "Started", day: "2026-03-01", row: 0 }]);
+    expect(withReference.axisHeight).toBe(GEOMETRY.axisHeight);
+  });
+
+  it("puts a label that would run into an earlier one on a lower row, and grows the axis only then", () => {
+    const view = buildDiagnosisView([event("scan", "Imaging", "2026-03-01"), event("diagnosis", "Diagnosis", "2027-04-02")], [])!;
+    const close = layoutPhaseView({ ...view, references: [{ day: "2026-03-01", label: "Treatment completed" }, { day: "2026-03-20", label: "Complete response confirmed" }] });
+    const apart = layoutPhaseView({ ...view, references: [{ day: "2026-03-01", label: "Treatment completed" }, { day: "2027-01-01", label: "Complete response confirmed" }] });
+
+    expect(close.references.map((r) => r.row)).toEqual([0, 1]);
+    expect(close.axisHeight).toBe(GEOMETRY.axisHeight + GEOMETRY.referenceRowHeight);
+    expect(close.lanes[0].top).toBe(close.axisHeight);
+    expect(apart.references.map((r) => r.row)).toEqual([0, 0]);
+    expect(apart.axisHeight).toBe(GEOMETRY.axisHeight);
   });
 });

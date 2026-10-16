@@ -142,6 +142,16 @@ layout and timeline as the other phases.
   modality, confirmation or stage change, notes). Each offers a picker for the evidence it was recognised from
   (imaging, cystoscopy, biopsy, cytology, pathology, ctDNA, utDNA, up to 90 days before) with the relationship
   `Derived_From`. The link is optional; without it the event still appears at its date.
+- **Duration of complete response:** `assessCompleteResponse` in `frontend/src/journey/completeResponse.ts`
+  (tested, no React). The platform does not define complete response; the community has not settled one and
+  trials may. It starts at the earliest dated Decision of type "Complete response confirmed", the decision of the
+  patient and care team, so the date is whatever definition they applied, and the Decision's notes and
+  `Event_Related_UID` can record the basis. Changing the definition means editing that date (the history keeps the
+  earlier one) and the duration follows. It ends at the first dated Recurrence or Progression on or after the
+  confirmation, in any phase. With none recorded it is "ongoing" and reports the days elapsed to a date the caller
+  passes (the tab passes today), described as elapsed time, never as a record that the response held. With no
+  confirming decision no duration is shown. The confirmation is a second reference line on the timeline; labels
+  stack on a lower row only when they would overlap.
 - **Lanes and encounters** are as in the other views. Serial scans, labs and ctDNA at a visit are joined by
   the visit's encounter line.
 
@@ -265,10 +275,13 @@ model; the "count of members outside the phase" belongs there and is not built y
 - Linking the evidence behind a milestone (the scans and tests behind a response, a change or a progression) to
   the milestone with `Event_Related_UID` and `Assessed_By`, so the renderer can draw them. Deferred until after
   user testing and advisor input, as before. Without links nothing is drawn or inferred.
-- Analytics will want duration of response and progression-free survival. Duration of response needs the
-  response onset date from Treatment_Response. Progression-free survival needs an endpoint for patients without
-  progression, such as a last assessment date or death, and the schema has no event for either. To be decided
-  when analytics is designed; analytics must also follow the cohort and suppression rules.
+- Analytics will want duration of response and progression-free survival. Duration of complete response is now
+  computed from the "Complete response confirmed" decision (see the Post-treatment Surveillance section), but
+  only up to a recorded Recurrence or Progression. For patients without one there is no recorded end of
+  follow-up: the schema has no last-known-status date or death, and the absence of an event is not a negative
+  result, so an ongoing duration is only elapsed time. A censoring date is to be decided when analytics is
+  designed (options: the latest recorded follow-up assessment, or an explicit last-known-status field);
+  analytics must also follow the cohort and suppression rules.
 - How a second treatment course is represented as a new journey, since a journey is currently one patient
   record (`Master_ID`). Out of scope for now.
 - Whether the Journey views replace or sit beside the existing onboarding flow in

@@ -1,14 +1,26 @@
 import type { Encounter } from "../../../backend/src/types/Encounter";
 import type { UnifiedEvent } from "../../../backend/src/types/UnifiedEvents";
 import { calendarDay, daysBetween } from "./calendarDay";
+import { assessCompleteResponse } from "./completeResponse";
+import type { CompleteResponse } from "./completeResponse";
 import type { DiagnosisPhaseOptions } from "./diagnosisPhase";
 import { composePhase } from "./phaseView";
-import type { PhaseLanes, ViewEvent } from "./phaseView";
+import type { PhaseLanes, PhaseReference, ViewEvent } from "./phaseView";
 import { selectSurveillancePhase } from "./surveillancePhase";
+
+export interface SurveillanceOptions extends DiagnosisPhaseOptions {
+  /**
+   * The YYYY-MM-DD date an ongoing complete response is measured to. Defaults to the day of the latest recorded
+   * event, so the view never depends on the clock unless the caller passes today's date.
+   */
+  asOf?: string;
+}
 
 export interface SurveillanceView extends PhaseLanes {
   /** The recorded "Treatment completed" the phase follows. It sits in the Treatment phase and is marked on the axis. */
   completion: ViewEvent;
+  /** The duration of complete response from the recorded confirming decision, or null when none is recorded. */
+  completeResponse: CompleteResponse | null;
   /** The most recent event in the phase. */
   latest: ViewEvent;
   /** Days from the completion to the latest event recorded. */
@@ -37,7 +49,7 @@ export type SurveillanceResult =
 export function buildSurveillanceView(
   events: readonly UnifiedEvent[],
   encounters: readonly Encounter[],
-  options: DiagnosisPhaseOptions = {},
+  options: SurveillanceOptions = {},
 ): SurveillanceResult {
   const phase = selectSurveillancePhase(events, options);
   if (phase.status === "no-treatment" || phase.status === "treatment-ongoing") return { status: phase.status };
@@ -49,15 +61,23 @@ export function buildSurveillanceView(
   const firstDisease = phase.events.find((event) => event.eventType === "Progression" || event.eventType === "Recurrence");
   const firstDiseaseEvent = firstDisease ? toViewEvent(firstDisease) : null;
 
+  // The confirming decision may be dated before the completion, so it is read from all events, not the phase.
+  const completeResponse = assessCompleteResponse(events, options.asOf ?? latest.day);
+  const confirmationDay = completeResponse ? calendarDay(completeResponse.confirmation.eventDate) : "";
+  const references: PhaseReference[] = [{ day: completion.day, label: "Treatment completed" }];
+  if (confirmationDay) references.push({ day: confirmationDay, label: "Complete response confirmed" });
+  const axisStart = [completion.day, range.start, confirmationDay].filter(Boolean).sort()[0];
+
   return {
     status: "ready",
     view: {
       lanes,
       encounters: connectors,
-      // The completion precedes every event in the phase, so the axis begins at it.
-      range: { start: completion.day < range.start ? completion.day : range.start, end: range.end },
-      references: [{ day: completion.day, label: "Treatment completed" }],
+      // The axis begins at the completion, or at an earlier confirmation, so both lines are drawn.
+      range: { start: axisStart, end: range.end },
+      references,
       completion,
+      completeResponse,
       latest,
       daysToLatest: daysBetween(completion.day, latest.day),
       firstDiseaseEvent,

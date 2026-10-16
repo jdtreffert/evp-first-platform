@@ -4,6 +4,8 @@ import type { EncounterConnector, PhaseLanes, ViewEvent, ViewLane } from "./phas
 export const GEOMETRY = {
   /** Height of the date axis above the first lane. */
   axisHeight: 44,
+  /** Extra axis height for each additional row of reference labels, which stack only when they would overlap. */
+  referenceRowHeight: 16,
   /** Space before the first date. */
   paddingLeft: 48,
   /** Space after the last date, enough for the label of an event on it. */
@@ -62,6 +64,8 @@ export interface PlacedReference {
   x: number;
   label: string;
   day: string;
+  /** Which row of reference labels it is on, 0 being the top; a label that would overlap an earlier one moves down. */
+  row: number;
 }
 
 export interface PhaseLayout {
@@ -111,13 +115,26 @@ function extentRight(view: ViewEvent): number {
  * differently. It only measures; it changes nothing in the view.
  */
 export function layoutPhaseView(view: PhaseLanes): PhaseLayout {
-  const { axisHeight, paddingLeft, paddingRight, rowHeight, lanePaddingY, labelGap, markerRadius, milestoneRadius, pxPerDay, minPlotWidth, maxPlotWidth } = GEOMETRY;
+  const { paddingLeft, paddingRight, rowHeight, lanePaddingY, labelGap, labelOffset, charWidth, boldFactor, referenceRowHeight, markerRadius, milestoneRadius, pxPerDay, minPlotWidth, maxPlotWidth } = GEOMETRY;
 
   const startNumber = dayNumber(view.range.start);
   const span = Math.max(0, dayNumber(view.range.end) - startNumber);
   const plotWidth = Math.min(maxPlotWidth, Math.max(minPlotWidth, span * pxPerDay));
   const xFor = (day: string): number =>
     paddingLeft + (span === 0 ? plotWidth / 2 : ((dayNumber(day) - startNumber) / span) * plotWidth);
+
+  // Reference labels start at their line; one that would run into an earlier label goes on a lower row.
+  const referenceRowEnds: number[] = [];
+  const references: PlacedReference[] = [...(view.references ?? [])]
+    .sort((a, b) => (a.day < b.day ? -1 : a.day > b.day ? 1 : 0))
+    .map((reference) => {
+      const x = xFor(reference.day);
+      let row = referenceRowEnds.findIndex((end) => x >= end + labelGap);
+      if (row === -1) row = referenceRowEnds.length;
+      referenceRowEnds[row] = x + labelOffset + reference.label.length * charWidth * boldFactor;
+      return { x, label: reference.label, day: reference.day, row };
+    });
+  const axisHeight = GEOMETRY.axisHeight + Math.max(0, referenceRowEnds.length - 1) * referenceRowHeight;
 
   const placedByUid = new Map<string, PlacedEvent>();
   const lanes: PlacedLane[] = [];
@@ -172,7 +189,7 @@ export function layoutPhaseView(view: PhaseLanes): PhaseLayout {
     lanes,
     connectors,
     ticks,
-    references: (view.references ?? []).map((reference) => ({ x: xFor(reference.day), label: reference.label, day: reference.day })),
+    references,
   };
 }
 

@@ -83,6 +83,38 @@ describe("buildSurveillanceView", () => {
     expect(view.lanes[0].lane.id).toBe("response-disease-status");
   });
 
+  it("reports the duration of complete response from the confirming decision and marks it on the axis", () => {
+    const decision = event("cr", "Decision", "2026-09-20", { decisionType: "Complete response confirmed" });
+    const view = ready([...baseJourney, decision]);
+
+    expect(view.completeResponse).toMatchObject({ status: "ongoing", asOf: "2026-12-01", elapsedDays: 72 });
+    expect(view.references).toEqual([
+      { day: "2026-08-01", label: "Treatment completed" },
+      { day: "2026-09-20", label: "Complete response confirmed" },
+    ]);
+  });
+
+  it("ends the complete response at the first Recurrence or Progression, and measures an ongoing one to the date given", () => {
+    const events = [...baseJourney, event("cr", "Decision", "2026-09-20", { decisionType: "Complete response confirmed" })];
+    const withFinding = buildSurveillanceView([...events, event("rec", "Recurrence", "2027-01-10")], []);
+    const ongoing = buildSurveillanceView(events, [], { asOf: "2027-06-01" });
+
+    if (withFinding.status !== "ready" || ongoing.status !== "ready") throw new Error("expected ready views");
+    expect(withFinding.view.completeResponse).toMatchObject({ status: "ended", days: 112 });
+    expect(ongoing.view.completeResponse).toMatchObject({ status: "ongoing", elapsedDays: 254 });
+  });
+
+  it("finds a confirmation dated before the completion and extends the axis to it", () => {
+    const view = ready([...baseJourney, event("cr", "Decision", "2026-07-15", { decisionType: "Complete response confirmed" })]);
+
+    expect(view.completeResponse?.confirmation.uid).toBe("cr");
+    expect(view.range.start).toBe("2026-07-15");
+  });
+
+  it("has no duration of complete response without a confirming decision", () => {
+    expect(ready(baseJourney).completeResponse).toBeNull();
+  });
+
   it("joins a surveillance visit's events across lanes with a line at the visit date", () => {
     const view = ready(baseJourney, [visit]);
 

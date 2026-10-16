@@ -13,7 +13,8 @@ Design intent is in [journey-design.md](journey-design.md).
 5. Refine the design against the reference patient journey.
 6. Extend the proven architecture to Treatment. (First version done as the Treatment tab; to be refined
    against the reference journey.)
-7. Extend it to Surveillance.
+7. Extend it to Surveillance. (First version done as the Surveillance tab; to be refined against the
+   reference journey once a completion is recorded.)
 8. Build the comprehensive Summary view.
 
 ## Encounters

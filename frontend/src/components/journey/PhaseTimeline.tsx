@@ -88,6 +88,26 @@ export default function PhaseTimeline({
             </g>
           ))}
 
+          {layout.references.map((reference) => (
+            <g key={`${reference.label}-${reference.day}`}>
+              <title>{`${reference.label} · ${reference.day}`}</title>
+              <line x1={reference.x} x2={reference.x} y1={14} y2={layout.height} stroke="#f9fafb" strokeWidth={1.5} strokeDasharray="6 4" />
+              <text
+                x={reference.x + 6}
+                y={14}
+                fontSize={12}
+                fontWeight={600}
+                fill="#f9fafb"
+                stroke="#111827"
+                strokeWidth={3}
+                paintOrder="stroke"
+                strokeLinejoin="round"
+              >
+                {reference.label}
+              </text>
+            </g>
+          ))}
+
           {layout.connectors.map((placed) => {
             const { encounter } = placed.connector;
             const selected = selection?.kind === "encounter" && selection.uid === encounter.uid;

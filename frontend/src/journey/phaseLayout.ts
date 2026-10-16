@@ -58,6 +58,12 @@ export interface AxisTick {
   label: string;
 }
 
+export interface PlacedReference {
+  x: number;
+  label: string;
+  day: string;
+}
+
 export interface PhaseLayout {
   width: number;
   height: number;
@@ -65,6 +71,8 @@ export interface PhaseLayout {
   lanes: PlacedLane[];
   connectors: PlacedConnector[];
   ticks: AxisTick[];
+  /** Labelled lines marking dates such as where the phase begins. */
+  references: PlacedReference[];
 }
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -157,7 +165,15 @@ export function layoutPhaseView(view: PhaseLanes): PhaseLayout {
       ? starts.map((start) => ({ x: xFor(start.day), label: start.label }))
       : [{ x: xFor(view.range.start), label: formatDay(view.range.start) }];
 
-  return { width: plotWidth + paddingLeft + paddingRight, height: top, axisHeight, lanes, connectors, ticks };
+  return {
+    width: plotWidth + paddingLeft + paddingRight,
+    height: top,
+    axisHeight,
+    lanes,
+    connectors,
+    ticks,
+    references: (view.references ?? []).map((reference) => ({ x: xFor(reference.day), label: reference.label, day: reference.day })),
+  };
 }
 
 function formatDay(day: string): string {

@@ -3,6 +3,7 @@ import JourneyOnboarding from "./journey/JourneyOnboarding";
 import JourneyTimeline from "./journey/JourneyTimeline";
 import JourneyDiagnosis from "./journey/JourneyDiagnosis";
 import JourneyTreatment from "./journey/JourneyTreatment";
+import JourneySurveillance from "./journey/JourneySurveillance";
 import JourneyProfile from "./journey/JourneyProfile";
 
 export default function MyJourney() {
@@ -34,6 +35,11 @@ export default function MyJourney() {
           Treatment
         </button>
 
+        <button onClick={() => setTab("surveillance")}
+          className={`px-4 py-2 rounded ${tab === "surveillance" ? "bg-gray-700" : "bg-gray-800"}`}>
+          Surveillance
+        </button>
+
         <button onClick={() => setTab("profile")}
           className={`px-4 py-2 rounded ${tab === "profile" ? "bg-gray-700" : "bg-gray-800"}`}>
           Profile
@@ -45,6 +51,7 @@ export default function MyJourney() {
       {tab === "timeline" && <JourneyTimeline />}
       {tab === "diagnosis" && <JourneyDiagnosis />}
       {tab === "treatment" && <JourneyTreatment />}
+      {tab === "surveillance" && <JourneySurveillance />}
       {tab === "profile" && <JourneyProfile />}
     </div>
   );

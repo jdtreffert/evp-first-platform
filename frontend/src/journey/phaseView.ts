@@ -42,6 +42,12 @@ export interface EncounterConnector {
   outsideCount: number;
 }
 
+/** A date worth marking on the axis even though no event of the phase sits on it, such as where the phase begins. */
+export interface PhaseReference {
+  day: string;
+  label: string;
+}
+
 /** What every phase view needs to be drawn: lanes of events, encounter connectors and the span of dates. */
 export interface PhaseLanes {
   /** Only the lanes that have events, in the agreed order; Other last. */
@@ -49,6 +55,8 @@ export interface PhaseLanes {
   encounters: EncounterConnector[];
   /** The span of dates drawn: the earliest and latest of the event dates and the encounter dates shown. */
   range: { start: string; end: string };
+  /** Dates marked with a labelled line across the lanes; the range already includes them. */
+  references?: PhaseReference[];
 }
 
 function laneRank(laneId: string): number {

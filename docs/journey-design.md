@@ -113,12 +113,34 @@ The scope is one treatment course per journey: a later course after progression 
   completed" is not followed by a start, delivery or other change dated after it. Without that, treatment is
   ongoing and the phase is open-ended. A delivery on the same day as the completion does not re-open it.
 - **Response belongs to the course:** Treatment_Response events stay in the Treatment phase, even when dated
-  after the completion. Other events after the completion belong to Surveillance, which is not built yet.
-- **Partition:** the Diagnosis and Treatment phases never share an event, and between them hold every dated
-  event up to the end of treatment (a test checks this). Undated events are reported, never placed.
+  after the completion. Other events after the completion belong to Surveillance (below).
+- **Partition:** the Diagnosis, Treatment and Surveillance phases never share an event, and together hold
+  every dated event (a test checks this). Undated events are reported, never placed.
 - **View:** `buildTreatmentView` reports the Diagnosis it follows, the completion that ends it (or ongoing), the
   lanes and the encounter connectors, using the same composition, layout and timeline as the Diagnosis view.
   An infusion visit shows as a line joining its delivery, lab and ctDNA across lanes.
+
+## Surveillance phase selection and view
+
+Implemented in `frontend/src/journey/surveillancePhase.ts` (`selectSurveillancePhase`) and
+`frontend/src/journey/surveillanceView.ts` (`buildSurveillanceView`), both tested, with a Surveillance tab in
+My Journey. It uses the same composition, layout and timeline as the other phases.
+
+- **Membership:** every non-`Treatment_` event dated after the day of the recorded Treatment completed.
+  Treatment_Response events stay in the Treatment phase. The phase exists only once a completion is recorded,
+  by the same rule the Treatment phase uses; the phase itself is never inferred from silence.
+- **Statuses:** the selection reports `no-treatment`, `treatment-ongoing`, `no-events-yet` or `ready`, and the
+  tab explains each of the first three instead of drawing an empty timeline.
+- **Reference line:** a dashed, labelled vertical line marks the completion on the axis (`PhaseReference` in
+  `phaseView.ts`), and the axis starts there so elapsed time since treatment is readable. References are a
+  general mechanism a later view can reuse.
+- **Facts shown:** the latest event, the days from completion to it, and the first Progression or Recurrence
+  with the days to it. These are read from recorded dates only. "No Progression or Recurrence has been
+  recorded" means nothing is in the record, not that none occurred.
+- **Lanes and encounters** are as in the other views. Serial scans, labs and ctDNA at a visit are joined by
+  the visit's encounter line.
+
+Not decided: whether ctDNA and utDNA stay in Investigations (see Open decisions); this is where it matters.
 
 ## Diagnosis view model
 

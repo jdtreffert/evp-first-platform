@@ -102,3 +102,24 @@ describe("PhaseTimeline: treatment deliveries", () => {
     expect(hollow).toHaveLength(1);
   });
 });
+
+describe("PhaseTimeline: reference lines", () => {
+  it("draws a labelled dashed line for each reference, and none otherwise", () => {
+    const view = buildDiagnosisView(events, [clinic])!;
+    const draw = (references?: { day: string; label: string }[]) =>
+      renderToString(
+        <PhaseTimeline
+          layout={layoutPhaseView({ ...view, references })}
+          label="Test timeline"
+          selection={null}
+          onSelectEvent={() => undefined}
+          onSelectEncounter={() => undefined}
+        />,
+      );
+
+    expect(draw()).not.toContain("Treatment completed");
+    const html = draw([{ day: "2026-02-01", label: "Treatment completed" }]);
+    expect(html).toContain("Treatment completed");
+    expect(html).toContain('stroke-dasharray="6 4"');
+  });
+});

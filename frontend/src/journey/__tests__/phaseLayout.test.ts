@@ -228,3 +228,14 @@ describe("layoutPhaseView: purity", () => {
     expect(JSON.stringify(view)).toBe(before);
   });
 });
+
+describe("layoutPhaseView: references", () => {
+  it("places a labelled line at the referenced date and keeps the layout's references empty when there are none", () => {
+    const view = buildDiagnosisView([event("scan", "Imaging", "2026-03-01"), event("diagnosis", "Diagnosis", "2026-04-02")], [])!;
+
+    expect(layoutPhaseView(view).references).toEqual([]);
+
+    const withReference = layoutPhaseView({ ...view, references: [{ day: "2026-03-01", label: "Started" }] });
+    expect(withReference.references).toEqual([{ x: GEOMETRY.paddingLeft, label: "Started", day: "2026-03-01" }]);
+  });
+});

@@ -5,6 +5,8 @@ export interface EventQuery {
   eventType?: string;
   /** Only events linked to this encounter. */
   encounterUid?: string;
+  /** Events withdrawn as entered in error are excluded unless this is "only", which lists just those. */
+  withdrawn?: "exclude" | "only";
   /** Inclusive lower bound, YYYY-MM-DD. */
   from?: string;
   /** Inclusive upper bound, YYYY-MM-DD. */
@@ -34,6 +36,7 @@ function sortKey(event: UnifiedEvent): number | null {
 }
 
 function matches(event: UnifiedEvent, query: EventQuery): boolean {
+  if ((query.withdrawn === "only") !== Boolean(event.withdrawnAt)) return false;
   if (query.masterId !== undefined && event.masterId !== query.masterId) return false;
   if (query.eventType !== undefined && event.eventType !== query.eventType) return false;
   if (query.encounterUid !== undefined && event.encounterUid !== query.encounterUid) return false;

@@ -14,6 +14,11 @@ export interface EventVersion {
   supersededByRole: string;
 }
 
+export interface WithdrawOptions extends SaveOptions {
+  /** Why the event is withdrawn; ignored when restoring. */
+  reason?: string | null;
+}
+
 export interface SaveResult {
   created: boolean;
 }
@@ -25,6 +30,11 @@ export interface SaveResult {
 export interface EventRepository {
   save(event: UnifiedEvent, options?: SaveOptions): Promise<SaveResult>;
   getByUid(uid: string): Promise<UnifiedEvent | null>;
+  /**
+   * Withdraws an event as entered in error, or restores it. The event is kept and each change is added to its
+   * history. Returns the event, or null when there is none; a change that is already in effect does nothing.
+   */
+  setWithdrawn(uid: string, withdrawn: boolean, options?: WithdrawOptions): Promise<UnifiedEvent | null>;
   /** Earlier versions of an event, oldest first. Versions are never removed. */
   history(uid: string): Promise<EventVersion[]>;
   list(): Promise<UnifiedEvent[]>;

@@ -104,6 +104,7 @@ Lists stored events. All parameters are optional; unknown or invalid ones return
 | Parameter | Meaning |
 |-----------|---------|
 | `masterId`, `eventType`, `encounterUid` | Exact match |
+| `withdrawn` | Events withdrawn as entered in error are left out by default. `only` lists just those (so they can be restored); `exclude` is the default |
 | `from`, `to` | Inclusive `YYYY-MM-DD` range on the event's recorded calendar date; `from` must not be after `to`. Undated events never match a range |
 | `order` | `asc` (default) or `desc` by event date. Undated events are always last; ties are broken by `uid` |
 | `limit` | 1 to 500, default 50 |
@@ -122,9 +123,23 @@ kept in the history, `recordedAt` is preserved, and `lastModifiedAt` and `lastMo
 set. Versions are never removed, and an existing event cannot be moved to a different patient (`422`).
 Clinical accounts cannot edit.
 
+## POST /api/events/:uid/withdraw and /restore
+
+Events cannot be deleted. An event entered in error, such as a duplicate, is **withdrawn** instead: it is kept,
+with its history, but left out of queries unless `withdrawn=only` is asked for, so timelines, views and counts do
+not show it. `POST /api/events/:uid/withdraw` takes an optional `{ "reason": string }` (at most 500 characters);
+`POST /api/events/:uid/restore` undoes it. Administrators and patients (their own record only) may use them;
+clinical accounts are read-only (`403`), and another patient's event responds `404`.
+
+The server stamps `withdrawnAt`, `withdrawnByRole` and `withdrawnReason` on the event and `lastModifiedAt` and
+`lastModifiedByRole`, and adds the previous version to the history, so who withdrew or restored an event, and
+when, stays on record. Repeating a change already in effect does nothing. While withdrawn, an event cannot be
+edited (`409`) and a new event cannot name it in `Event_Related_UID` (`422`); restore it first. Links that
+already point to it are left as they are. Both return the updated `UnifiedEvent`.
+
 ## GET /api/events/:uid
 
-Any authenticated role may read. Returns one `UnifiedEvent`: 200, 404 if no such event
+Any authenticated role may read, including a withdrawn event. Returns one `UnifiedEvent`: 200, 404 if no such event
 (or if a patient requests an event belonging to another patient), 400 if `uid` is malformed.
 
 ## Authentication

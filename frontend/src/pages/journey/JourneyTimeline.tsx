@@ -3,10 +3,11 @@ import type { FormEvent } from "react";
 import type { UnifiedEvent } from "../../../../backend/src/types/UnifiedEvents";
 import type { Encounter } from "../../../../backend/src/types/Encounter";
 import { listEncounters } from "../../api/encounters";
-import { ingestEvent, queryEvents } from "../../api/events";
+import { ingestEvent, queryEvents, withdrawEvent } from "../../api/events";
 import { useAuth } from "../../auth/useAuth";
 import EventCard from "../../components/events/EventCard";
 import EventForm from "../../components/events/EventForm";
+import WithdrawnEvents from "../../components/events/WithdrawnEvents";
 import EncounterForm from "../../components/events/EncounterForm";
 import { encounterLabel } from "../../components/events/encounterOptions";
 import EncounterGroupCard from "../../components/journey/EncounterGroupCard";
@@ -84,6 +85,8 @@ export default function JourneyTimeline() {
   };
 
   const [editing, setEditing] = useState<UnifiedEvent | null>(null);
+  // Changes whenever an event is withdrawn, so the list of withdrawn events is read again.
+  const [withdrawnVersion, setWithdrawnVersion] = useState(0);
   // null when closed; an empty object when creating a new encounter, or the encounter being edited.
   const [encounterEditor, setEncounterEditor] = useState<{ encounter?: Encounter } | null>(null);
   const noFormOpen = !showForm && !editing && !encounterEditor;
@@ -112,12 +115,19 @@ export default function JourneyTimeline() {
     await refresh("Event");
   };
 
+  const handleWithdraw = async (event: UnifiedEvent, reason: string) => {
+    await withdrawEvent(event.uid, reason);
+    setWithdrawnVersion((version) => version + 1);
+    await refresh("Withdrawal");
+  };
+
   const renderEventCard = (event: UnifiedEvent, hideEncounter = false) => (
     <EventCard
       key={event.uid}
       event={event}
       hideEncounter={hideEncounter}
       onEdit={canWrite ? () => setEditing(event) : undefined}
+      onWithdraw={canWrite ? (reason) => handleWithdraw(event, reason) : undefined}
       onEditEncounter={canWrite ? () => {
         const linked = encounters.find((candidate) => candidate.uid === event.encounterUid);
         if (linked) setEncounterEditor({ encounter: linked });
@@ -278,6 +288,15 @@ export default function JourneyTimeline() {
             )}
           </div>
         )
+      )}
+
+      {activeMasterId && noFormOpen && (
+        <WithdrawnEvents
+          masterId={activeMasterId}
+          canRestore={canWrite}
+          version={withdrawnVersion}
+          onRestored={() => refresh("Restore")}
+        />
       )}
 
       {!isPatient && !activeMasterId && !error && (

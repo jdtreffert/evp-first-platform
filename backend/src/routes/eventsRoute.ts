@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { createBatchController } from "../controllers/batchController";
 import { createIngestionController } from "../controllers/ingestionController";
+import { createWithdrawalController } from "../controllers/withdrawalController";
 import { createQueryController } from "../controllers/queryController";
 import { validateEventController } from "../controllers/validationController";
 import { EventRepository } from "../persistence/eventRepository";
@@ -22,6 +23,9 @@ export function createEventsRouter(
   router.post("/ingest", requireAuth, requireRoles("administrator", "patient"), createIngestionController(repository, documents, encounters));
   router.post("/batch", requireAuth, requireRoles("administrator", "patient"), createBatchController(repository, documents, encounters));
   router.post("/validate", requireAuth, validateEventController);
+  const { withdrawEventController, restoreEventController } = createWithdrawalController(repository);
+  router.post("/:uid/withdraw", requireAuth, requireRoles("administrator", "patient"), withdrawEventController);
+  router.post("/:uid/restore", requireAuth, requireRoles("administrator", "patient"), restoreEventController);
   router.get("/query", requireAuth, queryEventsController);
   // Must stay after the fixed GET routes so "query" is never treated as a uid.
   router.get("/:uid/history", requireAuth, getEventHistoryController);

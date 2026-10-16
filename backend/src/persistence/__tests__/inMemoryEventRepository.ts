@@ -1,6 +1,7 @@
 import { UnifiedEvent } from "../../types/UnifiedEvents";
 import { EventQuery, EventQueryResult, applyEventQuery } from "../eventQuery";
-import { EventRepository, EventVersion, SaveResult } from "../eventRepository";
+import { EventRepository, EventVersion, SaveResult, WithdrawOptions } from "../eventRepository";
+import { isWithdrawn, withWithdrawal } from "../withdrawal";
 import { HttpError } from "../../utils/httpError";
 
 export class InMemoryEventRepository implements EventRepository {
@@ -22,6 +23,21 @@ export class InMemoryEventRepository implements EventRepository {
     const created = !this.events.has(event.uid);
     this.events.set(event.uid, event);
     return { created };
+  }
+
+  async setWithdrawn(uid: string, withdrawn: boolean, options: WithdrawOptions = {}): Promise<UnifiedEvent | null> {
+    const original = this.events.get(uid);
+    if (!original) return null;
+    if (options.ownerMasterId !== undefined && original.masterId !== options.ownerMasterId) {
+      throw new HttpError(403, "Patient event ownership violation");
+    }
+    if (isWithdrawn(original) === withdrawn) return original;
+    const now = new Date().toISOString();
+    const role = options.actorRole ?? "system";
+    this.versions.push({ event: original, supersededAt: now, supersededByRole: role });
+    const changed = withWithdrawal(original, withdrawn, now, role, options.reason);
+    this.events.set(uid, changed);
+    return changed;
   }
 
   async getByUid(uid: string): Promise<UnifiedEvent | null> {

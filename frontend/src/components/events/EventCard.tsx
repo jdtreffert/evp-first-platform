@@ -12,6 +12,7 @@ export default function EventCard({
   hideEncounter = false,
   onEditEncounter,
   onEdit,
+  onWithdraw,
 }: {
   event: UnifiedEvent;
   related?: UnifiedEvent;
@@ -23,12 +24,30 @@ export default function EventCard({
   onEditEncounter?: () => void;
   /** Present only when the signed-in user may edit this event. */
   onEdit?: () => void;
+  /** Present only when the signed-in user may withdraw this event as entered in error. */
+  onWithdraw?: (reason: string) => Promise<void>;
 }) {
   const [open, setOpen] = useState(false);
+  const [confirmingWithdraw, setConfirmingWithdraw] = useState(false);
+  const [reason, setReason] = useState("");
+  const [withdrawing, setWithdrawing] = useState(false);
+  const [withdrawError, setWithdrawError] = useState<string | null>(null);
   const [showHistory, setShowHistory] = useState(false);
   const details = event.eventDetails
     ? Object.entries(event.eventDetails).filter(([, value]) => value !== null && value !== "")
     : [];
+
+  const withdraw = async () => {
+    if (!onWithdraw) return;
+    setWithdrawing(true);
+    setWithdrawError(null);
+    try {
+      await onWithdraw(reason.trim());
+    } catch (error) {
+      setWithdrawError(error instanceof Error ? error.message : "Unable to withdraw the event.");
+      setWithdrawing(false);
+    }
+  };
 
   return (
     <div className="bg-gray-800 p-4 rounded mb-4 border border-gray-700">
@@ -44,6 +63,11 @@ export default function EventCard({
               Edit
             </button>
           )}
+          {onWithdraw && !confirmingWithdraw && (
+            <button type="button" className="text-blue-300 underline" onClick={() => setConfirmingWithdraw(true)}>
+              Withdraw
+            </button>
+          )}
           <button
             type="button"
             className="text-blue-300 underline"
@@ -53,6 +77,34 @@ export default function EventCard({
           </button>
         </div>
       </div>
+
+      {confirmingWithdraw && (
+        <div role="group" aria-label="Withdraw event" className="mt-3 space-y-2 rounded border border-amber-700 bg-amber-950 p-3 text-sm text-amber-100">
+          <p>
+            Withdraw this event as entered in error, for example a duplicate? It is kept in the history and listed under
+            Withdrawn events, where it can be restored, but it no longer appears on the timeline or in the journey views.
+          </p>
+          <label className="block">
+            <span className="text-xs text-amber-200">Reason (optional)</span>
+            <input
+              type="text"
+              maxLength={500}
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              className="mt-1 w-full rounded border border-amber-800 bg-gray-900 p-2 text-white"
+            />
+          </label>
+          {withdrawError && <p role="alert" className="text-rose-200">{withdrawError}</p>}
+          <div className="flex gap-3">
+            <button type="button" disabled={withdrawing} onClick={() => void withdraw()} className="rounded bg-amber-700 px-3 py-1 text-white disabled:opacity-60">
+              {withdrawing ? "Withdrawing…" : "Withdraw event"}
+            </button>
+            <button type="button" disabled={withdrawing} onClick={() => { setConfirmingWithdraw(false); setWithdrawError(null); }} className="text-blue-300 underline">
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       {event.eventDate && <p className="mt-2 text-sm text-gray-300">{event.eventDate}</p>}
       {event.lastModifiedAt && (

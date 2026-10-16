@@ -48,7 +48,7 @@ Endpoints (full details, parameters and examples in the [API reference](docs/api
 
 All event endpoints require an authenticated session. Roles are enforced by the
 backend: administrators have full read/write access, clinical users are read-only,
-and patients are restricted to their linked `masterId`. No role can delete events.
+and patients are restricted to their linked `masterId`. No role can delete events; an event entered in error is withdrawn instead, which keeps it and its history but hides it from queries (see [docs/api.md](docs/api.md)).
 
 ## Authentication and configuration
 

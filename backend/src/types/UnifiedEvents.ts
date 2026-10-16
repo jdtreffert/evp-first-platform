@@ -32,6 +32,12 @@ export interface UnifiedEvent {
   lastModifiedAt?: string;
   lastModifiedByRole?: string;
 
+  // Set by the server when an event is withdrawn as entered in error. A withdrawn event is kept, with its
+  // history, but left out of queries unless asked for; restoring it removes these fields.
+  withdrawnAt?: string;
+  withdrawnByRole?: string;
+  withdrawnReason?: string | null;
+
   // Link to another event (for example a lab that triggered a decision)
   relatedEventUid?: string | null;
   eventRelationship?: string | null;

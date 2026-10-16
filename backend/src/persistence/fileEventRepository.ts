@@ -2,8 +2,9 @@ import { promises as fs } from "fs";
 import path from "path";
 import { UnifiedEvent } from "../types/UnifiedEvents";
 import { EventQuery, EventQueryResult, applyEventQuery } from "./eventQuery";
-import { EventRepository, EventVersion, SaveOptions, SaveResult } from "./eventRepository";
+import { EventRepository, EventVersion, SaveOptions, SaveResult, WithdrawOptions } from "./eventRepository";
 import { HttpError } from "../utils/httpError";
+import { isWithdrawn, withWithdrawal } from "./withdrawal";
 
 interface StoreFile {
   version: 1;
@@ -61,6 +62,27 @@ export class FileEventRepository implements EventRepository {
       }
       await this.writeStore({ version: 1, events, history });
       return { created: index === -1 };
+    });
+  }
+
+  setWithdrawn(uid: string, withdrawn: boolean, options: WithdrawOptions = {}): Promise<UnifiedEvent | null> {
+    return this.enqueue(async () => {
+      const store = await this.readStore();
+      const index = store.events.findIndex((e) => e.uid === uid);
+      if (index === -1) return null;
+      const original = store.events[index];
+      if (options.ownerMasterId !== undefined && original.masterId !== options.ownerMasterId) {
+        throw new HttpError(403, "Patients may not change another patient's event");
+      }
+      if (isWithdrawn(original) === withdrawn) return original;
+
+      const now = new Date().toISOString();
+      const role = options.actorRole ?? "system";
+      const history = store.history ?? [];
+      history.push({ event: original, supersededAt: now, supersededByRole: role });
+      store.events[index] = withWithdrawal(original, withdrawn, now, role, options.reason);
+      await this.writeStore({ version: 1, events: store.events, history });
+      return store.events[index];
     });
   }
 

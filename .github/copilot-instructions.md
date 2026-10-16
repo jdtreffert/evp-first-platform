@@ -61,7 +61,8 @@ See `backend/README.md` and `backend/docs/` for the pipeline, API, and registry.
 ## Security and data handling
 
 - Roles: `administrator` has full access, `clinical` is read-only, `patient` reads and writes only their own
-  record. No role can delete events or documents.
+  record. No role can delete events or documents. An event entered in error (a duplicate, for example) is
+  withdrawn, not deleted: it is kept with its history and hidden from queries, and can be restored.
 - The JSON event and encounter stores and the document folder are development-only. Do not treat them as suitable for other
   people's patient data; production needs a database, encryption, backups, and audit logging.
 - Never commit secrets, print them, or log one-time sign-in codes. Keep `.env`, stored events, documents, and

@@ -14,6 +14,8 @@ export const eventQuerySchema = z
     masterId: nonEmpty.optional(),
     eventType: nonEmpty.optional(),
     encounterUid: nonEmpty.optional(),
+    // Withdrawn events are left out unless asked for; "only" lists just those, so they can be restored.
+    withdrawn: z.enum(["exclude", "only"]).optional(),
     from: dateOnly.optional(),
     to: dateOnly.optional(),
     order: z.enum(["asc", "desc"]).default("asc"),

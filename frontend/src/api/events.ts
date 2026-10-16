@@ -51,6 +51,21 @@ export function queryEvents(masterId: string, offset = 0, limit = 100): Promise<
   return requestJson<EventQueryResult>(`/events/query?${query.toString()}`);
 }
 
+/** A patient's events that were withdrawn as entered in error, oldest first (at most 500). */
+export async function queryWithdrawnEvents(masterId: string): Promise<UnifiedEvent[]> {
+  const query = new URLSearchParams({ masterId, withdrawn: "only", order: "asc", limit: "500" });
+  return (await requestJson<EventQueryResult>(`/events/query?${query.toString()}`)).events;
+}
+
+/** Withdraws an event as entered in error. It is kept, with its history, and can be restored. */
+export function withdrawEvent(uid: string, reason: string): Promise<UnifiedEvent> {
+  return postJson<UnifiedEvent>(`/events/${encodeURIComponent(uid)}/withdraw`, { reason });
+}
+
+export function restoreEvent(uid: string): Promise<UnifiedEvent> {
+  return postJson<UnifiedEvent>(`/events/${encodeURIComponent(uid)}/restore`, {});
+}
+
 export interface EventVersion {
   event: UnifiedEvent;
   supersededAt: string;

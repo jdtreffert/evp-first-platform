@@ -44,6 +44,17 @@ export const relatedEventCandidates: Record<
     relationshipByType: { Imaging: "Follow_up_to" },
   },
   Imaging_Response: { eventTypes: ["Imaging"], priorDays: 30, relationship: "Derived_From" },
+  // The evidence a Recurrence or Progression was recognised from; a confirming test can follow the first finding.
+  Recurrence: {
+    eventTypes: ["Imaging", "Cystoscopy", "Cystoscopy_Biopsy", "Cytology", "Pathology", "ctDNA", "utDNA"],
+    priorDays: 90,
+    relationship: "Derived_From",
+  },
+  Progression: {
+    eventTypes: ["Imaging", "Cystoscopy", "Cystoscopy_Biopsy", "Cytology", "Pathology", "ctDNA", "utDNA"],
+    priorDays: 90,
+    relationship: "Derived_From",
+  },
   Cystoscopy: { eventTypes: ["Symptom", "Imaging"], withinDays: 90, relationship: "Related_To" },
   TURBT: { eventTypes: ["Cystoscopy"], withinDays: 30, relationship: "Related_To" },
   Pathology: { eventTypes: ["TURBT", "Cystoscopy_Biopsy"], withinDays: 30, relationship: "Derived_From" },

@@ -270,12 +270,13 @@ date, a number of days before it, or every event on or before it (the 100 most r
 
 - Imaging offers Imaging (default relationship `Follow_up_to`), Symptom, Pathology, Decision, Recurrence, Progression and Treatment_Response, on or up to 180 days before.
 - Imaging_Response offers Imaging, on or up to 30 days before.
+- Recurrence and Progression each offer Imaging, Cystoscopy, Cystoscopy_Biopsy, Cytology, Pathology, ctDNA and utDNA, on or up to 90 days before (default relationship `Derived_From`): the evidence the finding was recognised from.
 - Cystoscopy offers Symptom and Imaging, within 90 days.
 - TURBT offers Cystoscopy, and Pathology offers TURBT and Cystoscopy_Biopsy, within 30 days.
 - Diagnosis offers Cystoscopy, Cystoscopy_Biopsy, Pathology and Imaging; Decision offers Diagnosis; Treatment_Start offers Decision and Diagnosis; all within 90 days.
 - Treatment_Delivery offers Treatment_Start and Treatment_Change; Treatment_Change offers Treatment_Start, Treatment_Change, Symptom and Treatment_Response; Symptom offers Diagnosis, Treatment_Start, Treatment_Change, Treatment_Delivery and Procedure; ctDNA offers Diagnosis, Treatment_Start, Treatment_Delivery, Treatment_Response, Recurrence and Progression; Procedure offers Procedure, TURBT, Symptom, Imaging, Diagnosis, Treatment_Start and Treatment_Change; all on or before the event date.
 
-The default relationship is `Derived_From` for Pathology, Diagnosis and Imaging_Response and `Related_To` for the rest.
+The default relationship is `Derived_From` for Pathology, Diagnosis, Imaging_Response, Recurrence and Progression and `Related_To` for the rest.
 Other event types offer no picker.
 
 ## Recorded-at provenance

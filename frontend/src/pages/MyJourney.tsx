@@ -37,7 +37,7 @@ export default function MyJourney() {
 
         <button onClick={() => setTab("surveillance")}
           className={`px-4 py-2 rounded ${tab === "surveillance" ? "bg-gray-700" : "bg-gray-800"}`}>
-          Surveillance
+          Post-treatment Surveillance
         </button>
 
         <button onClick={() => setTab("profile")}

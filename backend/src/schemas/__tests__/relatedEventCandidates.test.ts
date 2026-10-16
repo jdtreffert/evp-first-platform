@@ -19,6 +19,8 @@ describe("relatedEventCandidates", () => {
     const types = (type: string) => [...relatedEventCandidates[type].eventTypes].sort();
     expect(types("Imaging")).toEqual(["Decision", "Imaging", "Pathology", "Progression", "Recurrence", "Symptom", "Treatment_Response"]);
     expect(types("Imaging_Response")).toEqual(["Imaging"]);
+    expect(types("Recurrence")).toEqual(["Cystoscopy", "Cystoscopy_Biopsy", "Cytology", "Imaging", "Pathology", "ctDNA", "utDNA"]);
+    expect(types("Progression")).toEqual(types("Recurrence"));
     expect(types("Cystoscopy")).toEqual(["Imaging", "Symptom"]);
     expect(types("TURBT")).toEqual(["Cystoscopy"]);
     expect(types("Pathology")).toEqual(["Cystoscopy_Biopsy", "TURBT"]);
@@ -31,12 +33,14 @@ describe("relatedEventCandidates", () => {
     expect(types("Symptom")).toEqual(["Diagnosis", "Procedure", "Treatment_Change", "Treatment_Delivery", "Treatment_Start"]);
     expect(types("Procedure")).toEqual(["Diagnosis", "Imaging", "Procedure", "Symptom", "TURBT", "Treatment_Change", "Treatment_Start"]);
     const windows = Object.fromEntries(Object.entries(relatedEventCandidates).map(([type, rule]) => [type, "withinDays" in rule ? rule.withinDays : "priorDays" in rule ? rule.priorDays : "all preceding"]));
-    expect(windows).toEqual({ Imaging: 180, Imaging_Response: 30, Cystoscopy: 90, TURBT: 30, Pathology: 30, Diagnosis: 90, Decision: 90, Treatment_Start: 90, Treatment_Delivery: "all preceding", Treatment_Change: "all preceding", Symptom: "all preceding", Procedure: "all preceding", ctDNA: "all preceding" });
+    expect(windows).toEqual({ Imaging: 180, Imaging_Response: 30, Recurrence: 90, Progression: 90, Cystoscopy: 90, TURBT: 30, Pathology: 30, Diagnosis: 90, Decision: 90, Treatment_Start: 90, Treatment_Delivery: "all preceding", Treatment_Change: "all preceding", Symptom: "all preceding", Procedure: "all preceding", ctDNA: "all preceding" });
     expect(relatedEventCandidates.Pathology.relationship).toBe("Derived_From");
+    expect(relatedEventCandidates.Recurrence.relationship).toBe("Derived_From");
+    expect(relatedEventCandidates.Progression.relationship).toBe("Derived_From");
     expect(relatedEventCandidates.Imaging.relationshipByType).toEqual({ Imaging: "Follow_up_to" });
   });
 
   test("only these event types offer a picker", () => {
-    expect(Object.keys(relatedEventCandidates).sort()).toEqual(["Cystoscopy", "Decision", "Diagnosis", "Imaging", "Imaging_Response", "Pathology", "Procedure", "Symptom", "TURBT", "Treatment_Change", "Treatment_Delivery", "Treatment_Start", "ctDNA"]);
+    expect(Object.keys(relatedEventCandidates).sort()).toEqual(["Cystoscopy", "Decision", "Diagnosis", "Imaging", "Imaging_Response", "Pathology", "Procedure", "Progression", "Recurrence", "Symptom", "TURBT", "Treatment_Change", "Treatment_Delivery", "Treatment_Start", "ctDNA"]);
   });
 });

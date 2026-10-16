@@ -33,7 +33,7 @@ export default function JourneySurveillance() {
   return (
     <section className="space-y-5 text-white">
       <div>
-        <h2 className="text-xl font-bold">Surveillance</h2>
+        <h2 className="text-xl font-bold">Post-treatment Surveillance</h2>
         <p className="mt-1 text-sm text-gray-400">
           The events recorded after Treatment completed, arranged by theme. Treatment events, including a response
           assessed after completion, stay on the Treatment tab. This view is drawn from the existing events and is not a
@@ -42,7 +42,7 @@ export default function JourneySurveillance() {
       </div>
 
       {!isPatient && (
-        <PatientScopeForm value={searchMasterId} onChange={setSearchMasterId} onSubmit={handleSearch} buttonLabel="Load Surveillance view" />
+        <PatientScopeForm value={searchMasterId} onChange={setSearchMasterId} onSubmit={handleSearch} buttonLabel="Load Post-treatment Surveillance view" />
       )}
 
       {isPatient && !activeMasterId && (
@@ -56,12 +56,12 @@ export default function JourneySurveillance() {
 
       {result?.status === "no-treatment" && (
         <p className="rounded border border-gray-700 bg-gray-800 p-4 text-gray-300">
-          No treatment event with a date has been recorded, so there is no Surveillance phase yet.
+          No treatment event with a date has been recorded, so there is no post-treatment surveillance phase yet.
         </p>
       )}
       {result?.status === "treatment-ongoing" && (
         <p className="rounded border border-gray-700 bg-gray-800 p-4 text-gray-300">
-          Treatment is not recorded as completed. Surveillance begins once a Treatment Change of type “Treatment
+          Treatment is not recorded as completed. Post-treatment surveillance begins once a Treatment Change of type “Treatment
           completed” is recorded; add it from the Timeline tab.
         </p>
       )}
@@ -88,7 +88,7 @@ export default function JourneySurveillance() {
 
           <PhaseTimeline
             layout={layout}
-            label="Surveillance timeline"
+            label="Post-treatment surveillance timeline"
             selection={selection}
             onSelectEvent={(uid) => setSelection({ kind: "event", uid })}
             onSelectEncounter={(uid) => setSelection({ kind: "encounter", uid })}

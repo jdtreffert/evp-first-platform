@@ -120,11 +120,12 @@ The scope is one treatment course per journey: a later course after progression 
   lanes and the encounter connectors, using the same composition, layout and timeline as the Diagnosis view.
   An infusion visit shows as a line joining its delivery, lab and ctDNA across lanes.
 
-## Surveillance phase selection and view
+## Post-treatment Surveillance phase selection and view
 
 Implemented in `frontend/src/journey/surveillancePhase.ts` (`selectSurveillancePhase`) and
-`frontend/src/journey/surveillanceView.ts` (`buildSurveillanceView`), both tested, with a Surveillance tab in
-My Journey. It uses the same composition, layout and timeline as the other phases.
+`frontend/src/journey/surveillanceView.ts` (`buildSurveillanceView`), both tested, with a "Post-treatment
+Surveillance" tab in My Journey (the code keeps the shorter name Surveillance). It uses the same composition,
+layout and timeline as the other phases.
 
 - **Membership:** every non-`Treatment_` event dated after the day of the recorded Treatment completed.
   Treatment_Response events stay in the Treatment phase. The phase exists only once a completion is recorded,
@@ -137,10 +138,15 @@ My Journey. It uses the same composition, layout and timeline as the other phase
 - **Facts shown:** the latest event, the days from completion to it, and the first Progression or Recurrence
   with the days to it. These are read from recorded dates only. "No Progression or Recurrence has been
   recorded" means nothing is in the record, not that none occurred.
+- **Recording a recurrence or progression:** Recurrence and Progression are ordinary events (location, spread,
+  modality, confirmation or stage change, notes). Each offers a picker for the evidence it was recognised from
+  (imaging, cystoscopy, biopsy, cytology, pathology, ctDNA, utDNA, up to 90 days before) with the relationship
+  `Derived_From`. The link is optional; without it the event still appears at its date.
 - **Lanes and encounters** are as in the other views. Serial scans, labs and ctDNA at a visit are joined by
   the visit's encounter line.
 
-Not decided: whether ctDNA and utDNA stay in Investigations (see Open decisions); this is where it matters.
+Settled: ctDNA and utDNA stay in Investigations (utDNA is used in research and trials and is not yet generally
+available or reimbursed, so it will be sparse), and Progression and Recurrence are milestones.
 
 ## Diagnosis view model
 
@@ -247,9 +253,8 @@ model; the "count of members outside the phase" belongs there and is not built y
 
 ## Open decisions
 
-- Whether Imaging_Response, ctDNA and utDNA stay in Investigations (ctDNA and utDNA could move to Pathology &
-  Molecular), and whether the lane names fit every phase. To be settled by looking at real journeys in the
-  rendered views; the choice matters most for the Surveillance view, where serial ctDNA is common.
+- Whether the lane names fit every phase. Imaging_Response, ctDNA and utDNA stay in Investigations (settled
+  after the Surveillance view). To be settled by looking at real journeys in the rendered views.
 - Dense repeated events, such as daily radiation fractions (about 6 pixels apart), cannot be fixed by shorter
   labels and would still stack into many rows. If real data needs it, collapse a run of identical events into
   one expandable marker (for example "2 Gy ×30"); not built.

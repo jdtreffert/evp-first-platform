@@ -24,6 +24,28 @@ describe("Event_Related_UID", () => {
     expect((await repository.getByUid("P1"))?.relatedEventUid).toBe("T1");
   });
 
+  test("a Recurrence or Progression links to the imaging it was recognised from", async () => {
+    const repository = new InMemoryEventRepository();
+    await persistEvent(
+      repository,
+      ingestEvent({ id: "I1", fields: { Event_Type: "Imaging", Event_UID: "I1", Master_ID: "M1", Event_Date: "2027-03-01", Imaging_Modality: "CT" } }),
+    );
+    for (const type of ["Recurrence", "Progression"]) {
+      const uid = `${type}-1`;
+      await persistEvent(
+        repository,
+        ingestEvent({
+          id: uid,
+          fields: {
+            Event_Type: type, Event_UID: uid, Master_ID: "M1", Event_Date: "2027-03-10",
+            Event_Related_UID: "I1", Event_Relationship: "Derived_From",
+          },
+        }),
+      );
+      expect(await repository.getByUid(uid)).toMatchObject({ eventType: type, relatedEventUid: "I1", eventRelationship: "Derived_From" });
+    }
+  });
+
   test("rejects a missing event or another patient's event", async () => {
     const repository = new InMemoryEventRepository();
     await persistEvent(repository, turbt("T2", "M2"));

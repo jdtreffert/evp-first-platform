@@ -147,13 +147,20 @@ export default function EventCard({
       )}
 
       {open && details.length > 0 && (
-        <dl className="mt-4 space-y-2 border-t border-gray-700 pt-4 text-sm text-gray-300">
-          {details.map(({ key, label, value }) => (
-            <div key={key}>
-              <dt className="font-medium capitalize text-gray-400">{label}</dt>
-              <dd className="whitespace-pre-line">{value}</dd>
-            </div>
-          ))}
+        <dl className="mt-4 space-y-1 border-t border-gray-700 pt-4 text-sm text-gray-300">
+          {details.map(({ key, label, value, freeText }) =>
+            freeText ? (
+              <div key={key}>
+                <dt className="font-medium text-gray-400">{label}</dt>
+                <dd className="whitespace-pre-line">{value}</dd>
+              </div>
+            ) : (
+              <div key={key}>
+                <dt className="inline font-medium text-gray-400">{label}: </dt>
+                <dd className="inline">{value}</dd>
+              </div>
+            ),
+          )}
         </dl>
       )}
       {open && details.length === 0 && (

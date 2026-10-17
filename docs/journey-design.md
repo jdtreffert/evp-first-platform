@@ -197,8 +197,11 @@ geometry with no React) and draws it with `components/journey/DiagnosisTimeline.
 - Each encounter with two or more events in the phase gets a vertical line at its date across the lanes of its
   members, with a short dashed tick to any member dated differently.
 - Selecting an event shows its normal card below (details, provenance, documents, history, its encounter).
-  In a Diagnosis card the T, N and M values are shown together on one line, "TNM Stage  T2 N2 M0", with only the
-  values recorded (`detailRows` in `components/events/eventDetails.ts`); the separate values stay in the event.
+  The card's details (`detailRows` in `components/events/eventDetails.ts`) are compact: a value is one line, "Label:
+  value" ("Treatment Route: Intravenous"); a value with its units is one line ("Treatment Dose: 108 mg", also symptom
+  duration and ctDNA and utDNA values); and free text, meaning a schema long-text field such as notes or a very long or
+  multi-line value, stays under its label. In a Diagnosis card the T, N and M values are one line, "TNM Stage: T2 N2
+  M0", with only the values recorded. These are ways of showing the details; the separate values stay in the event.
   Selecting an encounter line shows the encounter, its documents and its in-phase events, and how many of its
   events fall after the Diagnosis. Every marker and line is a keyboard-focusable button.
 - When a patient has several Diagnosis events, a selector chooses which one the view is built around.

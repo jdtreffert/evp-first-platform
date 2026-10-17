@@ -197,6 +197,8 @@ geometry with no React) and draws it with `components/journey/DiagnosisTimeline.
 - Each encounter with two or more events in the phase gets a vertical line at its date across the lanes of its
   members, with a short dashed tick to any member dated differently.
 - Selecting an event shows its normal card below (details, provenance, documents, history, its encounter).
+  In a Diagnosis card the T, N and M values are shown together on one line, "TNM Stage  T2 N2 M0", with only the
+  values recorded (`detailRows` in `components/events/eventDetails.ts`); the separate values stay in the event.
   Selecting an encounter line shows the encounter, its documents and its in-phase events, and how many of its
   events fall after the Diagnosis. Every marker and line is a keyboard-focusable button.
 - When a patient has several Diagnosis events, a selector chooses which one the view is built around.

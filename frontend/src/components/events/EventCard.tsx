@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { UnifiedEvent } from "../../../../backend/src/types/UnifiedEvents";
 import DocumentLink from "./DocumentLink";
 import EventHistory from "./EventHistory";
+import { detailRows } from "./eventDetails";
 import { encounterLabel } from "./encounterOptions";
 import type { Encounter } from "../../../../backend/src/types/Encounter";
 
@@ -33,9 +34,7 @@ export default function EventCard({
   const [withdrawing, setWithdrawing] = useState(false);
   const [withdrawError, setWithdrawError] = useState<string | null>(null);
   const [showHistory, setShowHistory] = useState(false);
-  const details = event.eventDetails
-    ? Object.entries(event.eventDetails).filter(([, value]) => value !== null && value !== "")
-    : [];
+  const details = detailRows(event);
 
   const withdraw = async () => {
     if (!onWithdraw) return;
@@ -149,10 +148,10 @@ export default function EventCard({
 
       {open && details.length > 0 && (
         <dl className="mt-4 space-y-2 border-t border-gray-700 pt-4 text-sm text-gray-300">
-          {details.map(([key, value]) => (
+          {details.map(({ key, label, value }) => (
             <div key={key}>
-              <dt className="font-medium capitalize text-gray-400">{key.replaceAll(/([A-Z])/g, " $1")}</dt>
-              <dd className="whitespace-pre-line">{Array.isArray(value) ? value.join(", ") : String(value)}</dd>
+              <dt className="font-medium capitalize text-gray-400">{label}</dt>
+              <dd className="whitespace-pre-line">{value}</dd>
             </div>
           ))}
         </dl>

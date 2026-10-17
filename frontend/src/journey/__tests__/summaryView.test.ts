@@ -82,7 +82,7 @@ describe("what the Summary shows", () => {
       start: "Treatment Start",
       change: "Dose reduction",
       done: "Treatment completed",
-      cr: "Complete Response Confirmed",
+      cr: "Complete response confirmed",
       ned: "No evidence of disease",
       suspicious: "Indeterminate or suspicious",
       recurrence: "Recurrence",
@@ -109,7 +109,7 @@ describe("what the Summary shows", () => {
 
   it("keeps the full chronological sequence after a recurrence or a status", () => {
     const sequence = view(journey).lanes.find((l) => l.lane.id === "response-disease-status")!.events.map((e) => e.label);
-    expect(sequence).toEqual(["Complete Response Confirmed", "No evidence of disease", "Indeterminate or suspicious", "Recurrence"]);
+    expect(sequence).toEqual(["Complete response confirmed", "No evidence of disease", "Indeterminate or suspicious", "Recurrence"]);
   });
 
   it("includes Recurrence and Progression only when those events exist, and does not infer them from a status", () => {

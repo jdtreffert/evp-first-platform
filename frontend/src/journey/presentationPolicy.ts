@@ -213,8 +213,9 @@ export const treatmentChangeLabels: Readonly<Record<string, string>> = {
 };
 
 /**
- * The short label for a Summary milestone, from structured fields only: Treatment_Change by its type, a confirmed
- * complete response, a Disease_Status by its category, and every other event by the name of its type.
+ * The short label for a Summary milestone, from structured fields only: Treatment_Change by its type, and every
+ * other event as the phase views label it (a confirmed complete response and a Disease_Status by what they record,
+ * anything else by the name of its type), so a milestone reads the same in every view.
  */
 export function summaryLabel(event: UnifiedEvent): string {
   if (event.eventType === "Treatment_Change") {
@@ -223,7 +224,6 @@ export function summaryLabel(event: UnifiedEvent): string {
       ? treatmentChangeLabels[type]
       : eventTypeLabel(event.eventType);
   }
-  if (isCompleteResponseDecision(event)) return "Complete Response Confirmed";
   return compactLabel(event);
 }
 

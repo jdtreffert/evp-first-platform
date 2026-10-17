@@ -361,7 +361,7 @@ describe("Journey Summary presentation", () => {
   });
 
   it("labels the confirmed complete response, and every other event as the phase views do", () => {
-    expect(summaryLabel(ev("Decision", { decisionType: "Complete response confirmed" }))).toBe("Complete Response Confirmed");
+    expect(summaryLabel(ev("Decision", { decisionType: "Complete response confirmed" }))).toBe("Complete response confirmed");
     expect(summaryLabel(ev("Diagnosis"))).toBe("Diagnosis");
     expect(summaryLabel(ev("Treatment_Start"))).toBe("Treatment Start");
     expect(summaryLabel(ev("Disease_Status", { diseaseStatusCategory: "Unknown" }))).toBe("Disease status unknown");

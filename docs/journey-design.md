@@ -298,9 +298,9 @@ only decides which one durations are measured from.
 
 Every milestone is a diamond (Disease_Status keeps its ringed marker). Labels come from structured fields only:
 "Diagnosis", "Treatment Start", a Treatment_Change by its type ("Treatment completed", "Dose reduction", "Treatment
-hold", "Treatment resumed", "Regimen change", "Treatment Change" for Other), "Complete Response Confirmed", a
+hold", "Treatment resumed", "Regimen change", "Treatment Change" for Other), "Complete response confirmed", a
 Disease_Status by its category, and "Recurrence" or "Progression". The reason and regimen text are never read.
-The sequence is kept as recorded: for example Complete Response Confirmed, No evidence of disease, Indeterminate or
+The sequence is kept as recorded: for example Complete response confirmed, No evidence of disease, Indeterminate or
 suspicious, Recurrence. Same-date milestones are ordered by uid.
 
 **Today** ends the timeline as a dashed, labelled line. It is a point in time, not an event and never a status. The
@@ -336,9 +336,8 @@ which it scrolls. The dates stay in proportion and in order, and labels that wou
 separate rows instead of overlapping (a test checks this at several widths), so a crowded stretch makes its lane
 taller rather than unreadable.
 
-Known limits of this first version: Treatment_Response is not shown (it is on the Treatment tab); "Complete
-Response Confirmed" is capitalised in the Summary only, while the phase views keep "Complete response confirmed";
-and a label can cross the Today line or a month label near it.
+Known limits of this first version: Treatment_Response is not shown (it is on the Treatment tab), and a label can
+cross the Today line or a month label near it.
 
 ## Summary and derived information
 

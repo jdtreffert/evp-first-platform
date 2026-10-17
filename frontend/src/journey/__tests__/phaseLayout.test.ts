@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import type { Encounter } from "../../../../backend/src/types/Encounter";
 import type { UnifiedEvent } from "../../../../backend/src/types/UnifiedEvents";
 import { buildDiagnosisView } from "../diagnosisView";
-import { GEOMETRY, layoutPhaseView } from "../phaseLayout";
+import { GEOMETRY, layoutPhaseView, timelineFitWidth } from "../phaseLayout";
+import { buildSummaryView } from "../summaryView";
 import { buildTreatmentView } from "../treatmentView";
 
 function event(
@@ -296,5 +297,121 @@ describe("layoutPhaseView: spans", () => {
     expect(short.labelX).toBeLessThan(short.x1);
     expect(short.labelX + short.label.length * GEOMETRY.charWidth).toBeLessThanOrEqual(short.x2);
     expect(short.labelX).toBeGreaterThanOrEqual(4);
+  });
+});
+
+describe("layoutPhaseView: fitting into a width", () => {
+  const status = (uid: string, eventDate: string, category: string): UnifiedEvent => event(uid, "Disease_Status", eventDate, undefined, { diseaseStatusCategory: category });
+  const completed = (uid: string, eventDate: string): UnifiedEvent => event(uid, "Treatment_Change", eventDate, undefined, { treatmentChangeType: "Treatment completed" });
+
+  // A long journey whose milestones are close together near the end.
+  const journey: UnifiedEvent[] = [
+    event("diagnosis", "Diagnosis", "2026-04-10"),
+    event("start", "Treatment_Start", "2026-05-01"),
+    event("change", "Treatment_Change", "2026-06-15"),
+    completed("done", "2026-08-01"),
+    event("cr", "Decision", "2026-08-02", undefined, { decisionType: "Complete response confirmed" }),
+    status("ned", "2026-09-01", "No evidence of disease"),
+    status("sus", "2026-10-01", "Indeterminate or suspicious"),
+    event("recurrence", "Recurrence", "2026-10-08"),
+    status("present", "2026-10-12", "Disease present"),
+  ];
+  const summary = (events = journey, today = "2026-10-17") => buildSummaryView(events, [], { today });
+
+  /** True when two labels on the same row of a lane would overlap. */
+  function overlaps(layout: ReturnType<typeof layoutPhaseView>): string[] {
+    const found: string[] = [];
+    for (const { events } of layout.lanes) {
+      const byRow = new Map<number, typeof events>();
+      for (const item of events) byRow.set(item.row, [...(byRow.get(item.row) ?? []), item]);
+      for (const row of byRow.values()) {
+        const ordered = [...row].sort((a, b) => a.x - b.x);
+        for (let index = 1; index < ordered.length; index += 1) {
+          const radius = ordered[index].view.presentation.milestone ? GEOMETRY.milestoneRadius : GEOMETRY.markerRadius;
+          if (ordered[index].x - radius < ordered[index - 1].right) found.push(`${ordered[index - 1].view.event.uid}/${ordered[index].view.event.uid}`);
+        }
+      }
+    }
+    return found;
+  }
+
+  it("does not fit without the option, so the Summary would scroll", () => {
+    expect(layoutPhaseView(summary()).width).toBeGreaterThan(1000);
+  });
+
+  it.each([1100, 900, 760, 600])("fits the whole drawing, including the last label and Today, into %i pixels", (fitWidth) => {
+    const layout = layoutPhaseView(summary(), { fitWidth });
+
+    expect(layout.width).toBeLessThanOrEqual(fitWidth);
+    const rights = layout.lanes.flatMap((lane) => lane.events.map((item) => item.right));
+    expect(Math.max(...rights)).toBeLessThanOrEqual(layout.width);
+    expect(layout.references[0].x).toBeLessThan(layout.width);
+  });
+
+  it.each([1100, 900, 760, 600, 480])("never overlaps two labels on one row of a lane, at %i pixels", (fitWidth) => {
+    expect(overlaps(layoutPhaseView(summary(), { fitWidth }))).toEqual([]);
+  });
+
+  it("moves labels that would collide onto separate rows instead of overlapping, so close milestones get taller lanes", () => {
+    const wide = layoutPhaseView(summary(), { fitWidth: 1500 });
+    const narrow = layoutPhaseView(summary(), { fitWidth: 600 });
+    const rows = (layout: typeof wide) => Math.max(...layout.lanes.flatMap((lane) => lane.events.map((item) => item.row)));
+
+    expect(rows(narrow)).toBeGreaterThan(rows(wide));
+    expect(narrow.height).toBeGreaterThan(wide.height);
+  });
+
+  it("keeps the order and the proportions of the dates, only squeezed", () => {
+    const natural = layoutPhaseView(summary());
+    const fitted = layoutPhaseView(summary(), { fitWidth: 800 });
+    const xs = (layout: typeof natural) => Object.fromEntries(layout.lanes.flatMap((lane) => lane.events.map((item) => [item.view.event.uid, item.x])));
+    const n = xs(natural);
+    const f = xs(fitted);
+
+    expect(Object.keys(f).sort((a, b) => f[a] - f[b] || a.localeCompare(b))).toEqual(Object.keys(n).sort((a, b) => n[a] - n[b] || a.localeCompare(b)));
+    const scale = (f.recurrence - f.diagnosis) / (n.recurrence - n.diagnosis);
+    expect((f.ned - f.diagnosis) / (n.ned - n.diagnosis)).toBeCloseTo(scale, 5);
+  });
+
+  it("ends every arrow at the Today line, inside the width", () => {
+    const layout = layoutPhaseView(summary(), { fitWidth: 800 });
+
+    for (const arrow of layout.spans) {
+      expect(arrow.x2).toBe(layout.references[0].x);
+      expect(arrow.labelX).toBeGreaterThanOrEqual(4);
+    }
+    expect(layout.width).toBeLessThanOrEqual(800);
+  });
+
+  it("does not stretch a short journey beyond the usual scale, however much room there is", () => {
+    const short = summary([event("diagnosis", "Diagnosis", "2026-10-01"), status("ned", "2026-10-10", "No evidence of disease")]);
+    const natural = layoutPhaseView(short);
+    const roomy = layoutPhaseView(short, { fitWidth: 5000 });
+
+    expect(roomy.references[0].x).toBe(natural.references[0].x);
+    expect(roomy.lanes[0].events.map((item) => item.x)).toEqual(natural.lanes[0].events.map((item) => item.x));
+  });
+
+  it("does not squeeze below the least scale, scrolling instead when there is hardly any room", () => {
+    const layout = layoutPhaseView(summary(), { fitWidth: 100 });
+
+    expect(layout.references[0].x - GEOMETRY.paddingLeft).toBeGreaterThanOrEqual(GEOMETRY.minFitPlotWidth - 1);
+    expect(overlaps(layout)).toEqual([]);
+  });
+
+  it("works for an empty journey", () => {
+    const layout = layoutPhaseView(summary([]), { fitWidth: 800 });
+    expect(layout.width).toBeLessThanOrEqual(800);
+    expect(layout.lanes).toEqual([]);
+  });
+
+  it("leaves a view laid out without the option exactly as before", () => {
+    const view = buildDiagnosisView([event("scan", "Imaging", "2026-03-01"), event("diagnosis", "Diagnosis", "2026-04-02")], [])!;
+    expect(layoutPhaseView(view, {})).toEqual(layoutPhaseView(view));
+  });
+
+  it("works out what is left for the drawing from the width of the whole timeline", () => {
+    expect(timelineFitWidth(1000)).toBe(1000 - GEOMETRY.labelColumnWidth - GEOMETRY.chromeWidth);
+    expect(timelineFitWidth(50)).toBe(0);
   });
 });

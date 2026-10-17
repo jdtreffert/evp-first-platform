@@ -328,9 +328,17 @@ record the same Encounter_UID (never from equal dates); an encounter's other eve
 Summary. **Empty and partial journeys** (no Diagnosis, treatment not started or not completed, no status, no
 Recurrence, milestones with a missing or invalid date) all render: undated milestone events are listed, not placed.
 
-Known limits of this first version: it uses the shared 6 pixels per day scale, so a long journey scrolls
-sideways; Treatment_Response is not shown (it is on the Treatment tab); and "Complete Response Confirmed" is
-capitalised in the Summary only, while the phase views keep "Complete response confirmed".
+**Fitted to the card.** Unlike the phase views, which keep the proportional 6 pixels per day scale and scroll, the
+Summary squeezes its date scale so the whole drawing, including the last label and Today, fits the width of its
+card without scrolling (`layoutPhaseView(view, { fitWidth })`; the page measures its container with
+`useElementWidth`). The scale is never stretched beyond its usual size, and never squeezed below 320 pixels, below
+which it scrolls. The dates stay in proportion and in order, and labels that would collide in a lane move onto
+separate rows instead of overlapping (a test checks this at several widths), so a crowded stretch makes its lane
+taller rather than unreadable.
+
+Known limits of this first version: Treatment_Response is not shown (it is on the Treatment tab); "Complete
+Response Confirmed" is capitalised in the Summary only, while the phase views keep "Complete response confirmed";
+and a label can cross the Today line or a month label near it.
 
 ## Summary and derived information
 

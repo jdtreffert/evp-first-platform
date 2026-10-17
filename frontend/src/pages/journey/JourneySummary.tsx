@@ -3,10 +3,11 @@ import type { FormEvent } from "react";
 import PatientScopeForm from "../../components/journey/PatientScopeForm";
 import PhaseSelectionDetail from "../../components/journey/PhaseSelectionDetail";
 import PhaseTimeline from "../../components/journey/PhaseTimeline";
+import { useElementWidth } from "../../components/journey/useElementWidth";
 import type { PhaseSelection } from "../../components/journey/PhaseTimeline";
 import { todayLocal } from "../../journey/calendarDay";
 import { describeDiseaseStatus } from "../../journey/diseaseStatus";
-import { layoutPhaseView } from "../../journey/phaseLayout";
+import { layoutPhaseView, timelineFitWidth } from "../../journey/phaseLayout";
 import { buildSummaryView, describeSummaryDuration } from "../../journey/summaryView";
 import { usePatientData } from "./usePatientData";
 
@@ -22,7 +23,13 @@ export default function JourneySummary() {
     () => (current?.data ? buildSummaryView(current.data.events, current.data.encounters, { today: todayLocal() }) : null),
     [current],
   );
-  const layout = useMemo(() => (view ? layoutPhaseView(view) : null), [view]);
+  // The Summary is fitted to the width of its card so it can be read without scrolling; until the width is known
+  // it is drawn at the usual scale.
+  const { ref: timelineRef, width: timelineWidth } = useElementWidth();
+  const layout = useMemo(
+    () => (view ? layoutPhaseView(view, timelineWidth > 0 ? { fitWidth: timelineFitWidth(timelineWidth) } : {}) : null),
+    [view, timelineWidth],
+  );
 
   const handleSearch = (event: FormEvent<HTMLFormElement>) => {
     search(event);
@@ -70,13 +77,15 @@ export default function JourneySummary() {
           </ul>
 
           {!view.empty && (
-            <PhaseTimeline
-              layout={layout}
-              label="Journey Summary timeline"
-              selection={selection}
-              onSelectEvent={(uid) => setSelection({ kind: "event", uid })}
-              onSelectEncounter={(uid) => setSelection({ kind: "encounter", uid })}
-            />
+            <div ref={timelineRef}>
+              <PhaseTimeline
+                layout={layout}
+                label="Journey Summary timeline"
+                selection={selection}
+                onSelectEvent={(uid) => setSelection({ kind: "event", uid })}
+                onSelectEncounter={(uid) => setSelection({ kind: "encounter", uid })}
+              />
+            </div>
           )}
 
           {view.undated.length > 0 && (

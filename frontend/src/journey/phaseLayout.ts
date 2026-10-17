@@ -25,7 +25,28 @@ export const GEOMETRY = {
   pxPerDay: 6,
   minPlotWidth: 640,
   maxPlotWidth: 6000,
+  /** The width of the lane-label column beside the drawing, and its borders, so a caller can work out what is left. */
+  labelColumnWidth: 168,
+  chromeWidth: 3,
+  /** The least the date scale is squeezed to when fitting a drawing into a width; narrower than this it scrolls. */
+  minFitPlotWidth: 320,
+  /** Space kept after the last label when fitting into a width. */
+  fitRightPadding: 16,
 } as const;
+
+/** What is left for the drawing when the whole timeline, label column included, is `containerWidth` wide. */
+export function timelineFitWidth(containerWidth: number): number {
+  return Math.max(0, Math.floor(containerWidth - GEOMETRY.labelColumnWidth - GEOMETRY.chromeWidth));
+}
+
+export interface LayoutOptions {
+  /**
+   * Squeeze the date scale so the whole drawing, including the last label, fits in this many pixels, so the
+   * timeline does not scroll. Labels that would then collide in a lane move to separate rows rather than overlap.
+   * The scale is never stretched beyond its usual size, and never squeezed below `minFitPlotWidth`.
+   */
+  fitWidth?: number;
+}
 
 export interface PlacedEvent {
   view: ViewEvent;
@@ -134,12 +155,28 @@ function extentRight(view: ViewEvent): number {
  * placed by their own date; an encounter's line sits at the encounter's date, with a tick to any member dated
  * differently. It only measures; it changes nothing in the view.
  */
-export function layoutPhaseView(view: PhaseLanes): PhaseLayout {
-  const { paddingLeft, paddingRight, rowHeight, lanePaddingY, labelGap, labelOffset, charWidth, boldFactor, referenceRowHeight, markerRadius, milestoneRadius, pxPerDay, minPlotWidth, maxPlotWidth } = GEOMETRY;
+export function layoutPhaseView(view: PhaseLanes, options: LayoutOptions = {}): PhaseLayout {
+  const { paddingLeft, pxPerDay, minPlotWidth, maxPlotWidth, minFitPlotWidth, fitRightPadding } = GEOMETRY;
+  const span = Math.max(0, dayNumber(view.range.end) - dayNumber(view.range.start));
+  const naturalPlotWidth = Math.min(maxPlotWidth, Math.max(minPlotWidth, span * pxPerDay));
+  if (options.fitWidth === undefined) return layoutAt(view, naturalPlotWidth, GEOMETRY.paddingRight);
+
+  // Squeeze until the drawing, with its widest label, fits. Each pass removes what still overflows, plus a pixel
+  // so the result is within the width rather than converging to it from above.
+  let plotWidth = Math.max(minFitPlotWidth, Math.min(naturalPlotWidth, options.fitWidth - paddingLeft - fitRightPadding));
+  let layout = layoutAt(view, plotWidth, fitRightPadding);
+  for (let pass = 0; pass < 8 && layout.width > options.fitWidth && plotWidth > minFitPlotWidth; pass += 1) {
+    plotWidth = Math.max(minFitPlotWidth, plotWidth - (layout.width - options.fitWidth) - 1);
+    layout = layoutAt(view, plotWidth, fitRightPadding);
+  }
+  return layout;
+}
+
+function layoutAt(view: PhaseLanes, plotWidth: number, rightPadding: number): PhaseLayout {
+  const { paddingLeft, rowHeight, lanePaddingY, labelGap, labelOffset, charWidth, boldFactor, referenceRowHeight, markerRadius, milestoneRadius } = GEOMETRY;
 
   const startNumber = dayNumber(view.range.start);
   const span = Math.max(0, dayNumber(view.range.end) - startNumber);
-  const plotWidth = Math.min(maxPlotWidth, Math.max(minPlotWidth, span * pxPerDay));
   const xFor = (day: string): number =>
     paddingLeft + (span === 0 ? plotWidth / 2 : ((dayNumber(day) - startNumber) / span) * plotWidth);
 
@@ -219,8 +256,13 @@ export function layoutPhaseView(view: PhaseLanes): PhaseLayout {
       : [{ x: xFor(view.range.start), label: formatDay(view.range.start) }];
 
   return {
-    // The fixed right padding fits a short label; a longer one at the right edge widens the drawing instead of being clipped.
-    width: Math.max(plotWidth + paddingLeft + paddingRight, ...lanes.flatMap((lane) => lane.events.map((item) => item.right + labelGap))),
+    // The right padding fits a short label; a longer one at the right edge, or a reference label such as Today,
+    // widens the drawing instead of being clipped.
+    width: Math.max(
+      plotWidth + paddingLeft + rightPadding,
+      ...lanes.flatMap((lane) => lane.events.map((item) => item.right + labelGap)),
+      ...referenceRowEnds.map((end) => end + labelGap),
+    ),
     height: top,
     axisHeight,
     spanBandHeight,

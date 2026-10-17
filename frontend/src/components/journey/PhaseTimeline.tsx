@@ -9,7 +9,7 @@ export type PhaseSelection = { kind: "event" | "encounter"; uid: string } | null
 // The same sizes the layout uses to keep labels from overlapping.
 const MARKER = GEOMETRY.markerRadius;
 const MILESTONE = GEOMETRY.milestoneRadius;
-const LABEL_WIDTH = 168;
+const LABEL_WIDTH = GEOMETRY.labelColumnWidth;
 
 function activate(action: () => void) {
   return (keyEvent: KeyboardEvent) => {

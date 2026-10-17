@@ -173,6 +173,60 @@ function isCompleteResponseDecision(event: UnifiedEvent): boolean {
   return event.eventType === "Decision" && event.decisionType === COMPLETE_RESPONSE_CONFIRMED;
 }
 
+/**
+ * The groupings of the Journey Summary. They are presentation only: not stored, not in the schema, and separate
+ * from the phase lanes above. The Summary uses its own "Journey Milestones" lane and the existing Response &
+ * Disease Status lane.
+ */
+export const JOURNEY_MILESTONES_LANE: Lane = { id: "journey-milestones", label: "Journey Milestones", color: "#fb923c" };
+
+export const SUMMARY_LANES: readonly Lane[] = [
+  JOURNEY_MILESTONES_LANE,
+  LANES.find((lane) => lane.id === "response-disease-status") as Lane,
+];
+
+/**
+ * The Summary lane for an event the Summary includes: Diagnosis, Treatment_Start and Treatment_Change (so also the
+ * recorded completion) sit in Journey Milestones; a confirmed complete response, Disease_Status, Recurrence and
+ * Progression sit in Response & Disease Status. By type, except for the one Decision it includes.
+ */
+export function summaryLaneFor(event: UnifiedEvent): Lane {
+  return ["Diagnosis", "Treatment_Start", "Treatment_Change"].includes(event.eventType) ? JOURNEY_MILESTONES_LANE : SUMMARY_LANES[1];
+}
+
+/** How an event is presented in the Summary: its ordinary presentation, always a milestone, in its Summary lane. */
+export function summaryPresentationFor(event: UnifiedEvent): EventPresentation {
+  return { ...presentationForEvent(event), lane: summaryLaneFor(event), assigned: true, milestone: true };
+}
+
+/**
+ * The label for each Treatment_Change_Type, so a change is named from its recorded type and never from its reason
+ * or regimen text. A test keeps an entry for every option in the schema.
+ */
+export const treatmentChangeLabels: Readonly<Record<string, string>> = {
+  "Dose reduction": "Dose reduction",
+  Hold: "Treatment hold",
+  Resume: "Treatment resumed",
+  "Regimen change": "Regimen change",
+  "Treatment completed": "Treatment completed",
+  Other: "Treatment Change",
+};
+
+/**
+ * The short label for a Summary milestone, from structured fields only: Treatment_Change by its type, a confirmed
+ * complete response, a Disease_Status by its category, and every other event by the name of its type.
+ */
+export function summaryLabel(event: UnifiedEvent): string {
+  if (event.eventType === "Treatment_Change") {
+    const type = event.treatmentChangeType;
+    return typeof type === "string" && Object.prototype.hasOwnProperty.call(treatmentChangeLabels, type)
+      ? treatmentChangeLabels[type]
+      : eventTypeLabel(event.eventType);
+  }
+  if (isCompleteResponseDecision(event)) return "Complete Response Confirmed";
+  return compactLabel(event);
+}
+
 /** The lanes to draw, in order, for the given event types: assigned lanes that have events, then Other. */
 export function lanesFor(eventTypes: Iterable<string>): Lane[] {
   const used = new Set<string>();

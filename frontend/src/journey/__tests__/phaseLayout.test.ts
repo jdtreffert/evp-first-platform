@@ -252,3 +252,49 @@ describe("layoutPhaseView: references", () => {
     expect(apart.axisHeight).toBe(GEOMETRY.axisHeight);
   });
 });
+
+describe("layoutPhaseView: spans", () => {
+  const base = () => buildDiagnosisView([event("scan", "Imaging", "2026-03-01"), event("diagnosis", "Diagnosis", "2026-09-02")], [])!;
+
+  it("adds no band when there are no spans, so existing views are unchanged", () => {
+    const layout = layoutPhaseView(base());
+
+    expect(layout.spans).toEqual([]);
+    expect(layout.spanBandHeight).toBe(0);
+    expect(layout.axisHeight).toBe(GEOMETRY.axisHeight);
+  });
+
+  it("draws an arrow from its start date to its end date, one row each, above the axis, pushing the lanes down", () => {
+    const view = base();
+    const layout = layoutPhaseView({
+      ...view,
+      spans: [
+        { id: "a", fromDay: "2026-03-01", toDay: "2026-09-02", label: "Time since A" },
+        { id: "b", fromDay: "2026-06-01", toDay: "2026-09-02", label: "Time since B" },
+      ],
+    });
+
+    expect(layout.spanBandHeight).toBe(2 * GEOMETRY.spanRowHeight);
+    expect(layout.axisHeight).toBe(layout.spanBandHeight + GEOMETRY.axisHeight);
+    expect(layout.lanes[0].top).toBe(layout.axisHeight);
+    expect(layout.spans.map((s) => [s.id, s.x1 < s.x2, s.y])).toEqual([["a", true, 20], ["b", true, 20 + GEOMETRY.spanRowHeight]]);
+    expect(layout.spans[0].x1).toBe(GEOMETRY.paddingLeft);
+  });
+
+  it("starts the label at the arrow's start when it fits before the head, and pulls it left when it does not", () => {
+    const view = base();
+    const layout = layoutPhaseView({
+      ...view,
+      spans: [
+        { id: "long", fromDay: "2026-03-01", toDay: "2026-09-02", label: "Time since A" },
+        { id: "short", fromDay: "2026-09-01", toDay: "2026-09-02", label: "Time since a recent milestone, measured" },
+      ],
+    });
+    const [long, short] = layout.spans;
+
+    expect(long.labelX).toBe(long.x1 + 8);
+    expect(short.labelX).toBeLessThan(short.x1);
+    expect(short.labelX + short.label.length * GEOMETRY.charWidth).toBeLessThanOrEqual(short.x2);
+    expect(short.labelX).toBeGreaterThanOrEqual(4);
+  });
+});

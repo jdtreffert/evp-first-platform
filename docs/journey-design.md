@@ -8,7 +8,7 @@ become independent sources of clinical truth. The data rules are in
 
 ## Views
 
-Initially: Summary, Diagnosis, Treatment, Surveillance. Diagnosis is built first and is the reference
+Summary, Diagnosis, Treatment, Surveillance. Diagnosis is built first and is the reference
 implementation for the rendering architecture; Treatment and Surveillance extend it rather than becoming
 separate visualization systems.
 
@@ -269,8 +269,68 @@ Rules that every view and later feature must keep:
 - **Required and optional fields:** only `Disease_Status_Category` is required (enforced on ingest and in the
   form); the rest are optional. No `Encounter_UID` is required.
 
-There is no Summary view yet. The statement above is shown in the Post-treatment Surveillance facts as its
-interim home, and the Summary will use the same functions.
+The Journey Summary (below) uses the same functions. The statement is also still shown in the Post-treatment
+Surveillance facts.
+
+## Journey Summary
+
+The Summary tab (`pages/journey/JourneySummary.tsx`) is a sparse, cross-phase timeline of the major milestones,
+derived from the existing events. The pipeline is the usual one: events → Summary selection
+(`journey/summarySelection.ts`) → presentation policy → Summary view model (`journey/summaryView.ts`) → the
+shared layout and `PhaseTimeline`. Selection, anchors, durations and the view model are plain functions with no
+React; there are no pixel coordinates in the view model, which the existing layout model supplies. A selected
+milestone shows the existing event card (the canonical event with its provenance, documents, history and
+encounter), not a Summary-specific copy. There was no Summary placeholder in My Journey (the onboarding wizard's
+"Summary" step is a separate screen), so this is a new tab, placed after Timeline.
+
+**What it includes**, by type and date only: Diagnosis, Treatment_Start, Treatment_Change (so also the recorded
+completion), Disease_Status, Recurrence, Progression, and the one Decision whose type is "Complete response
+confirmed". Routine evidence and deliveries (imaging, labs, ctDNA, deliveries, symptoms and so on, and every other
+Decision) stay in the phase views. Every Diagnosis, Treatment_Start and Treatment_Change is drawn; an anchor below
+only decides which one durations are measured from.
+
+**Lanes** are Summary presentation groupings, not in the schema and separate from the phase lanes:
+
+| Lane | Events |
+|------|--------|
+| Journey Milestones | Diagnosis, Treatment_Start, Treatment_Change (including Treatment completed) |
+| Response & Disease Status | Complete response confirmed (Decision), Disease_Status, Recurrence, Progression |
+
+Every milestone is a diamond (Disease_Status keeps its ringed marker). Labels come from structured fields only:
+"Diagnosis", "Treatment Start", a Treatment_Change by its type ("Treatment completed", "Dose reduction", "Treatment
+hold", "Treatment resumed", "Regimen change", "Treatment Change" for Other), "Complete Response Confirmed", a
+Disease_Status by its category, and "Recurrence" or "Progression". The reason and regimen text are never read.
+The sequence is kept as recorded: for example Complete Response Confirmed, No evidence of disease, Indeterminate or
+suspicious, Recurrence. Same-date milestones are ordered by uid.
+
+**Today** ends the timeline as a dashed, labelled line. It is a point in time, not an event and never a status. The
+date is a parameter of the view model (the page passes the local date), so tests are deterministic.
+
+**Derived durations.** Arrows above the lanes run from each anchor to Today, and each is also stated in words:
+"Time since Diagnosis: 6 months, 7 days (190 days), from the Diagnosis on April 10, 2026 to October 17, 2026."
+Each keeps its source Event_UID, source date, endpoint, days, text and availability. The only anchors:
+
+- **Diagnosis:** the one the phase views use (the earliest dated, or the one chosen by uid).
+- **Treatment Start:** the earliest dated Treatment_Start (`selectTreatmentStart`), never inferred from a delivery.
+- **Treatment Completion:** the recorded "Treatment completed" that ends the Treatment phase.
+
+Never from a Treatment_Delivery, an Encounter_Date, a Disease_Status, a confirmed complete response, the first
+surveillance event or free text. An anchor that is missing, has no valid date, is dated after today, or (for
+completion) was followed by more treatment is **unavailable**: no arrow, the reason stated, and no other event
+substituted.
+
+**Disease status.** The latest recorded Disease_Status is stated by its date with the rest of the Disease status
+rules above. With none recorded the Summary says "Disease status: not recorded." and draws no conclusion; the
+absence of a Disease_Status, Recurrence or Progression is never read as NED.
+
+**Encounters** are an optional grouping, not a lane. A connector is drawn only when two or more visible milestones
+record the same Encounter_UID (never from equal dates); an encounter's other events are counted as outside the
+Summary. **Empty and partial journeys** (no Diagnosis, treatment not started or not completed, no status, no
+Recurrence, milestones with a missing or invalid date) all render: undated milestone events are listed, not placed.
+
+Known limits of this first version: it uses the shared 6 pixels per day scale, so a long journey scrolls
+sideways; Treatment_Response is not shown (it is on the Treatment tab); and "Complete Response Confirmed" is
+capitalised in the Summary only, while the phase views keep "Complete response confirmed".
 
 ## Summary and derived information
 

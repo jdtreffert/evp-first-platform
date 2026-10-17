@@ -1,6 +1,7 @@
 import { useState } from "react";
 import JourneyOnboarding from "./journey/JourneyOnboarding";
 import JourneyTimeline from "./journey/JourneyTimeline";
+import JourneySummary from "./journey/JourneySummary";
 import JourneyDiagnosis from "./journey/JourneyDiagnosis";
 import JourneyTreatment from "./journey/JourneyTreatment";
 import JourneySurveillance from "./journey/JourneySurveillance";
@@ -23,6 +24,11 @@ export default function MyJourney() {
         <button onClick={() => setTab("timeline")}
           className={`px-4 py-2 rounded ${tab === "timeline" ? "bg-gray-700" : "bg-gray-800"}`}>
           Timeline
+        </button>
+
+        <button onClick={() => setTab("summary")}
+          className={`px-4 py-2 rounded ${tab === "summary" ? "bg-gray-700" : "bg-gray-800"}`}>
+          Summary
         </button>
 
         <button onClick={() => setTab("diagnosis")}
@@ -49,6 +55,7 @@ export default function MyJourney() {
       {/* Content */}
       {tab === "onboarding" && <JourneyOnboarding />}
       {tab === "timeline" && <JourneyTimeline />}
+      {tab === "summary" && <JourneySummary />}
       {tab === "diagnosis" && <JourneyDiagnosis />}
       {tab === "treatment" && <JourneyTreatment />}
       {tab === "surveillance" && <JourneySurveillance />}

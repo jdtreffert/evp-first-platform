@@ -6,6 +6,8 @@ export const GEOMETRY = {
   axisHeight: 44,
   /** Extra axis height for each additional row of reference labels, which stack only when they would overlap. */
   referenceRowHeight: 16,
+  /** Height of the band above the axis for each period arrow. */
+  spanRowHeight: 28,
   /** Space before the first date. */
   paddingLeft: 48,
   /** Space after the last date, enough for the label of an event on it. */
@@ -68,10 +70,28 @@ export interface PlacedReference {
   row: number;
 }
 
+export interface PlacedSpan {
+  id: string;
+  label: string;
+  /** The arrow runs from `x1` to `x2` at `y`, with its head at `x2`. */
+  x1: number;
+  x2: number;
+  y: number;
+  /** Where the label starts: at the arrow's start when it fits before the head, otherwise pushed left to end before it. */
+  labelX: number;
+  fromDay: string;
+  toDay: string;
+}
+
 export interface PhaseLayout {
   width: number;
   height: number;
+  /** The height of the whole band above the first lane: any period arrows, then the date axis. */
   axisHeight: number;
+  /** The height of the period arrows at the top of that band; the date axis and reference labels sit below it. */
+  spanBandHeight: number;
+  /** Arrows for periods such as the time since a milestone, in the order given. */
+  spans: PlacedSpan[];
   lanes: PlacedLane[];
   connectors: PlacedConnector[];
   ticks: AxisTick[];
@@ -134,7 +154,23 @@ export function layoutPhaseView(view: PhaseLanes): PhaseLayout {
       referenceRowEnds[row] = x + labelOffset + reference.label.length * charWidth * boldFactor;
       return { x, label: reference.label, day: reference.day, row };
     });
-  const axisHeight = GEOMETRY.axisHeight + Math.max(0, referenceRowEnds.length - 1) * referenceRowHeight;
+  const spanBandHeight = (view.spans ?? []).length * GEOMETRY.spanRowHeight;
+  const axisHeight = spanBandHeight + GEOMETRY.axisHeight + Math.max(0, referenceRowEnds.length - 1) * referenceRowHeight;
+  const spans: PlacedSpan[] = (view.spans ?? []).map((period, index) => {
+    const x1 = xFor(period.fromDay);
+    const x2 = xFor(period.toDay);
+    const textWidth = period.label.length * charWidth;
+    return {
+      id: period.id,
+      label: period.label,
+      x1,
+      x2,
+      y: index * GEOMETRY.spanRowHeight + 20,
+      labelX: Math.max(4, Math.min(x1 + 8, x2 - 10 - textWidth)),
+      fromDay: period.fromDay,
+      toDay: period.toDay,
+    };
+  });
 
   const placedByUid = new Map<string, PlacedEvent>();
   const lanes: PlacedLane[] = [];
@@ -187,6 +223,8 @@ export function layoutPhaseView(view: PhaseLanes): PhaseLayout {
     width: Math.max(plotWidth + paddingLeft + paddingRight, ...lanes.flatMap((lane) => lane.events.map((item) => item.right + labelGap))),
     height: top,
     axisHeight,
+    spanBandHeight,
+    spans,
     lanes,
     connectors,
     ticks,

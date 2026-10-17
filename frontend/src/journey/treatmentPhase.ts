@@ -77,3 +77,12 @@ export function selectTreatmentPhase(
 
   return { diagnosis, completion, ongoing: completion === null, events: phaseEvents, undated };
 }
+
+/**
+ * The authoritative Treatment_Start of a journey: the earliest dated Treatment_Start event, ties going to the
+ * lower uid, as the earliest Diagnosis is the default Diagnosis. It is the recorded event only: a start is never
+ * inferred from a delivery or any other event. Null when there is no dated Treatment_Start.
+ */
+export function selectTreatmentStart(events: readonly UnifiedEvent[]): UnifiedEvent | null {
+  return events.filter((event) => event.eventType === "Treatment_Start" && dayOf(event) !== "").sort(byDateThenUid)[0] ?? null;
+}

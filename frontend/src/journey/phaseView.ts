@@ -48,6 +48,17 @@ export interface PhaseReference {
   label: string;
 }
 
+/**
+ * A period drawn as an arrow above the lanes, from one date to another, such as the time since a milestone. It
+ * carries dates only; the layout decides where it is drawn.
+ */
+export interface PhaseSpan {
+  id: string;
+  fromDay: string;
+  toDay: string;
+  label: string;
+}
+
 /** What every phase view needs to be drawn: lanes of events, encounter connectors and the span of dates. */
 export interface PhaseLanes {
   /** Only the lanes that have events, in the agreed order; Other last. */
@@ -57,29 +68,46 @@ export interface PhaseLanes {
   range: { start: string; end: string };
   /** Dates marked with a labelled line across the lanes; the range already includes them. */
   references?: PhaseReference[];
+  /** Periods drawn as arrows above the lanes; the range already includes them. */
+  spans?: PhaseSpan[];
 }
 
-function laneRank(laneId: string): number {
-  const index = LANES.findIndex((lane) => lane.id === laneId);
-  return index === -1 ? LANES.length : index;
+/**
+ * Which lanes a phase view draws, and how its events are presented and labelled. The default is the phase lanes
+ * of the presentation policy; the Journey Summary gives its own.
+ */
+export interface PhaseStyle {
+  /** Every lane that may be drawn, in order; only those with events are. */
+  lanes: readonly Lane[];
+  presentationOf: (event: UnifiedEvent) => EventPresentation;
+  labelOf: (event: UnifiedEvent) => string;
+}
+
+const DEFAULT_STYLE: PhaseStyle = { lanes: [], presentationOf: presentationForEvent, labelOf: compactLabel };
+
+function laneRank(laneId: string, lanes: readonly Lane[]): number {
+  const index = lanes.findIndex((lane) => lane.id === laneId);
+  return index === -1 ? lanes.length : index;
 }
 
 /**
  * Lays a phase's events out in the lanes of the presentation policy and finds the encounters that join them.
  * The phase events must already be selected and ordered earliest first with a real date each. It derives
  * everything from what it is given and changes none of it. Membership comes only from the recorded
- * Encounter_UID, never from shared dates. `toViewEvent` presents any event the same way as the lanes do.
+ * Encounter_UID, never from shared dates. `toViewEvent` presents any event the same way as the lanes do. A
+ * `style` replaces the phase lanes, presentation and labels, as the Journey Summary does.
  */
 export function composePhase(
   phaseEvents: readonly UnifiedEvent[],
   allEvents: readonly UnifiedEvent[],
   encounters: readonly Encounter[],
+  style: PhaseStyle = DEFAULT_STYLE,
 ): PhaseLanes & { toViewEvent: (event: UnifiedEvent) => ViewEvent } {
   const encountersByUid = new Map(encounters.map((encounter) => [encounter.uid, encounter]));
   const toViewEvent = (event: UnifiedEvent): ViewEvent => ({
     event,
-    presentation: presentationForEvent(event),
-    label: compactLabel(event),
+    presentation: style.presentationOf(event),
+    label: style.labelOf(event),
     hollow: isIncompleteDelivery(event),
     day: calendarDay(event.eventDate),
     encounter: (event.encounterUid ? encountersByUid.get(event.encounterUid) : undefined) ?? null,
@@ -87,7 +115,12 @@ export function composePhase(
 
   const viewEvents = phaseEvents.map(toViewEvent);
 
-  const lanes: ViewLane[] = lanesFor(phaseEvents.map((event) => event.eventType)).map((lane) => ({
+  const orderedLanes = style.lanes.length > 0 ? style.lanes : LANES;
+  const laneList: Lane[] =
+    style.lanes.length > 0
+      ? style.lanes.filter((lane) => viewEvents.some((view) => view.presentation.lane.id === lane.id))
+      : lanesFor(phaseEvents.map((event) => event.eventType));
+  const lanes: ViewLane[] = laneList.map((lane) => ({
     lane,
     events: viewEvents.filter((view) => view.presentation.lane.id === lane.id),
   }));
@@ -98,7 +131,7 @@ export function composePhase(
     const members = viewEvents.filter((view) => view.encounter?.uid === encounter.uid);
     if (members.length === 0) continue;
     const laneIds = [...new Set(members.map((view) => view.presentation.lane.id))].sort(
-      (a, b) => laneRank(a) - laneRank(b),
+      (a, b) => laneRank(a, orderedLanes) - laneRank(b, orderedLanes),
     );
     const outsideCount = allEvents.filter((event) => event.encounterUid === encounter.uid && !inPhase.has(event.uid)).length;
     connectors.push({

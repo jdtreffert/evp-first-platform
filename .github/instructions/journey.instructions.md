@@ -20,6 +20,9 @@ Follow [docs/journey-design.md](../../docs/journey-design.md). In short:
   tests, or the absence of Recurrence or Progression), and describe an old one by the date it was recorded, never as
   the current status. It does not move phase boundaries.
 - Respect roles: patients see only their own record; clinical accounts are read-only.
+- The Summary is sparse by design: major milestones only (selection in `summarySelection.ts`), never routine
+  evidence or deliveries. Durations run from authoritative anchors to an injected "today" and are unavailable, not
+  substituted, when an anchor is missing. Today is an endpoint, never a status.
 - Lanes are presentation groupings, not new event types. Do not change the canonical model to suit a view.
 - Check the existing timeline and onboarding code before adding a new path.
 - Layout: screens in `pages/journey/`, rendering components in `components/journey/`, and phase selection,

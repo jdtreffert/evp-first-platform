@@ -88,13 +88,25 @@ export default function PhaseTimeline({
             </g>
           ))}
 
+          {layout.spans.map((span) => (
+            <g key={span.id} role="img" aria-label={span.label}>
+              <title>{span.label}</title>
+              <line x1={span.x1} x2={span.x2 - 2} y1={span.y} y2={span.y} stroke="#cbd5e1" strokeWidth={2} />
+              <circle cx={span.x1} cy={span.y} r={3.5} fill="#cbd5e1" />
+              <polygon data-marker="span-arrowhead" points={`${span.x2},${span.y} ${span.x2 - 9},${span.y - 5} ${span.x2 - 9},${span.y + 5}`} fill="#cbd5e1" />
+              <text x={span.labelX} y={span.y - 7} fontSize={12} fill="#e5e7eb" stroke="#111827" strokeWidth={3} paintOrder="stroke" strokeLinejoin="round">
+                {span.label}
+              </text>
+            </g>
+          ))}
+
           {layout.references.map((reference) => (
             <g key={`${reference.label}-${reference.day}`}>
               <title>{`${reference.label} · ${reference.day}`}</title>
-              <line x1={reference.x} x2={reference.x} y1={14 + reference.row * GEOMETRY.referenceRowHeight} y2={layout.height} stroke="#f9fafb" strokeWidth={1.5} strokeDasharray="6 4" />
+              <line x1={reference.x} x2={reference.x} y1={14 + layout.spanBandHeight + reference.row * GEOMETRY.referenceRowHeight} y2={layout.height} stroke="#f9fafb" strokeWidth={1.5} strokeDasharray="6 4" />
               <text
                 x={reference.x + 6}
-                y={14 + reference.row * GEOMETRY.referenceRowHeight}
+                y={14 + layout.spanBandHeight + reference.row * GEOMETRY.referenceRowHeight}
                 fontSize={12}
                 fontWeight={600}
                 fill="#f9fafb"

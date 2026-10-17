@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { UnifiedEvent } from "../../../../backend/src/types/UnifiedEvents";
+import { eventFieldCatalog } from "../../../../backend/src/schemas/eventFieldCatalog";
 import { eventTypeFields } from "../../../../backend/src/schemas/eventTypeFields";
 import {
   ENCOUNTER_COLOR,
@@ -14,6 +15,12 @@ import {
   legendFor,
   presentationFor,
   presentationForEvent,
+  JOURNEY_MILESTONES_LANE,
+  SUMMARY_LANES,
+  summaryLabel,
+  summaryLaneFor,
+  summaryPresentationFor,
+  treatmentChangeLabels,
 } from "../presentationPolicy";
 
 const registeredTypes = Object.keys(eventTypeFields);
@@ -309,5 +316,54 @@ describe("a Decision that confirms a complete response", () => {
 
   it("does not change what presentationFor says about the Decision type", () => {
     expect(presentationFor("Decision").milestone).toBe(false);
+  });
+});
+
+describe("Journey Summary presentation", () => {
+  const ev = (eventType: string, extra: Partial<UnifiedEvent> = {}): UnifiedEvent => ({
+    uid: "e",
+    masterId: "M1",
+    eventType,
+    eventDate: "2026-08-15",
+    payload: { id: "e", fields: {} },
+    ...extra,
+  });
+
+  it("has two presentation-only lanes, Journey Milestones first, the second being the existing Response & Disease Status lane", () => {
+    expect(SUMMARY_LANES.map((lane) => lane.label)).toEqual(["Journey Milestones", "Response & Disease Status"]);
+    expect(SUMMARY_LANES[1]).toBe(LANES.find((lane) => lane.id === "response-disease-status"));
+    // The Summary lane is not one of the phase lanes, so the phase views are unaffected.
+    expect(LANES.map((lane) => lane.id)).not.toContain(JOURNEY_MILESTONES_LANE.id);
+    const colors = [...LANES.map((lane) => lane.color), OTHER_LANE.color, ENCOUNTER_COLOR, JOURNEY_MILESTONES_LANE.color];
+    expect(new Set(colors).size).toBe(colors.length);
+  });
+
+  it("assigns the lane from the event: milestones of the journey in one, response and disease status in the other", () => {
+    for (const type of ["Diagnosis", "Treatment_Start", "Treatment_Change"]) expect(summaryLaneFor(ev(type)).label).toBe("Journey Milestones");
+    for (const type of ["Disease_Status", "Recurrence", "Progression"]) expect(summaryLaneFor(ev(type)).label).toBe("Response & Disease Status");
+    expect(summaryLaneFor(ev("Decision", { decisionType: "Complete response confirmed" })).label).toBe("Response & Disease Status");
+    expect(summaryLaneFor(ev("Treatment_Change", { treatmentChangeType: "Treatment completed" })).label).toBe("Journey Milestones");
+  });
+
+  it("presents every Summary event as a milestone, with the assessment marker only for Disease_Status, and leaves the phase policy alone", () => {
+    expect(summaryPresentationFor(ev("Diagnosis"))).toMatchObject({ milestone: true, marker: "standard", assigned: true });
+    expect(summaryPresentationFor(ev("Disease_Status"))).toMatchObject({ milestone: true, marker: "assessment" });
+    expect(presentationFor("Diagnosis").lane.label).toBe("Decisions & Milestones");
+    expect(presentationFor("Treatment_Start").lane.label).toBe("Treatment");
+  });
+
+  it("labels Treatment_Change by its recorded type, with an entry for every Treatment_Change_Type option in the schema", () => {
+    for (const option of eventFieldCatalog.Treatment_Change_Type.options ?? []) {
+      expect(treatmentChangeLabels[option], option).toBeTruthy();
+    }
+    expect(Object.keys(treatmentChangeLabels).sort()).toEqual([...(eventFieldCatalog.Treatment_Change_Type.options ?? [])].sort());
+    expect(summaryLabel(ev("Treatment_Change", { treatmentChangeType: "Treatment completed" }))).toBe("Treatment completed");
+  });
+
+  it("labels the confirmed complete response, and every other event as the phase views do", () => {
+    expect(summaryLabel(ev("Decision", { decisionType: "Complete response confirmed" }))).toBe("Complete Response Confirmed");
+    expect(summaryLabel(ev("Diagnosis"))).toBe("Diagnosis");
+    expect(summaryLabel(ev("Treatment_Start"))).toBe("Treatment Start");
+    expect(summaryLabel(ev("Disease_Status", { diseaseStatusCategory: "Unknown" }))).toBe("Disease status unknown");
   });
 });

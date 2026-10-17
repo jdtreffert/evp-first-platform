@@ -201,3 +201,40 @@ describe("PhaseTimeline: Decisions", () => {
     expect(html).toContain(">Decision</text>");
   });
 });
+
+describe("PhaseTimeline: duration arrows and Today", () => {
+  const view = buildDiagnosisView([event("scan", "Imaging", "2026-03-01"), event("diagnosis", "Diagnosis", "2026-04-10")], [])!;
+  const draw = (spans: { id: string; fromDay: string; toDay: string; label: string }[]) =>
+    renderToString(
+      <PhaseTimeline
+        layout={layoutPhaseView({ ...view, references: [{ day: "2026-09-01", label: "Today" }], spans })}
+        label="Summary timeline"
+        selection={null}
+        onSelectEvent={() => undefined}
+        onSelectEncounter={() => undefined}
+      />,
+    ).replaceAll("<!-- -->", "");
+
+  it("draws an arrow with a head, named in text, for each span, and none when there are none", () => {
+    expect(draw([]).match(/span-arrowhead/g)).toBeNull();
+
+    const html = draw([
+      { id: "a", fromDay: "2026-03-01", toDay: "2026-09-01", label: "Time since Diagnosis: 4 months (150 days)" },
+      { id: "b", fromDay: "2026-04-10", toDay: "2026-09-01", label: "Time since Treatment Start: 4 months (144 days)" },
+    ]);
+
+    expect(html.match(/data-marker="span-arrowhead"/g)).toHaveLength(2);
+    expect(html).toContain('aria-label="Time since Diagnosis: 4 months (150 days)"');
+    expect(html).toContain(">Time since Treatment Start: 4 months (144 days)</text>");
+  });
+
+  it("draws Today as a labelled reference line below the arrows, not as an event", () => {
+    const html = draw([{ id: "a", fromDay: "2026-03-01", toDay: "2026-09-01", label: "Time since Diagnosis: 4 months" }]);
+
+    expect(html).toContain(">Today</text>");
+    expect(html).toContain('<title>Today · 2026-09-01</title>');
+    // The reference label sits below the one arrow row (28px) rather than over it.
+    expect(html).toMatch(/<text x="[\d.]+" y="42"[^>]*>Today<\/text>/);
+    expect(html).not.toContain('aria-label="Today');
+  });
+});

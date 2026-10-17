@@ -4,18 +4,12 @@ import PatientScopeForm from "../../components/journey/PatientScopeForm";
 import PhaseSelectionDetail from "../../components/journey/PhaseSelectionDetail";
 import PhaseTimeline from "../../components/journey/PhaseTimeline";
 import type { PhaseSelection } from "../../components/journey/PhaseTimeline";
+import { todayLocal } from "../../journey/calendarDay";
 import { layoutPhaseView } from "../../journey/phaseLayout";
 import { describeCompleteResponse } from "../../journey/completeResponse";
 import { describeDiseaseStatus } from "../../journey/diseaseStatus";
 import { buildSurveillanceView } from "../../journey/surveillanceView";
 import { usePatientData } from "./usePatientData";
-
-/** Today's date in the browser's time zone, as YYYY-MM-DD. */
-function today(): string {
-  const now = new Date();
-  const pad = (value: number) => String(value).padStart(2, "0");
-  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
-}
 
 /**
  * The surveillance period after treatment, drawn from a patient's existing events: read-only and derived. It
@@ -26,7 +20,7 @@ export default function JourneySurveillance() {
   const [selection, setSelection] = useState<PhaseSelection>(null);
 
   const result = useMemo(
-    () => (current?.data ? buildSurveillanceView(current.data.events, current.data.encounters, { asOf: today() }) : null),
+    () => (current?.data ? buildSurveillanceView(current.data.events, current.data.encounters, { asOf: todayLocal() }) : null),
     [current],
   );
   const view = result?.status === "ready" ? result.view : null;

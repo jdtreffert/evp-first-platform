@@ -15,6 +15,7 @@ export default function PhaseSelectionDetail({
   connectors,
   allEvents,
   onSelectEvent,
+  scopeName = "phase",
 }: {
   selection: PhaseSelection;
   viewEvents: readonly ViewEvent[];
@@ -22,6 +23,8 @@ export default function PhaseSelectionDetail({
   /** Every event of the patient, to resolve a related event even when it is outside the phase. */
   allEvents: readonly UnifiedEvent[];
   onSelectEvent: (uid: string) => void;
+  /** What an encounter's other events fall outside of: "phase" in a phase view, "summary" in the Summary. */
+  scopeName?: string;
 }) {
   if (!selection) return null;
 
@@ -55,7 +58,7 @@ export default function PhaseSelectionDetail({
       {connector.outsideCount > 0 && (
         <p className="text-xs text-gray-400">
           {connector.outsideCount} more event{connector.outsideCount === 1 ? "" : "s"} in this encounter fall outside
-          this phase.
+          this {scopeName}.
         </p>
       )}
       <p className="text-xs text-gray-500">{encounterLabel(connector.encounter)}</p>

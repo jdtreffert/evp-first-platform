@@ -4,6 +4,8 @@ import { calendarDay, daysBetween } from "./calendarDay";
 import { assessCompleteResponse } from "./completeResponse";
 import type { CompleteResponse } from "./completeResponse";
 import type { DiagnosisPhaseOptions } from "./diagnosisPhase";
+import { summarizeDiseaseStatus } from "./diseaseStatus";
+import type { DiseaseStatusSummary } from "./diseaseStatus";
 import { composePhase } from "./phaseView";
 import type { PhaseLanes, PhaseReference, ViewEvent } from "./phaseView";
 import { selectSurveillancePhase } from "./surveillancePhase";
@@ -21,6 +23,8 @@ export interface SurveillanceView extends PhaseLanes {
   completion: ViewEvent;
   /** The duration of complete response from the recorded confirming decision, or null when none is recorded. */
   completeResponse: CompleteResponse | null;
+  /** The latest explicit Disease_Status over the whole record, or "not recorded"; never inferred. */
+  diseaseStatus: DiseaseStatusSummary;
   /** The most recent event in the phase. */
   latest: ViewEvent;
   /** Days from the completion to the latest event recorded. */
@@ -78,6 +82,7 @@ export function buildSurveillanceView(
       references,
       completion,
       completeResponse,
+      diseaseStatus: summarizeDiseaseStatus(events),
       latest,
       daysToLatest: daysBetween(completion.day, latest.day),
       firstDiseaseEvent,

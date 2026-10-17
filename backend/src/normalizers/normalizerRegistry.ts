@@ -23,6 +23,7 @@ import { normalizeTreatmentResponse } from "./TreatmentResponseNormalizer";
 
 import { normalizeRecurrence } from "./RecurrenceNormalizer";
 import { normalizeProgression } from "./ProgressionNormalizer";
+import { normalizeDiseaseStatus } from "./DiseaseStatusNormalizer";
 
 import { normalizeQoL } from "./QoLNormalizer";
 import { normalizeSymptom } from "./SymptomNormalizer";
@@ -64,6 +65,7 @@ export const normalizerRegistry: NormalizerRegistry = {
 
   Recurrence: normalizeRecurrence,
   Progression: normalizeProgression,
+  Disease_Status: normalizeDiseaseStatus,
 
   QoL: normalizeQoL,
   Symptom: normalizeSymptom,

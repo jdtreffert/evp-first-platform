@@ -11,7 +11,7 @@ Encounter_UID	Single line text
 Encounter_Date	Date(Iso)	
 Encounter_Type	Single select	Clinic visit;Infusion visit;Imaging visit;Lab visit;Procedure or surgery;Hospital stay;Telehealth visit;Other;Unknown
 Encounter_Summary	Single line text	
-Event_Type	Single select	Diagnosis;TURBT;Pathology;Cytology;Lab;Imaging;Imaging_Response;Cystoscopy;Cystoscopy_Biopsy;Somatic;Germline;ctDNA;utDNA;Treatment_Start;Treatment_Delivery;Treatment_Change;Treatment_Response;Recurrence;Progression;QoL;Symptom;Decision;Procedure;Note
+Event_Type	Single select	Diagnosis;TURBT;Pathology;Cytology;Lab;Imaging;Imaging_Response;Cystoscopy;Cystoscopy_Biopsy;Somatic;Germline;ctDNA;utDNA;Treatment_Start;Treatment_Delivery;Treatment_Change;Treatment_Response;Recurrence;Progression;Disease_Status;QoL;Symptom;Decision;Procedure;Note
 Event_Summary	Single line text	
 Event_Details	Long text	
 Event_Measure_Type	Single select	Tumor size;Lesion size;Bladder wall thickness;Creatinine;PSA;Hemoglobin;WBC;RBC/hpf;AUA score;ECOG;Lymph node size;Number of lesions;Number of nodes;Other
@@ -125,6 +125,11 @@ Progression_Stage_Spread	Single select	Local;Regional;Metastatic;Unknown
 Progression_Modality	Single select	Imaging;Cystoscopy;Cytology;Molecular;Other
 Progression_Stage_Change	Single line text	
 Progression_Notes	Long text	
+Disease_Status_Category	Single select	No evidence of disease;Indeterminate or suspicious;Disease present;Unknown
+Disease_Status_Extent	Single select	Local;Regional;Metastatic;Multiple;Not specified;Unknown
+Disease_Status_Basis	Single select	Clinician documented;Patient recorded from clinician communication;Documented in source record;Patient asserted;Other;Unknown
+Disease_Status_Confidence	Single select	Confirmed;Probable;Possible;Indeterminate;Unknown
+Disease_Status_Notes	Long text	
 Procedure_Type	Single select	Ureteral stent placement;Ureteral stent removal;Ureteral stent exchange;Port placement;Port removal;Nephrostomy placement;Nephrostomy exchange;Nephrostomy removal;Biopsy;Endoscopy;Other
 Procedure_Result	Long text	
 Procedure_Notes	Long text	

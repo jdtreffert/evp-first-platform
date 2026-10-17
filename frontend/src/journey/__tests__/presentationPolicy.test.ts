@@ -3,6 +3,7 @@ import type { UnifiedEvent } from "../../../../backend/src/types/UnifiedEvents";
 import { eventTypeFields } from "../../../../backend/src/schemas/eventTypeFields";
 import {
   ENCOUNTER_COLOR,
+  diseaseStatusLabel,
   LANES,
   OTHER_LANE,
   UNASSIGNED_EVENT_TYPES,
@@ -25,7 +26,7 @@ describe("lane assignment", () => {
     Procedures: ["TURBT", "Cystoscopy_Biopsy", "Procedure"],
     "Pathology & Molecular": ["Pathology", "Somatic", "Germline"],
     "Context & Self-Management": ["Note"],
-    "Decisions & Milestones": ["Diagnosis", "Decision"],
+    "Decisions & Milestones": ["Diagnosis", "Decision", "Disease_Status"],
   };
 
   it.each(Object.entries(expected))("places the %s event types in that lane", (laneLabel, types) => {
@@ -77,6 +78,7 @@ describe("unknown event types", () => {
       lane: OTHER_LANE,
       assigned: false,
       milestone: false,
+      marker: "standard",
     });
   });
 
@@ -89,7 +91,7 @@ describe("unknown event types", () => {
 describe("milestones", () => {
   it("marks the event types where evidence becomes a conclusion or decision, and no other", () => {
     expect(registeredTypes.filter((type) => presentationFor(type).milestone).sort()).toEqual(
-      ["Diagnosis", "Progression", "Recurrence", "Treatment_Change", "Treatment_Response", "Treatment_Start"],
+      ["Diagnosis", "Disease_Status", "Progression", "Recurrence", "Treatment_Change", "Treatment_Response", "Treatment_Start"],
     );
   });
 
@@ -212,5 +214,58 @@ describe("legendFor", () => {
     expect(legendFor([delivery({ treatmentName: "Proton therapy" }), delivery({ treatmentName: "IMRT", treatmentDose: 2, treatmentDoseUnits: "Gy" })])).toEqual([]);
     expect(legendFor([{ ...delivery({ treatmentName: "EV" }), eventType: "Treatment_Start" }])).toEqual([]);
     expect(legendFor([])).toEqual([]);
+  });
+});
+
+describe("Disease_Status presentation", () => {
+  const status = (category: string | null | undefined, extra: Partial<UnifiedEvent> = {}): UnifiedEvent => ({
+    uid: "ds",
+    masterId: "M1",
+    eventType: "Disease_Status",
+    eventDate: "2026-08-15",
+    diseaseStatusCategory: category,
+    payload: { id: "ds", fields: {} },
+    ...extra,
+  });
+
+  it("is a milestone in Decisions & Milestones, with its own marker style and no other type having it", () => {
+    const presentation = presentationFor("Disease_Status");
+
+    expect(presentation).toMatchObject({ lane: { id: "decisions-milestones" }, assigned: true, milestone: true, marker: "assessment" });
+    expect(registeredTypes.filter((type) => presentationFor(type).marker === "assessment")).toEqual(["Disease_Status"]);
+  });
+
+  it.each([
+    ["No evidence of disease", "No evidence of disease"],
+    ["Indeterminate or suspicious", "Indeterminate or suspicious"],
+    ["Disease present", "Disease present"],
+    ["Unknown", "Disease status unknown"],
+  ])("labels the category %j as %j", (category, label) => {
+    expect(compactLabel(status(category))).toBe(label);
+    expect(diseaseStatusLabel(category)).toBe(label);
+  });
+
+  it("labels Indeterminate or suspicious without calling it disease present", () => {
+    expect(compactLabel(status("Indeterminate or suspicious"))).not.toMatch(/disease present/i);
+  });
+
+  it.each([null, undefined, "", "Cured", "NED", "no evidence of disease", "constructor"])(
+    "falls back to the name of the type for the unrecognised category %j instead of failing",
+    (category) => {
+      expect(diseaseStatusLabel(category)).toBeNull();
+      expect(compactLabel(status(category))).toBe("Disease Status");
+    },
+  );
+
+  it("takes the label from the category only, never from the notes, summary, extent or confidence", () => {
+    const event = status("Indeterminate or suspicious", {
+      diseaseStatusNotes: "No evidence of disease",
+      eventSummary: "Disease present",
+      diseaseStatusExtent: "Metastatic",
+      diseaseStatusConfidence: "Confirmed",
+    });
+
+    expect(compactLabel(event)).toBe("Indeterminate or suspicious");
+    expect(compactLabel(status(null, { diseaseStatusNotes: "No evidence of disease", eventSummary: "Disease present" }))).toBe("Disease Status");
   });
 });

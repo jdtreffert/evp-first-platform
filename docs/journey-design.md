@@ -88,14 +88,14 @@ given a lane or listed as unassigned). Lanes are drawn in this order, and only t
 | Procedures | TURBT, Cystoscopy_Biopsy, Procedure |
 | Pathology & Molecular | Pathology, Somatic, Germline |
 | Context & Self-Management | Note |
-| Decisions & Milestones | Diagnosis, Decision |
+| Decisions & Milestones | Diagnosis, Decision, Disease_Status |
 
 Every registered event type now has a lane. Unknown or newly added types are drawn in an "Other" lane, after
 the assigned lanes and only when it has events, so nothing silently disappears. A lane is chosen by event
 type, never by attribute values.
 
 **Milestones** are drawn as diamonds: Diagnosis, Treatment_Start, Treatment_Change, Treatment_Response,
-Recurrence and Progression. They are the points where evidence from other events becomes a decision or a
+Recurrence, Progression and Disease_Status (which has its own marker, see below). They are the points where evidence from other events becomes a decision or a
 conclusion. Because the choice is by event type, every Treatment_Change is a milestone, including the one that
 records that treatment is completed. Deliveries, imaging, labs and the like are ordinary markers. The policy
 also owns the display name of each event type (for example "Lab work") and the lane colors.
@@ -222,12 +222,56 @@ Possible later steps, not built: collapsing a dense run of identical events into
 icons (for example a bag for an infusion, a scanner for imaging, a vial for a lab) with color for the agent.
 Color must not be the only carrier of meaning, so the abbreviation stays beside any icon.
 
+## Disease status
+
+`Disease_Status` is an explicit, dated, provenance-backed assessment of the patient's disease status, entered by a
+person or taken from a source: a category (No evidence of disease; Indeterminate or suspicious; Disease present;
+Unknown), and optionally an extent, the basis for the status, the confidence the source stated, and notes. It
+summarizes evidence; it does not replace, copy or change the evidence events (imaging, cystoscopy, biopsy,
+cytology, pathology, ctDNA, utDNA, Treatment_Response, Recurrence, Progression). It is distinct from
+Treatment_Response (response to treatment), Recurrence (disease returning) and Progression (existing disease
+growing or spreading).
+
+Rules that every view and later feature must keep:
+
+- **Never inferred and never created automatically.** Not from a Treatment_Response of CR, negative imaging,
+  a normal cystoscopy, negative cytology or pathology, undetectable ctDNA or utDNA, the absence of Recurrence or
+  Progression, notes, or matching dates. A future prompt may invite the user to review status when new evidence
+  accumulates; it must never silently create or change an event. Existing patients get no synthesized status.
+- **The category alone chooses the label** (`diseaseStatusLabel` in the presentation policy): "No evidence of
+  disease", "Indeterminate or suspicious", "Disease present", "Disease status unknown". Notes, summary, extent and
+  confidence never do. A missing or unrecognised legacy value is drawn under the type name "Disease Status".
+- **No effect on phases.** It does not define or move the Diagnosis, Treatment or Post-treatment Surveillance
+  boundaries; it sits in the phase its own date falls in, whatever its category.
+- **Presentation:** a milestone in Decisions & Milestones (provisional; Response & Disease Status is the other
+  candidate, and moving it is a change to the presentation policy only), drawn as a diamond with an inner ring,
+  the same size and lane color as the other milestone diamonds.
+- **The latest status is a statement about its date.** `summarizeDiseaseStatus` and `describeDiseaseStatus`
+  (`frontend/src/journey/diseaseStatus.ts`, no React, tested) report the latest dated status with everything
+  recorded (category, date, extent, basis, confidence, source and provenance, notes, the supporting event and
+  relationship, documents). The wording is "Latest recorded disease status: No evidence of disease. Recorded
+  August 15, 2026.", never "NED today" or "current". With no status recorded it reads "Disease status: not
+  recorded." and shows the latest Treatment_Response, Recurrence or Progression as it is, with no inference.
+- **Newer assessment evidence** is a temporal observation only: events of the evidence types dated after the
+  status date (not the same day, not undated, not withdrawn). It says nothing about whether they confirm or change
+  the status.
+- **One supporting event.** An event has a single `Event_Related_UID`, so a status can name one principal
+  supporting event (default `Derived_From`; `Follow_up_to` for an earlier status). The other evidence stays as its
+  own events, unlinked. A many-to-many relationship model is a separate architectural decision, not made here.
+- **Required and optional fields:** only `Disease_Status_Category` is required (enforced on ingest and in the
+  form); the rest are optional. No `Encounter_UID` is required.
+
+There is no Summary view yet. The statement above is shown in the Post-treatment Surveillance facts as its
+interim home, and the Summary will use the same functions.
+
 ## Summary and derived information
 
 Summary information is derived from events, not entered separately. Examples: first recorded event, the
 Diagnosis milestone, intervals between meaningful events, event counts, phase boundaries, treatment and
 surveillance periods. Keep recorded facts, normalized facts, derived values, and presentation metadata
-distinct, and keep derived values traceable to their events.
+distinct, and keep derived values traceable to their events. A disease status is the exception to "derived": it
+is a recorded assessment (see Disease status), and a Summary shows the latest recorded one with its date rather
+than computing one.
 
 ## Interaction
 

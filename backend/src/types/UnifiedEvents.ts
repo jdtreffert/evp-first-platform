@@ -202,6 +202,14 @@ export interface UnifiedEvent {
   progressionModality?: string | null;
   progressionStageChange?: string | null;
   progressionNotes?: string | null;
+
+  // Disease_Status block: an explicit, dated assessment recorded by a person or source. Never derived from
+  // other events or from notes.
+  diseaseStatusCategory?: string | null;
+  diseaseStatusExtent?: string | null;
+  diseaseStatusBasis?: string | null;
+  diseaseStatusConfidence?: string | null;
+  diseaseStatusNotes?: string | null;
 }
 
 export type EventNormalizer = (raw: RawEventRecord) => UnifiedEvent;

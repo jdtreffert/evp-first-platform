@@ -15,7 +15,8 @@ Design intent is in [journey-design.md](journey-design.md).
    against the reference journey.)
 7. Extend it to Post-treatment Surveillance. (First version done as the Post-treatment Surveillance tab; to be
    refined against the reference journey once a completion is recorded.)
-8. Build the comprehensive Summary view.
+8. Build the comprehensive Summary view. (It will show the latest recorded Disease_Status, by its date, using
+   `frontend/src/journey/diseaseStatus.ts`.)
 
 ## Encounters
 

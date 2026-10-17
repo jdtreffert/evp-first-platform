@@ -30,6 +30,7 @@ validation reads its keys to decide which `eventType` values are legal.
 | `Treatment_Response` | `normalizeTreatmentResponse` | `Treatment_Response` |
 | `Recurrence` | `normalizeRecurrence` | `Recurrence` |
 | `Progression` | `normalizeProgression` | `Progression` |
+| `Disease_Status` | `normalizeDiseaseStatus` | `Disease_Status` |
 | `Symptom` | `normalizeSymptom` | `Symptom` |
 | `QoL` | `normalizeQoL` | `QoL` |
 | `Decision` | `normalizeDecision` | `Decision` |
@@ -38,13 +39,23 @@ validation reads its keys to decide which `eventType` values are legal.
 ### Schema alignment
 
 The schema documentation (`UnifiedEventsSchema`) defines the `Event_Type` values, listed in
-[eventTypes.ts](../src/schemas/eventTypes.ts) as `airtableEventTypes` (22 values: the original 21
-minus `Other`, plus `Lab` and `Pathology`). The registry also accepts `Treatment` (a dispatcher),
+[eventTypes.ts](../src/schemas/eventTypes.ts) as `airtableEventTypes` (the original 21 minus `Other`, plus
+`Lab`, `Pathology`, `Treatment_Delivery`, `Procedure` and `Disease_Status`). The registry also accepts `Treatment` (a dispatcher),
 which is outside that list. A test fails if the lists and the registry drift apart.
 
 `Treatment_Outcome` and `Treatment_Regimen_Details` are not event types. Outcomes are recorded with
 `Treatment_Response`, `Recurrence` and `Progression`; `Treatment_Regimen_Details` is an attribute of
 `Treatment_Start` and `Treatment_Change`.
+
+### `Disease_Status`
+
+An explicit, dated assessment of disease status recorded by a person or source: a category (required), an
+optional extent, basis and confidence, and notes. It is distinct from `Treatment_Response` (response to
+treatment), `Recurrence` and `Progression` (findings), and from the test and imaging events it may summarize.
+[`normalizeDiseaseStatus`](../src/normalizers/DiseaseStatusNormalizer.ts) only maps what was recorded: it never
+derives a field from another field or from the notes, never reads any other event, and never creates or changes
+another event (a Recurrence or Progression, for example). Disease status is not inferred from a Treatment_Response
+of CR, from negative tests, or from the absence of Recurrence or Progression.
 
 ### The `Treatment` dispatcher
 
@@ -71,6 +82,10 @@ match it throws, which the pipeline reports as 422. The stored `eventType` is th
 3. Register it in `normalizerRegistry.ts`.
 4. Add `src/normalizers/__tests__/<Name>Normalizer.test.ts` using `testNormalizer` from `testUtils.ts`.
 5. Add the row to the table above. A test checks that every registered type appears in this document.
+6. Add the type and its entry fields to `eventTypeFields` in
+   [eventTypeFields.ts](../src/schemas/eventTypeFields.ts), and list any field the type cannot do without in
+   `requiredEventTypeFields` (enforced on ingest and validation with a 422 and marked required in the form; a type
+   not listed has no required fields). Then run `npm run schema:tables`.
 
 The registry tests verify that each normalizer emits its own type and that its output passes the
 schema, so steps 1 to 3 are caught if incomplete.

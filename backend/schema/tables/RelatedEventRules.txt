@@ -1,6 +1,7 @@
 Event_Type	Candidate_Event_Types	Date_Rule	Default_Relationship
 Imaging	Imaging;Symptom;Pathology;Decision;Recurrence;Progression;Treatment_Response	On or up to 180 days before the event date	Related_To (Imaging: Follow_up_to)
 Imaging_Response	Imaging	On or up to 30 days before the event date	Derived_From
+Disease_Status	Imaging;Imaging_Response;Cystoscopy;Cystoscopy_Biopsy;Cytology;Pathology;ctDNA;utDNA;Treatment_Response;Recurrence;Progression;Disease_Status	On or before the event date	Derived_From (Disease_Status: Follow_up_to)
 Recurrence	Imaging;Cystoscopy;Cystoscopy_Biopsy;Cytology;Pathology;ctDNA;utDNA	On or up to 90 days before the event date	Derived_From
 Progression	Imaging;Cystoscopy;Cystoscopy_Biopsy;Cytology;Pathology;ctDNA;utDNA	On or up to 90 days before the event date	Derived_From
 Cystoscopy	Symptom;Imaging	Within 90 days either side	Related_To

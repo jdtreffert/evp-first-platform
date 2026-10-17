@@ -8,6 +8,7 @@ import {
   relatedEventCandidates,
   relationshipFields,
   requiredEncounterFields,
+  requiredEventTypeFields,
 } from "./eventTypeFields";
 
 export interface SchemaTable {
@@ -31,8 +32,12 @@ export function buildSchemaTables(): SchemaTable[] {
   return [
     {
       name: "EventTypeFields",
-      columns: ["Event_Type", "Fields"],
-      rows: Object.entries(eventTypeFields).map(([type, fields]) => [type, fields.join(LIST_SEPARATOR)]),
+      columns: ["Event_Type", "Fields", "Required_Fields"],
+      rows: Object.entries(eventTypeFields).map(([type, fields]) => [
+        type,
+        fields.join(LIST_SEPARATOR),
+        (requiredEventTypeFields[type] ?? []).join(LIST_SEPARATOR),
+      ]),
     },
     {
       name: "CommonFields",

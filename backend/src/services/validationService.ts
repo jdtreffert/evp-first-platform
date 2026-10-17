@@ -1,5 +1,6 @@
 import { unifiedEventSchema } from "../schemas/unifiedEventSchema";
 import { UnifiedEvent } from "../types/UnifiedEvents";
+import { missingRequiredFields } from "../validation/requiredFields";
 
 export interface ValidationIssue {
   path: string;
@@ -15,7 +16,8 @@ export function validateEvent(input: unknown): ValidationResult {
   if (parsed.success) {
     // Compile-time check that the schema output stays assignable to UnifiedEvent.
     const event: UnifiedEvent = parsed.data;
-    void event;
+    const missing = missingRequiredFields(event.eventType, event.payload.fields, "payload.fields");
+    if (missing.length > 0) return { valid: false, errors: missing };
     return { valid: true, errors: [] };
   }
 

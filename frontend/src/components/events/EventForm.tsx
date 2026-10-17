@@ -17,7 +17,7 @@ import {
 import type { EncounterDraft } from "./encounterOptions";
 import { getLocalDate, shiftDate } from "./dates";
 import { eventTypeLabel } from "../../journey/presentationPolicy";
-import { documentFields, eventTypeFields, measureFields, relatedEventCandidates, relationshipFields } from "../../../../backend/src/schemas/eventTypeFields";
+import { documentFields, eventTypeFields, measureFields, relatedEventCandidates, relationshipFields, requiredEventTypeFields } from "../../../../backend/src/schemas/eventTypeFields";
 
 const fieldLabels: Record<string, string> = {
   T: "T (tumor)",
@@ -44,6 +44,27 @@ const fieldLabels: Record<string, string> = {
   Event_Date: "Event date",
   Document_Type: "Document type",
   Document_Redaction_Status: "Redaction status",
+  Disease_Status_Category: "Disease status",
+  Disease_Status_Extent: "Disease extent",
+  Disease_Status_Basis: "Basis for status",
+  Disease_Status_Confidence: "Confidence",
+  Disease_Status_Notes: "Notes",
+};
+
+// Short guidance shown under a field. It explains what to record; it never suggests a value.
+const fieldHelp: Record<string, string> = {
+  Disease_Status_Category:
+    "Record what was documented or communicated at the date of this assessment. No evidence of disease does not mean cured. Indeterminate or suspicious does not mean confirmed disease.",
+  Disease_Status_Extent: "Only if the source states it. For no evidence of disease this is normally left as Not specified.",
+  Disease_Status_Basis: "Who or what the status comes from. This is separate from the Source above.",
+  Disease_Status_Confidence: "The certainty stated by the source. It is not worked out from the status.",
+  Disease_Status_Notes: "Context or the source's own wording. The choices above are what count; notes do not change them.",
+};
+
+// Guidance shown once for an event type, above its fields.
+const typeHelp: Record<string, string> = {
+  Disease_Status:
+    "This records a disease status that someone documented or communicated on the assessment date. It is not worked out from your test results and it does not change them. Keep scans, tests and results as their own events, and link the main supporting one below if you wish.",
 };
 
 // Attachments cannot be uploaded yet, so only the optional document attributes are offered.
@@ -84,13 +105,18 @@ function isFilled(value: string | string[] | undefined): boolean {
 function FieldInput({
   field,
   value,
+  required = false,
   onChange,
 }: {
   field: FieldDefinition;
   value: string | string[] | undefined;
+  required?: boolean;
   onChange: (value: string | string[]) => void;
 }) {
-  const label = labelFor(field.name);
+  const label = `${labelFor(field.name)}${required ? " (required)" : ""}`;
+  const help = fieldHelp[field.name];
+  // "Not specified" can be a real option, so the empty choice must not be called that.
+  const blankLabel = required ? "Choose…" : field.options?.includes("Not specified") ? "Leave blank" : "Not specified";
 
   if (field.kind === "multi") {
     const selected = Array.isArray(value) ? value : [];
@@ -121,13 +147,13 @@ function FieldInput({
     <label className="block text-sm">
       {label}
       {field.kind === "single" ? (
-        <select className={inputClass} value={text} onChange={(event) => onChange(event.target.value)}>
-          <option value="">Not specified</option>
+        <select className={inputClass} required={required} value={text} onChange={(event) => onChange(event.target.value)}>
+          <option value="">{blankLabel}</option>
           {field.options?.map((option) => <option key={option} value={option}>{option}</option>)}
         </select>
       ) : field.kind === "longText" ? (
         <textarea
-          required={field.name in requiredFields}
+          required={required}
           className={inputClass}
           rows={4}
           placeholder={placeholders[field.name]}
@@ -138,11 +164,13 @@ function FieldInput({
         <input
           type={field.kind === "number" ? "number" : field.kind === "date" ? "date" : "text"}
           step={field.kind === "number" ? "any" : undefined}
+          required={required}
           className={inputClass}
           value={text}
           onChange={(event) => onChange(event.target.value)}
         />
       )}
+      {help && <span className="mt-1 block text-xs text-gray-400">{help}</span>}
     </label>
   );
 }
@@ -180,6 +208,7 @@ export default function EventForm({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fieldNames = eventTypeFields[eventType];
+  const requiredNames = new Set([...Object.keys(requiredFields), ...(requiredEventTypeFields[eventType] ?? [])]);
   const sourceField = eventFieldCatalog.Event_Source;
 
   const candidateRule = relatedEventCandidates[eventType];
@@ -231,9 +260,9 @@ export default function EventForm({
     event.preventDefault();
     setError(null);
 
-    const missing = fieldNames.find((name) => name in requiredFields && !isFilled(values[name]));
+    const missing = fieldNames.find((name) => requiredNames.has(name) && !isFilled(values[name]));
     if (missing) {
-      setError(`${requiredFields[missing]} is required.`);
+      setError(`${requiredFields[missing] ?? labelFor(missing)} is required.`);
       return;
     }
     if (!fieldNames.some((name) => isFilled(values[name]))) {
@@ -344,11 +373,14 @@ export default function EventForm({
         </select>
       </label>
 
+      {typeHelp[eventType] && <p className="rounded border border-gray-700 bg-gray-800 p-3 text-sm text-gray-300">{typeHelp[eventType]}</p>}
+
       {fieldNames.map((name) => (
         <FieldInput
           key={`${eventType}-${name}`}
           field={eventFieldCatalog[name]}
           value={values[name]}
+          required={requiredNames.has(name)}
           onChange={(value) => setValues((previous) => ({ ...previous, [name]: value }))}
         />
       ))}

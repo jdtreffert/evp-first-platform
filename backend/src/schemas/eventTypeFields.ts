@@ -44,6 +44,16 @@ export const relatedEventCandidates: Record<
     relationshipByType: { Imaging: "Follow_up_to" },
   },
   Imaging_Response: { eventTypes: ["Imaging"], priorDays: 30, relationship: "Derived_From" },
+  // Only one supporting event can be named; the rest of the evidence stays as its own events, unlinked.
+  Disease_Status: {
+    eventTypes: [
+      "Imaging", "Imaging_Response", "Cystoscopy", "Cystoscopy_Biopsy", "Cytology", "Pathology", "ctDNA", "utDNA",
+      "Treatment_Response", "Recurrence", "Progression", "Disease_Status",
+    ],
+    allPrecedingEvents: true,
+    relationship: "Derived_From",
+    relationshipByType: { Disease_Status: "Follow_up_to" },
+  },
   // The evidence a Recurrence or Progression was recognised from; a confirming test can follow the first finding.
   Recurrence: {
     eventTypes: ["Imaging", "Cystoscopy", "Cystoscopy_Biopsy", "Cytology", "Pathology", "ctDNA", "utDNA"],
@@ -151,6 +161,10 @@ export const eventTypeFields: Record<string, readonly string[]> = {
     "Progression_Location", "Progression_Stage_Spread", "Progression_Modality",
     "Progression_Stage_Change", "Progression_Notes",
   ],
+  Disease_Status: [
+    "Disease_Status_Category", "Disease_Status_Extent", "Disease_Status_Basis", "Disease_Status_Confidence",
+    "Disease_Status_Notes",
+  ],
   QoL: ["QoL_Physical", "Qol_Emotional", "QoL_Urinary", "QoL_Pain", "QoL_Fatigue", "Qol_Notes"],
   Symptom: [
     "Symptom_Type", "Symptom_Description", "Symptom_Severity", "Symptom_Status", "Symptom_Duration",
@@ -164,6 +178,21 @@ export const eventTypeFields: Record<string, readonly string[]> = {
   Note: ["Event_Summary", "Event_Details"],
   Lab: ["Lab_Flags", "Lab_Values", "Lab_Significance_Reasons", "Lab_Notes"],
 };
+
+/**
+ * Fields an event of the given type must carry; the others are optional. A required field names an entry field
+ * of its type. Enforced on ingest and validation, and marked required in the entry form. Types not listed have
+ * no required fields.
+ */
+export const requiredEventTypeFields: Readonly<Record<string, readonly string[]>> = {
+  Disease_Status: ["Disease_Status_Category"],
+};
+
+for (const [type, fields] of Object.entries(requiredEventTypeFields)) {
+  for (const field of fields) {
+    if (!eventTypeFields[type]?.includes(field)) throw new Error(`requiredEventTypeFields.${type} names ${field}, which is not an entry field of the type`);
+  }
+}
 
 for (const [type, fields] of Object.entries(eventTypeFields)) {
   for (const field of fields) {

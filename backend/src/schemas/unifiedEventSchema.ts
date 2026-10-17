@@ -173,4 +173,10 @@ export const unifiedEventSchema = z.strictObject({
   progressionModality: text,
   progressionStageChange: text,
   progressionNotes: text,
+
+  diseaseStatusCategory: text,
+  diseaseStatusExtent: text,
+  diseaseStatusBasis: text,
+  diseaseStatusConfidence: text,
+  diseaseStatusNotes: text,
 });

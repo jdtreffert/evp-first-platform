@@ -66,6 +66,8 @@ const laneIdByEventType: Record<string, LaneId> = {
   Note: "context-self-management",
   Diagnosis: "decisions-milestones",
   Decision: "decisions-milestones",
+  // Provisional: Response & Disease Status is the other candidate home. Moving it is a change here only.
+  Disease_Status: "decisions-milestones",
 };
 
 /**
@@ -86,7 +88,32 @@ const milestoneEventTypes = new Set<string>([
   "Treatment_Response",
   "Recurrence",
   "Progression",
+  "Disease_Status",
 ]);
+
+/**
+ * Event types drawn with the assessment marker: the milestone diamond with an inner ring, to tell a recorded
+ * assessment of status from the other milestones while staying within the same diamond size and color.
+ */
+const assessmentEventTypes = new Set<string>(["Disease_Status"]);
+
+/**
+ * The label for each Disease_Status_Category. Only the recorded category chooses the label: never the notes,
+ * the other events, or the date. An unrecognised or missing category has no entry and uses the type's name.
+ */
+const diseaseStatusLabels: Record<string, string> = {
+  "No evidence of disease": "No evidence of disease",
+  "Indeterminate or suspicious": "Indeterminate or suspicious",
+  "Disease present": "Disease present",
+  Unknown: "Disease status unknown",
+};
+
+/** The label for a recorded Disease_Status_Category, or null when it is missing or not one of the options. */
+export function diseaseStatusLabel(category: string | null | undefined): string | null {
+  return typeof category === "string" && Object.prototype.hasOwnProperty.call(diseaseStatusLabels, category)
+    ? diseaseStatusLabels[category]
+    : null;
+}
 
 const eventTypeLabels: Record<string, string> = {
   QoL: "Quality of life",
@@ -103,6 +130,8 @@ export interface EventPresentation {
   assigned: boolean;
   /** Drawn as a milestone. */
   milestone: boolean;
+  /** "assessment" is a milestone diamond with an inner ring; every other type uses the standard marker. */
+  marker: "standard" | "assessment";
 }
 
 /** The name shown for an event type; an unknown type is shown by its own name. */
@@ -124,6 +153,7 @@ export function presentationFor(eventType: string): EventPresentation {
     lane: lane ?? OTHER_LANE,
     assigned: lane !== undefined,
     milestone: milestoneEventTypes.has(eventType),
+    marker: assessmentEventTypes.has(eventType) ? "assessment" : "standard",
   };
 }
 
@@ -143,10 +173,12 @@ function formatDose(dose: number): string {
 /**
  * The short text drawn beside a marker, to keep timelines compact. A treatment delivery is labelled from its
  * data: a radiation dose by the dose and units ("2 Gy"), anything else by the treatment's short name, with the
- * cycle when recorded ("EV C2"), and plainly "Delivery" when no treatment is named. Every other event uses the
- * name of its type. The full details stay in the hover text and the detail panel.
+ * cycle when recorded ("EV C2"), and plainly "Delivery" when no treatment is named. A Disease_Status is labelled
+ * by its recorded category. Every other event uses the name of its type. The full details stay in the hover
+ * text and the detail panel.
  */
 export function compactLabel(event: UnifiedEvent): string {
+  if (event.eventType === "Disease_Status") return diseaseStatusLabel(event.diseaseStatusCategory) ?? eventTypeLabel(event.eventType);
   if (event.eventType !== "Treatment_Delivery") return eventTypeLabel(event.eventType);
 
   const units = event.treatmentDoseUnits;

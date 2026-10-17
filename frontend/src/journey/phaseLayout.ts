@@ -183,7 +183,8 @@ export function layoutPhaseView(view: PhaseLanes): PhaseLayout {
       : [{ x: xFor(view.range.start), label: formatDay(view.range.start) }];
 
   return {
-    width: plotWidth + paddingLeft + paddingRight,
+    // The fixed right padding fits a short label; a longer one at the right edge widens the drawing instead of being clipped.
+    width: Math.max(plotWidth + paddingLeft + paddingRight, ...lanes.flatMap((lane) => lane.events.map((item) => item.right + labelGap))),
     height: top,
     axisHeight,
     lanes,

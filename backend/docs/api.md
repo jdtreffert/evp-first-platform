@@ -267,6 +267,11 @@ event type. Ingestion rejects select values that are not defined options. Normal
 field names (for example `TURBT_Histology`) and still accept the earlier names (`Pathology_Histology`).
 The web form is generated from the same two files.
 
+A few event types require a field: `requiredEventTypeFields` in `eventTypeFields.ts` (today only
+`Disease_Status`, which requires `Disease_Status_Category`). A record without it is rejected with `422` by
+`/ingest` and `/batch`, and `/validate` reports it; every other event type has no required fields, so events that
+were valid before stay valid. The generated `EventTypeFields` table lists the required fields.
+
 Regenerate the catalog after editing the schema spreadsheet: export it as Excel "Unicode Text" and run
 `node scripts/generateFieldCatalog.mjs <path to UnifiedEventsSchema.txt>` in `backend/`. Then update
 `src/schemas/eventTypeFields.ts` if event types or their fields changed.
@@ -285,13 +290,14 @@ date, a number of days before it, or every event on or before it (the 100 most r
 
 - Imaging offers Imaging (default relationship `Follow_up_to`), Symptom, Pathology, Decision, Recurrence, Progression and Treatment_Response, on or up to 180 days before.
 - Imaging_Response offers Imaging, on or up to 30 days before.
+- Disease_Status offers Imaging, Imaging_Response, Cystoscopy, Cystoscopy_Biopsy, Cytology, Pathology, ctDNA, utDNA, Treatment_Response, Recurrence, Progression and Disease_Status, on or before the event date (default relationship `Derived_From`, `Follow_up_to` for an earlier Disease_Status). Only one supporting event can be named, because an event has a single `Event_Related_UID`; the other evidence stays as its own events.
 - Recurrence and Progression each offer Imaging, Cystoscopy, Cystoscopy_Biopsy, Cytology, Pathology, ctDNA and utDNA, on or up to 90 days before (default relationship `Derived_From`): the evidence the finding was recognised from.
 - Cystoscopy offers Symptom and Imaging, within 90 days.
 - TURBT offers Cystoscopy, and Pathology offers TURBT and Cystoscopy_Biopsy, within 30 days.
 - Diagnosis offers Cystoscopy, Cystoscopy_Biopsy, Pathology and Imaging; Decision offers Diagnosis; Treatment_Start offers Decision and Diagnosis; all within 90 days.
 - Treatment_Delivery offers Treatment_Start and Treatment_Change; Treatment_Change offers Treatment_Start, Treatment_Change, Symptom and Treatment_Response; Symptom offers Diagnosis, Treatment_Start, Treatment_Change, Treatment_Delivery and Procedure; ctDNA offers Diagnosis, Treatment_Start, Treatment_Delivery, Treatment_Response, Recurrence and Progression; Procedure offers Procedure, TURBT, Symptom, Imaging, Diagnosis, Treatment_Start and Treatment_Change; all on or before the event date.
 
-The default relationship is `Derived_From` for Pathology, Diagnosis, Imaging_Response, Recurrence and Progression and `Related_To` for the rest.
+The default relationship is `Derived_From` for Pathology, Diagnosis, Imaging_Response, Recurrence, Progression and Disease_Status and `Related_To` for the rest.
 Other event types offer no picker.
 
 ## Recorded-at provenance

@@ -6,6 +6,7 @@ import PhaseTimeline from "../../components/journey/PhaseTimeline";
 import type { PhaseSelection } from "../../components/journey/PhaseTimeline";
 import { layoutPhaseView } from "../../journey/phaseLayout";
 import { describeCompleteResponse } from "../../journey/completeResponse";
+import { describeDiseaseStatus } from "../../journey/diseaseStatus";
 import { buildSurveillanceView } from "../../journey/surveillanceView";
 import { usePatientData } from "./usePatientData";
 
@@ -93,6 +94,7 @@ export default function JourneySurveillance() {
                 : "No Progression or Recurrence has been recorded."}
             </li>
             <li>{describeCompleteResponse(view.completeResponse)}</li>
+            <li>{describeDiseaseStatus(view.diseaseStatus)}</li>
           </ul>
 
           <PhaseTimeline

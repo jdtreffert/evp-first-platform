@@ -1,4 +1,6 @@
 import { normalizerRegistry } from "../../normalizers/normalizerRegistry";
+import { eventFieldCatalog } from "../../schemas/eventFieldCatalog";
+import { requiredEventTypeFields } from "../../schemas/eventTypeFields";
 import { mockRecord } from "../../normalizers/__tests__/testUtils";
 import { UnifiedEvent } from "../../types/UnifiedEvents";
 import { validateEvent } from "../validationService";
@@ -23,10 +25,15 @@ describe("validateEvent", () => {
   test.each(Object.keys(normalizerRegistry))(
     "output of the %s normalizer is valid",
     (type) => {
+      // A type that requires a field is given the first option of it (or text), as a form would.
+      const required = Object.fromEntries(
+        (requiredEventTypeFields[type] ?? []).map((name) => [name, eventFieldCatalog[name].options?.[0] ?? "text"]),
+      );
       const raw = mockRecord({
         Master_ID: "M1",
         Event_Date: "2024-01-01",
         Treatment_Start_Date: "2024-01-01",
+        ...required,
       });
       const event = normalizerRegistry[type](raw);
       expect(validateEvent(event)).toEqual({ valid: true, errors: [] });

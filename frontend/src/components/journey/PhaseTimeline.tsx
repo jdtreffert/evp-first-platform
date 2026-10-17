@@ -156,12 +156,21 @@ export default function PhaseTimeline({
                   <title>{describe(item)}</title>
                   {isSelected && <circle r={(milestone ? MILESTONE : MARKER) + 5} fill="none" stroke="#ffffff" strokeWidth={2} />}
                   {milestone ? (
-                    <polygon
-                      points={`0,${-MILESTONE} ${MILESTONE},0 0,${MILESTONE} ${-MILESTONE},0`}
-                      fill={lane.color}
-                      stroke="#ffffff"
-                      strokeWidth={2}
-                    />
+                    <>
+                      <polygon
+                        points={`0,${-MILESTONE} ${MILESTONE},0 0,${MILESTONE} ${-MILESTONE},0`}
+                        fill={lane.color}
+                        stroke="#ffffff"
+                        strokeWidth={2}
+                      />
+                      {presentation.marker === "assessment" && (
+                        <polygon
+                          data-marker="assessment-ring"
+                          points={`0,${-MILESTONE / 2} ${MILESTONE / 2},0 0,${MILESTONE / 2} ${-MILESTONE / 2},0`}
+                          fill="#111827"
+                        />
+                      )}
+                    </>
                   ) : (
                     <circle
                       r={MARKER}

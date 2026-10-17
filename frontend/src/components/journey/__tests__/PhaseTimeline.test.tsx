@@ -123,3 +123,55 @@ describe("PhaseTimeline: reference lines", () => {
     expect(html).toContain('stroke-dasharray="6 4"');
   });
 });
+
+describe("PhaseTimeline: Disease_Status", () => {
+  const status = (uid: string, eventDate: string, category: string | null): UnifiedEvent => ({
+    ...event(uid, "Disease_Status", eventDate),
+    diseaseStatusCategory: category,
+  });
+
+  function renderStatuses(statuses: UnifiedEvent[]): string {
+    const layout = layoutPhaseView(buildDiagnosisView([event("diagnosis", "Diagnosis", "2026-04-10"), ...statuses], [])!);
+    return renderToString(
+      <PhaseTimeline layout={layout} label="Timeline" selection={null} onSelectEvent={() => undefined} onSelectEncounter={() => undefined} />,
+    ).replaceAll("<!-- -->", "");
+  }
+
+  it("draws a recorded status as a diamond with an inner ring, beside the other milestone diamonds", () => {
+    const html = renderStatuses([status("ned", "2026-03-01", "No evidence of disease")]);
+
+    // The Diagnosis diamond, and the status diamond with its ring.
+    expect(html.match(/<polygon/g)).toHaveLength(3);
+    expect(html.match(/data-marker="assessment-ring"/g)).toHaveLength(1);
+    expect(html).toContain(">No evidence of disease</text>");
+  });
+
+  it("labels each category as expected, and Indeterminate or suspicious is not called disease present", () => {
+    const html = renderStatuses([
+      status("a", "2026-01-01", "No evidence of disease"),
+      status("b", "2026-02-01", "Indeterminate or suspicious"),
+      status("c", "2026-03-01", "Disease present"),
+      status("d", "2026-03-15", "Unknown"),
+    ]);
+
+    for (const label of ["No evidence of disease", "Indeterminate or suspicious", "Disease present", "Disease status unknown"]) {
+      expect(html).toContain(`>${label}</text>`);
+    }
+    expect(html).toContain('aria-label="Disease Status · Indeterminate or suspicious · 2026-02-01"');
+    expect(html).not.toContain("Disease Status · Disease present · 2026-02-01");
+  });
+
+  it("falls back to the plain type name for a missing or unrecognised category instead of failing", () => {
+    const html = renderStatuses([status("legacy", "2026-02-01", "Cured"), status("none", "2026-03-01", null)]);
+
+    expect(html.match(/>Disease Status<\/text>/g)).toHaveLength(2);
+    expect(html).not.toContain("Cured");
+  });
+
+  it("gives the drawing room for the longest label at the right edge", () => {
+    const layout = layoutPhaseView(buildDiagnosisView([status("late", "2026-04-10", "Indeterminate or suspicious"), event("diagnosis", "Diagnosis", "2026-04-10")], [])!);
+    const longest = Math.max(...layout.lanes.flatMap((lane) => lane.events.map((item) => item.right)));
+
+    expect(layout.width).toBeGreaterThanOrEqual(longest);
+  });
+});

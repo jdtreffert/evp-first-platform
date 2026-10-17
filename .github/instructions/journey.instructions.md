@@ -16,6 +16,9 @@ Follow [docs/journey-design.md](../../docs/journey-design.md). In short:
   must still render.
 - Use each event's current version. Show provenance and edit history in event details.
 - Never infer clinical facts or generate interpretations. Missing data is unknown, not negative.
+- `Disease_Status` is an explicit, recorded assessment. Never derive or create one from other events (a CR, negative
+  tests, or the absence of Recurrence or Progression), and describe an old one by the date it was recorded, never as
+  the current status. It does not move phase boundaries.
 - Respect roles: patients see only their own record; clinical accounts are read-only.
 - Lanes are presentation groupings, not new event types. Do not change the canonical model to suit a view.
 - Check the existing timeline and onboarding code before adding a new path.

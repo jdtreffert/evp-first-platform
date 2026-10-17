@@ -94,6 +94,20 @@ describe("buildSurveillanceView", () => {
     ]);
   });
 
+  it("draws the confirming decision as a milestone and any other decision as an ordinary marker", () => {
+    const view = ready([
+      ...baseJourney,
+      event("cr", "Decision", "2026-09-20", { decisionType: "Complete response confirmed" }),
+      event("other", "Decision", "2026-09-25", { decisionType: "Change imaging frequency" }),
+    ]);
+
+    const lane = view.lanes.find((l) => l.lane.id === "decisions-milestones");
+    expect(lane?.events.map((e) => [e.event.uid, e.label, e.presentation.milestone])).toEqual([
+      ["cr", "Complete response confirmed", true],
+      ["other", "Decision", false],
+    ]);
+  });
+
   it("ends the complete response at the first Recurrence or Progression, and measures an ongoing one to the date given", () => {
     const events = [...baseJourney, event("cr", "Decision", "2026-09-20", { decisionType: "Complete response confirmed" })];
     const withFinding = buildSurveillanceView([...events, event("rec", "Recurrence", "2027-01-10")], []);

@@ -95,10 +95,18 @@ the assigned lanes and only when it has events, so nothing silently disappears. 
 type, never by attribute values.
 
 **Milestones** are drawn as diamonds: Diagnosis, Treatment_Start, Treatment_Change, Treatment_Response,
-Recurrence, Progression and Disease_Status (which has its own marker, see below). They are the points where evidence from other events becomes a decision or a
-conclusion. Because the choice is by event type, every Treatment_Change is a milestone, including the one that
-records that treatment is completed. Deliveries, imaging, labs and the like are ordinary markers. The policy
-also owns the display name of each event type (for example "Lab work") and the lane colors.
+Recurrence, Progression and Disease_Status (which has its own marker, see below). They are the points where
+evidence from other events becomes a decision or a conclusion. Because the choice is by event type, every
+Treatment_Change is a milestone, including the one that records that treatment is completed. Deliveries,
+imaging, labs and the like are ordinary markers.
+
+One recorded value also makes a milestone: a **Decision of type "Complete response confirmed"** is drawn as a
+milestone diamond and labelled by what it records, consistent with a Disease_Status being a milestone. It stays
+in the Decisions & Milestones lane, and every other Decision keeps the ordinary marker and the label "Decision".
+This is `presentationForEvent` in the presentation policy; `presentationFor(type)` is unchanged and the lane is
+still chosen by type alone.
+
+The policy also owns the display name of each event type (for example "Lab work") and the lane colors.
 
 ## Treatment phase selection and view
 

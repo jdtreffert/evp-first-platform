@@ -1,7 +1,7 @@
 import type { Encounter } from "../../../backend/src/types/Encounter";
 import type { UnifiedEvent } from "../../../backend/src/types/UnifiedEvents";
 import { calendarDay } from "./calendarDay";
-import { LANES, compactLabel, isIncompleteDelivery, lanesFor, presentationFor } from "./presentationPolicy";
+import { LANES, compactLabel, isIncompleteDelivery, lanesFor, presentationForEvent } from "./presentationPolicy";
 import type { EventPresentation, Lane } from "./presentationPolicy";
 
 /** An event in a phase view, with how it is presented and the encounter it links to. */
@@ -78,7 +78,7 @@ export function composePhase(
   const encountersByUid = new Map(encounters.map((encounter) => [encounter.uid, encounter]));
   const toViewEvent = (event: UnifiedEvent): ViewEvent => ({
     event,
-    presentation: presentationFor(event.eventType),
+    presentation: presentationForEvent(event),
     label: compactLabel(event),
     hollow: isIncompleteDelivery(event),
     day: calendarDay(event.eventDate),

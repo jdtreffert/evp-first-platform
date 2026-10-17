@@ -13,6 +13,7 @@ import {
   lanesFor,
   legendFor,
   presentationFor,
+  presentationForEvent,
 } from "../presentationPolicy";
 
 const registeredTypes = Object.keys(eventTypeFields);
@@ -267,5 +268,46 @@ describe("Disease_Status presentation", () => {
 
     expect(compactLabel(event)).toBe("Indeterminate or suspicious");
     expect(compactLabel(status(null, { diseaseStatusNotes: "No evidence of disease", eventSummary: "Disease present" }))).toBe("Disease Status");
+  });
+});
+
+describe("a Decision that confirms a complete response", () => {
+  const decision = (decisionType: string | null | undefined): UnifiedEvent => ({
+    uid: "d",
+    masterId: "M1",
+    eventType: "Decision",
+    eventDate: "2026-08-20",
+    decisionType,
+    payload: { id: "d", fields: {} },
+  });
+
+  it("is a milestone, in the Decisions & Milestones lane like every Decision, with the ordinary marker", () => {
+    const presentation = presentationForEvent(decision("Complete response confirmed"));
+
+    expect(presentation).toMatchObject({ milestone: true, marker: "standard", assigned: true, lane: { id: "decisions-milestones" } });
+    expect(presentation.lane).toBe(presentationFor("Decision").lane);
+  });
+
+  it("is labelled by what it records", () => {
+    expect(compactLabel(decision("Complete response confirmed"))).toBe("Complete response confirmed");
+  });
+
+  it.each(["Elect bladder preservation", "Hold treatment", "Other", "complete response confirmed", "", null, undefined])(
+    "leaves every other Decision, such as %j, as it was: an ordinary marker labelled Decision",
+    (decisionType) => {
+      expect(presentationForEvent(decision(decisionType))).toEqual(presentationFor("Decision"));
+      expect(presentationForEvent(decision(decisionType)).milestone).toBe(false);
+      expect(compactLabel(decision(decisionType))).toBe("Decision");
+    },
+  );
+
+  it("does not make any other event type a milestone because it carries that value", () => {
+    const note: UnifiedEvent = { ...decision("Complete response confirmed"), eventType: "Note" };
+
+    expect(presentationForEvent(note)).toEqual(presentationFor("Note"));
+  });
+
+  it("does not change what presentationFor says about the Decision type", () => {
+    expect(presentationFor("Decision").milestone).toBe(false);
   });
 });

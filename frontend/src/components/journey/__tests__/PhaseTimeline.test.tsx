@@ -175,3 +175,29 @@ describe("PhaseTimeline: Disease_Status", () => {
     expect(layout.width).toBeGreaterThanOrEqual(longest);
   });
 });
+
+describe("PhaseTimeline: Decisions", () => {
+  const decision = (uid: string, eventDate: string, decisionType: string): UnifiedEvent => ({
+    ...event(uid, "Decision", eventDate),
+    decisionType,
+  });
+
+  it("draws a complete response decision as a milestone diamond and other decisions as circles", () => {
+    const layout = layoutPhaseView(
+      buildDiagnosisView([
+        event("diagnosis", "Diagnosis", "2026-04-10"),
+        decision("cr", "2026-03-01", "Complete response confirmed"),
+        decision("other", "2026-03-15", "Hold treatment"),
+      ], [])!,
+    );
+    const html = renderToString(
+      <PhaseTimeline layout={layout} label="Timeline" selection={null} onSelectEvent={() => undefined} onSelectEncounter={() => undefined} />,
+    ).replaceAll("<!-- -->", "");
+
+    // The Diagnosis and the confirming decision are diamonds; the other decision is a circle.
+    expect(html.match(/<polygon/g)).toHaveLength(2);
+    expect(html).not.toContain("assessment-ring");
+    expect(html).toContain(">Complete response confirmed</text>");
+    expect(html).toContain(">Decision</text>");
+  });
+});

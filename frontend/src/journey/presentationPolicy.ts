@@ -1,10 +1,12 @@
 import type { UnifiedEvent } from "../../../backend/src/types/UnifiedEvents";
+import { COMPLETE_RESPONSE_CONFIRMED } from "./completeResponse";
 import { treatmentFullName, treatmentShortName } from "./treatmentLabels";
 
 /**
  * Presentation policy: how an event type is shown, kept apart from the clinical data. Everything here is
  * display-only. It never changes an event, and the lane an event type sits in carries no clinical meaning.
  * Lanes are keyed by event type, never by attribute values, so the same type always appears in the same lane.
+ * The one place a recorded value matters is whether an event is drawn as a milestone (`presentationForEvent`).
  *
  * Lanes are never stored: not in events, the schema, the backend or any saved setting. Renaming a lane or
  * moving an event type is a change to this file and its test only. If lane ids are ever persisted (for
@@ -157,6 +159,20 @@ export function presentationFor(eventType: string): EventPresentation {
   };
 }
 
+/**
+ * How a particular event is presented. It is `presentationFor` its type, except that a Decision recording that a
+ * complete response was confirmed is a milestone, like the other points where evidence becomes a conclusion. The
+ * lane is still the type's, and every other Decision keeps the ordinary marker.
+ */
+export function presentationForEvent(event: UnifiedEvent): EventPresentation {
+  const presentation = presentationFor(event.eventType);
+  return isCompleteResponseDecision(event) ? { ...presentation, milestone: true } : presentation;
+}
+
+function isCompleteResponseDecision(event: UnifiedEvent): boolean {
+  return event.eventType === "Decision" && event.decisionType === COMPLETE_RESPONSE_CONFIRMED;
+}
+
 /** The lanes to draw, in order, for the given event types: assigned lanes that have events, then Other. */
 export function lanesFor(eventTypes: Iterable<string>): Lane[] {
   const used = new Set<string>();
@@ -174,11 +190,12 @@ function formatDose(dose: number): string {
  * The short text drawn beside a marker, to keep timelines compact. A treatment delivery is labelled from its
  * data: a radiation dose by the dose and units ("2 Gy"), anything else by the treatment's short name, with the
  * cycle when recorded ("EV C2"), and plainly "Delivery" when no treatment is named. A Disease_Status is labelled
- * by its recorded category. Every other event uses the name of its type. The full details stay in the hover
- * text and the detail panel.
+ * by its recorded category, and a Decision that confirms a complete response by that. Every other event uses the
+ * name of its type. The full details stay in the hover text and the detail panel.
  */
 export function compactLabel(event: UnifiedEvent): string {
   if (event.eventType === "Disease_Status") return diseaseStatusLabel(event.diseaseStatusCategory) ?? eventTypeLabel(event.eventType);
+  if (isCompleteResponseDecision(event)) return COMPLETE_RESPONSE_CONFIRMED;
   if (event.eventType !== "Treatment_Delivery") return eventTypeLabel(event.eventType);
 
   const units = event.treatmentDoseUnits;
